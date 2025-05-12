@@ -111,8 +111,17 @@ func LoginHandler(c *gin.Context) {
 	logging.Auth.Login.WithFields("username", req.Username, "user_id", user.ID, "remote_ip", c.ClientIP()).
 		Info("User login successful")
 
+	c.SetCookie(
+		"auth_token",
+		token,
+		3600*24,
+		"/",
+		"",
+		true,
+		true,
+	)
+
 	c.JSON(http.StatusOK, gin.H{
-		"token":       token,
 		"user_id":     user.ID,
 		"username":    user.Username,
 		"email":       user.Email,
