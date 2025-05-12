@@ -129,6 +129,47 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
+// LogoutJWTHandler terminates the user's session by invalidating their JWT token.
+//
+// @Summary      Logout user
+// @Description  Invalidates the user's JWT token and terminates their session
+// @Tags         auth
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]string  "Logout successful"
+// @Failure      401  {object}  map[string]string  "Not authenticated"
+// @Router       /auth/logout [post]
+func LogoutJWTHandler(c *gin.Context) {
+	// Check if user is authenticated
+	user, ok := auth.GetCurrentUser(c)
+	if !ok {
+		logging.Auth.Session.WithFields("remote_ip", c.ClientIP(), "reason", "not_authenticated").
+			Info("Logout attempt from unauthenticated user")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	// Log the logout event
+	logging.Auth.Session.WithFields("user_id", user.ID, "username", user.Username, "remote_ip", c.ClientIP()).
+		Info("User logged out")
+
+	// Invalidate the JWT token by setting an empty value and a negative expiration time
+	c.SetCookie(
+		"auth_token",
+		"",
+		-1,
+		"/",
+		"",
+		true,
+		true,
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Logout successful",
+		"status":  "success",
+	})
+}
+
 // RegisterHandler creates a new user account.
 //
 // @Summary      Register new user
