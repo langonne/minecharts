@@ -6,7 +6,6 @@ package auth
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"minecharts/cmd/database"
@@ -25,32 +24,20 @@ const (
 // and sets the authenticated user in the Gin context for downstream handlers.
 func JWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get Authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		// Get Cookie
+		cookie, err := c.Cookie("auth")
+		if err != nil {
 			logging.Auth.JWT.WithFields(
 				"path", c.Request.URL.Path,
 				"remote_ip", c.ClientIP(),
-				"error", "missing_auth_header",
-			).Warn("Authentication failed: missing Authorization header")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-			return
-		}
-
-		// Check for Bearer token format
-		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			logging.Auth.JWT.WithFields(
-				"path", c.Request.URL.Path,
-				"remote_ip", c.ClientIP(),
-				"error", "invalid_auth_format",
-			).Warn("Authentication failed: invalid Authorization header format")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be 'Bearer {token}'"})
+				"error", "missing_cookie",
+			).Warn("Authentication failed: missing cookie")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication cookie is required"})
 			return
 		}
 
 		// Validate token
-		claims, err := ValidateJWT(parts[1])
+		claims, err := ValidateJWT(cookie)
 		if err != nil {
 			if err == ErrExpiredToken {
 				logging.Auth.JWT.WithFields(
