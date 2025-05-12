@@ -25,7 +25,7 @@ const (
 func JWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get Cookie
-		cookie, err := c.Cookie("auth")
+		cookie, err := c.Cookie("auth_token")
 		if err != nil {
 			logging.Auth.JWT.WithFields(
 				"path", c.Request.URL.Path,
