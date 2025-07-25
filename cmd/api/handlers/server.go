@@ -13,19 +13,26 @@ import (
 	"github.com/gin-gonic/gin"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// MinecraftServerEnv extends MinecraftServer to include environment variables
+type MinecraftServerEnv struct {
+	*database.MinecraftServer
+	Environment map[string]string `json:"environment,omitempty"`
+}
+
 // ListMinecraftServersHandler lists all Minecraft servers of the authenticated user.
-// // @Summary      List Minecraft servers
+// @Summary      List Minecraft servers
 // @Description  Lists all Minecraft servers owned by the authenticated user
 // @Tags         servers
 // @Produce      json
 // @Security     BearerAuth
 // @Security     APIKeyAuth
-// @Success      200  {array}   database.MinecraftServer  "List of Minecraft servers"
-// @Failure      401  {object}  map[string]string          "Authentication required"
-// @Failure      403  {object}  map[string]string          "Permission denied"
-// @Failure      500  {object}  map[string]string          "Server error"
+// @Success      200  {array}   MinecraftServerEnv  "List of Minecraft servers with environment variables"
+// @Failure      401  {object}  map[string]string   "Authentication required"
+// @Failure      403  {object}  map[string]string   "Permission denied"
+// @Failure      500  {object}  map[string]string   "Server error"
 // @Router       /servers [get]
 func ListMinecraftServersHandler(c *gin.Context) {
 	// Get current user for logging
@@ -54,7 +61,46 @@ func ListMinecraftServersHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, servers)
+	// Enrich servers with environment variables
+	enrichedServers := make([]MinecraftServerEnv, 0, len(servers))
+	for _, server := range servers {
+		enriched := MinecraftServerEnv{
+			MinecraftServer: server,
+			Environment:     make(map[string]string),
+		}
+
+		// Get deployment to extract environment variables
+		deployment, err := kubernetes.Clientset.AppsV1().Deployments(config.DefaultNamespace).Get(
+			c.Request.Context(),
+			server.DeploymentName,
+			metav1.GetOptions{},
+		)
+
+		if err == nil {
+			// Find the minecraft-server container and extract its environment variables
+			for _, container := range deployment.Spec.Template.Spec.Containers {
+				if container.Name == "minecraft-server" {
+					for _, env := range container.Env {
+						enriched.Environment[env.Name] = env.Value
+					}
+					break
+				}
+			}
+			logging.Server.WithFields(
+				"server_name", server.ServerName,
+				"env_vars_count", len(enriched.Environment),
+			).Debug("Retrieved environment variables")
+		} else {
+			logging.Server.WithFields(
+				"server_name", server.ServerName,
+				"error", err.Error(),
+			).Warn("Could not retrieve deployment for environment variables")
+		}
+
+		enrichedServers = append(enrichedServers, enriched)
+	}
+
+	c.JSON(http.StatusOK, enrichedServers)
 }
 
 // StartMinecraftServerRequest represents the request to create a Minecraft server.
