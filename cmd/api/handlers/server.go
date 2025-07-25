@@ -24,7 +24,7 @@ type MinecraftServerEnv struct {
 
 // ListMinecraftServersHandler lists all Minecraft servers of the authenticated user.
 // @Summary      List Minecraft servers
-// @Description  Lists all Minecraft servers owned by the authenticated user
+// @Description  Lists all Minecraft servers owned by the authenticated user that have existing deployments
 // @Tags         servers
 // @Produce      json
 // @Security     BearerAuth
@@ -61,14 +61,9 @@ func ListMinecraftServersHandler(c *gin.Context) {
 		return
 	}
 
-	// Enrich servers with environment variables
+	// Enrich servers with environment variables - only include servers with existing deployments
 	enrichedServers := make([]MinecraftServerEnv, 0, len(servers))
 	for _, server := range servers {
-		enriched := MinecraftServerEnv{
-			MinecraftServer: server,
-			Environment:     make(map[string]string),
-		}
-
 		// Get deployment to extract environment variables
 		deployment, err := kubernetes.Clientset.AppsV1().Deployments(config.DefaultNamespace).Get(
 			c.Request.Context(),
@@ -76,27 +71,43 @@ func ListMinecraftServersHandler(c *gin.Context) {
 			metav1.GetOptions{},
 		)
 
-		if err == nil {
-			// Find the minecraft-server container and extract its environment variables
-			for _, container := range deployment.Spec.Template.Spec.Containers {
-				if container.Name == "minecraft-server" {
-					for _, env := range container.Env {
-						enriched.Environment[env.Name] = env.Value
-					}
-					break
-				}
-			}
-			logging.Server.WithFields(
-				"server_name", server.ServerName,
-				"env_vars_count", len(enriched.Environment),
-			).Debug("Retrieved environment variables")
-		} else {
+		// Skip servers without existing deployments
+		if err != nil {
 			logging.Server.WithFields(
 				"server_name", server.ServerName,
 				"deployment", server.DeploymentName,
 				"error", err.Error(),
-			).Warn("Could not retrieve deployment for environment variables")
+			).Debug("Skipping server without deployment")
+			continue
 		}
+
+		enriched := MinecraftServerEnv{
+			MinecraftServer: server,
+			Environment:     make(map[string]string),
+		}
+
+		// Update status based on deployment replicas
+		if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas == 0 {
+			enriched.Status = "stopped"
+		} else {
+			enriched.Status = "running"
+		}
+
+		// Find the minecraft-server container and extract its environment variables
+		for _, container := range deployment.Spec.Template.Spec.Containers {
+			if container.Name == "minecraft-server" {
+				for _, env := range container.Env {
+					enriched.Environment[env.Name] = env.Value
+				}
+				break
+			}
+		}
+
+		logging.Server.WithFields(
+			"server_name", server.ServerName,
+			"env_vars_count", len(enriched.Environment),
+			"status", enriched.Status,
+		).Debug("Retrieved environment variables")
 
 		enrichedServers = append(enrichedServers, enriched)
 	}
