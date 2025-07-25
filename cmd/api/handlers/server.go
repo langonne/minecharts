@@ -93,6 +93,7 @@ func ListMinecraftServersHandler(c *gin.Context) {
 		} else {
 			logging.Server.WithFields(
 				"server_name", server.ServerName,
+				"deployment", server.DeploymentName,
 				"error", err.Error(),
 			).Warn("Could not retrieve deployment for environment variables")
 		}
