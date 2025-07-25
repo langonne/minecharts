@@ -15,6 +15,48 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// ListMinecraftServersHandler lists all Minecraft servers of the authenticated user.
+// // @Summary      List Minecraft servers
+// @Description  Lists all Minecraft servers owned by the authenticated user
+// @Tags         servers
+// @Produce      json
+// @Security     BearerAuth
+// @Security     APIKeyAuth
+// @Success      200  {array}   database.MinecraftServer  "List of Minecraft servers"
+// @Failure      401  {object}  map[string]string          "Authentication required"
+// @Failure      403  {object}  map[string]string          "Permission denied"
+// @Failure      500  {object}  map[string]string          "Server error"
+// @Router       /servers [get]
+func ListMinecraftServersHandler(c *gin.Context) {
+	// Get current user for logging
+	user, _ := auth.GetCurrentUser(c)
+	userID := int64(0)
+	username := "unknown"
+	if user != nil {
+		userID = user.ID
+		username = user.Username
+	}
+
+	logging.Server.WithFields(
+		"user_id", userID,
+		"username", username,
+		"remote_ip", c.ClientIP(),
+	).Info("Listing Minecraft servers")
+
+	db := database.GetDB()
+	servers, err := db.ListServersByOwner(c.Request.Context(), userID)
+	if err != nil {
+		logging.DB.WithFields(
+			"user_id", userID,
+			"error", err.Error(),
+		).Error("Failed to list Minecraft servers")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list servers: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, servers)
+}
+
 // StartMinecraftServerRequest represents the request to create a Minecraft server.
 type StartMinecraftServerRequest struct {
 	ServerName string            `json:"serverName" binding:"required" example:"survival"`
