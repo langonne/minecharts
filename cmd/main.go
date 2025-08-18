@@ -82,8 +82,6 @@ func main() {
 	defer database.GetDB().Close()
 	logger.Info("Database initialized")
 
-	logger.Info("Test log")
-
 	// Create a new Gin router
 	router := gin.Default()
 	proxies := strings.Split(config.TrustedProxies, ",")
