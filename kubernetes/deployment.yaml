@@ -35,7 +35,8 @@ spec:
               value: "text"
             - name: MINECHARTS_TIMEZONE
               value: "Europe/Paris"
-
+            - name: MINECHARTS_TRUSTED_PROXIES
+              value: "10.244.0.0/16"
           volumeMounts:
             - name: data-volume
               mountPath: /app/data
@@ -44,7 +45,7 @@ spec:
               memory: "128Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"<
+              memory: "512Mi"
               cpu: "500m"
       volumes:
         - name: data-volume
