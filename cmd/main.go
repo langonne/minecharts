@@ -80,7 +80,7 @@ func main() {
 		logger.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer database.GetDB().Close()
-	logger.Info("Database initialized")
+	logger.Info("Database")
 
 	// Create a new Gin router
 	router := gin.Default()
