@@ -15,6 +15,9 @@ var (
 	StorageClass     = getEnv("MINECHARTS_STORAGE_CLASS", "rook-ceph-block")
 	DefaultReplicas  = 1
 
+	//  Reverse proxy configuration
+	TrustedProxies = getEnv("MINECHARTS_TRUSTED_PROXIES", "127.0.0.1")
+
 	// Database configuration
 	DatabaseType             = getEnv("MINECHARTS_DB_TYPE", "sqlite")                         // "sqlite" or "postgres"
 	DatabaseConnectionString = getEnv("MINECHARTS_DB_CONNECTION", "./app/data/minecharts.db") // File path for SQLite or connection string for Postgres
