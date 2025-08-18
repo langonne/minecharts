@@ -50,7 +50,7 @@ func main() {
 		logging.WithFields(
 			logging.F("timezone", config.TimeZone),
 			logging.F("error", err.Error()),
-		).Warn("Failed to load timezone, falling back to UTC")
+		).Warn("FFFailed to load timezone, falling back to UTC")
 		location = time.UTC
 	}
 
