@@ -88,9 +88,7 @@ func main() {
 	if err := router.SetTrustedProxies(proxies); err != nil {
 		log.Fatalf("invalid trusted proxies: %v", err)
 	}
-	logging.WithFields(
-		logging.F("trusted proxies", proxies),
-	).Info("Trusted proxies configured")
+	logger.Info("Trusted proxies configured", "proxies", proxies)
 
 	// Setup API routes
 	api.SetupRoutes(router)
