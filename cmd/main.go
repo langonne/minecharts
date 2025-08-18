@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log"
 	"minecharts/cmd/api"
 	"minecharts/cmd/config"
 	"minecharts/cmd/database"
 	_ "minecharts/cmd/docs" // Import swagger docs
 	"minecharts/cmd/kubernetes"
 	"minecharts/cmd/logging"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -82,6 +84,10 @@ func main() {
 
 	// Create a new Gin router
 	router := gin.Default()
+	proxies := strings.Split(config.TrustedProxies, ",")
+	if err := router.SetTrustedProxies(proxies); err != nil {
+		log.Fatalf("invalid trusted proxies: %v", err)
+	}
 
 	// Setup API routes
 	api.SetupRoutes(router)
