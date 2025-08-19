@@ -36,7 +36,7 @@ spec:
             - name: MINECHARTS_TIMEZONE
               value: "Europe/Paris"
             - name: MINECHARTS_TRUSTED_PROXIES
-              value: "10.244.0.0/16"
+              value: "10.244.0.0/16,192.168.1.0/24"
           volumeMounts:
             - name: data-volume
               mountPath: /app/data
