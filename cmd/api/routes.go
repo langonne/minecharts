@@ -68,6 +68,7 @@ func SetupRoutes(router *gin.Engine) {
 
 		// Server operations
 		serverGroup.GET("", auth.RequirePermission(database.PermViewServer), handlers.ListMinecraftServersHandler)
+		serverGroup.GET("/:serverName", auth.RequireServerPermission(database.PermViewServer), handlers.GetMinecraftServerHandler)
 		serverGroup.POST("/:serverName/restart", auth.RequireServerPermission(database.PermRestartServer), handlers.RestartMinecraftServerHandler)
 		serverGroup.POST("/:serverName/stop", auth.RequireServerPermission(database.PermStopServer), handlers.StopMinecraftServerHandler)
 		serverGroup.POST("/:serverName/start", auth.RequireServerPermission(database.PermStartServer), handlers.StartStoppedServerHandler)
