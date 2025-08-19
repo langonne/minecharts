@@ -22,6 +22,120 @@ type MinecraftServerEnv struct {
 	Environment map[string]string `json:"environment,omitempty"`
 }
 
+// GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
+//
+// @Summary      Get a Minecraft server
+// @Description  Returns a single Minecraft server (with environment variables) owned by the authenticated user and with an existing deployment
+// @Tags         servers
+// @Produce      json
+// @Security     BearerAuth
+// @Security     APIKeyAuth
+// @Param        serverName  path      string  true  "Server name"
+// @Success      200         {object}  MinecraftServerEnv      "Server details with environment variables"
+// @Failure      401         {object}  map[string]string       "Authentication required"
+// @Failure      403         {object}  map[string]string       "Permission denied (not owner)"
+// @Failure      404         {object}  map[string]string       "Server not found or deployment missing"
+// @Failure      500         {object}  map[string]string       "Server error"
+// @Router       /servers/{serverName} [get]
+func GetMinecraftServerHandler(c *gin.Context) {
+	// Require authenticated user
+	user, ok := auth.GetCurrentUser(c)
+	if !ok || user == nil {
+		logging.Server.WithFields(
+			"remote_ip", c.ClientIP(),
+			"reason", "not_authenticated",
+		).Warn("Get server denied")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	serverName := c.Param("serverName")
+	userID := user.ID
+
+	logging.Server.WithFields(
+		"server_name", serverName,
+		"user_id", userID,
+		"username", user.Username,
+		"remote_ip", c.ClientIP(),
+	).Info("Getting Minecraft server")
+
+	db := database.GetDB()
+
+	// Find the server by owner then by name to ensure ownership
+	servers, err := db.ListServersByOwner(c.Request.Context(), userID)
+	if err != nil {
+		logging.DB.WithFields(
+			"user_id", userID,
+			"error", err.Error(),
+		).Error("Failed to list servers for owner")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query servers"})
+		return
+	}
+
+	var srv *database.MinecraftServer
+	for _, s := range servers {
+		if s.ServerName == serverName {
+			srv = s
+			break
+		}
+	}
+
+	// Not found for this owner
+	if srv == nil {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"user_id", userID,
+		).Warn("Server not found for owner")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
+		return
+	}
+
+	// Must have an existing deployment
+	deployment, err := kubernetes.Clientset.AppsV1().Deployments(config.DefaultNamespace).Get(
+		c.Request.Context(),
+		srv.DeploymentName,
+		metav1.GetOptions{},
+	)
+	if err != nil {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"deployment", srv.DeploymentName,
+			"error", err.Error(),
+		).Warn("Deployment not found for server")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server deployment not found"})
+		return
+	}
+
+	// Build response with env vars and status
+	enriched := MinecraftServerEnv{
+		MinecraftServer: srv,
+		Environment:     make(map[string]string),
+	}
+
+	if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas == 0 {
+		enriched.Status = "stopped"
+	} else {
+		enriched.Status = "running"
+	}
+
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		if container.Name == "minecraft-server" {
+			for _, env := range container.Env {
+				enriched.Environment[env.Name] = env.Value
+			}
+			break
+		}
+	}
+
+	logging.Server.WithFields(
+		"server_name", serverName,
+		"env_vars_count", len(enriched.Environment),
+		"status", enriched.Status,
+	).Debug("Returning single server with environment")
+
+	c.JSON(http.StatusOK, enriched)
+}
+
 // ListMinecraftServersHandler lists all Minecraft servers of the authenticated user.
 // @Summary      List Minecraft servers
 // @Description  Lists all Minecraft servers owned by the authenticated user that have existing deployments
