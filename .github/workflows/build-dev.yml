@@ -43,7 +43,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/zent0x/minecharts-api:dev-${{ github.sha }}
-            ghcr.io/zent0x/minecharts-api:dev-latest
+            ghcr.io/langonne/minecharts-api:dev-${{ github.sha }}
+            ghcr.io/langonne/minecharts-api:dev-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

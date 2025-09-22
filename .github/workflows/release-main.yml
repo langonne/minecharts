@@ -71,5 +71,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/zent0x/minecharts-api:latest
-            ghcr.io/zent0x/minecharts-api:${{ steps.get_version.outputs.version }}
+            ghcr.io/langonne/minecharts-api:latest
+            ghcr.io/langonne/minecharts-api:${{ steps.get_version.outputs.version }}
