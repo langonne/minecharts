@@ -437,7 +437,7 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 	).Info("Restarting Minecraft server")
 
 	// Check if the deployment exists
-	_, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	deployment, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
@@ -448,7 +448,7 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 
 	// Get the pod associated with this deployment to run the save command
 	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, deploymentName)
-	if err != nil || pod == nil {
+	if err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
 			"deployment", deploymentName,
@@ -456,6 +456,37 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 		).Error("Failed to find pod for deployment")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to find pod for deployment: " + deploymentName,
+		})
+		return
+	}
+
+	if pod == nil {
+		replicas := int32(0)
+		if deployment.Spec.Replicas != nil {
+			replicas = *deployment.Spec.Replicas
+		}
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"deployment", deploymentName,
+			"desired_replicas", replicas,
+		).Info("No running pod found for restart; scaling deployment to 1")
+
+		if err := kubernetes.SetDeploymentReplicas(config.DefaultNamespace, deploymentName, 1); err != nil {
+			logging.Server.WithFields(
+				"server_name", serverName,
+				"deployment", deploymentName,
+				"error", err.Error(),
+			).Error("Failed to scale deployment while handling restart without pod")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":          "Failed to scale deployment: " + err.Error(),
+				"deploymentName": deploymentName,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":        "No running pod was found; deployment scaled to 1 instead of restart",
+			"deploymentName": deploymentName,
 		})
 		return
 	}
