@@ -586,7 +586,7 @@ func StopMinecraftServerHandler(c *gin.Context) {
 			"pod", pod.Name,
 		).Debug("Saving world before stopping server")
 		// Save the world before scaling down
-		_, _, err := kubernetes.ExecuteCommandInPod(pod.Name, config.DefaultNamespace, "minecraft-server", "mc-send-to-console save-all")
+		_, _, err := kubernetes.SaveWorld(pod.Name, config.DefaultNamespace)
 		if err != nil {
 			logging.Server.WithFields(
 				"server_name", serverName,
