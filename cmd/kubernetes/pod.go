@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"time"
 
 	"minecharts/cmd/logging"
@@ -71,9 +72,21 @@ func ExecuteCommandInPod(podName, namespace, containerName, command string) (std
 		Namespace(namespace).
 		SubResource("exec")
 
+	wrappedCommand := fmt.Sprintf(`if [ "$(id -u)" != "1000" ]; then
+	if command -v gosu >/dev/null 2>&1; then
+		exec gosu 1000:1000 /bin/bash -c %q
+	elif command -v runuser >/dev/null 2>&1; then
+		exec runuser -u 1000 -- /bin/bash -c %q
+	else
+		exec /bin/bash -c %q
+	fi
+else
+	exec /bin/bash -c %q
+fi`, command, command, command, command)
+
 	execReq.VersionedParams(&corev1.PodExecOptions{
 		Container: containerName,
-		Command:   []string{"/bin/bash", "-c", command},
+		Command:   []string{"/bin/bash", "-c", wrappedCommand},
 		Stdout:    true,
 		Stderr:    true,
 	}, scheme.ParameterCodec)
