@@ -56,6 +56,9 @@ func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev
 	).Info("Creating Minecraft server deployment")
 
 	replicas := int32(config.DefaultReplicas)
+	userID := int64(1000)
+	groupID := int64(1000)
+	fsGroupID := int64(1000)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -82,6 +85,11 @@ func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev
 					},
 				},
 				Spec: corev1.PodSpec{
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsUser:  &userID,
+						RunAsGroup: &groupID,
+						FSGroup:    &fsGroupID,
+					},
 					Containers: []corev1.Container{
 						{
 							Name:  "minecraft-server",
