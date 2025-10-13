@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -332,6 +333,34 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		return
 	}
 
+	domain := fmt.Sprintf("%s.%s", baseName, config.MCRouterDomainSuffix)
+	serviceName := deploymentName + "-svc"
+	mcRouterAnnotations := map[string]string{
+		"mc-router.itzg.me/externalServerName": domain,
+	}
+
+	service, err := kubernetes.CreateService(config.DefaultNamespace, deploymentName, corev1.ServiceTypeClusterIP, 25565, mcRouterAnnotations)
+	if err != nil {
+		logging.Server.WithFields(
+			"server_name", baseName,
+			"deployment", deploymentName,
+			"service", serviceName,
+			"domain", domain,
+			"user_id", userID,
+			"error", err.Error(),
+		).Error("Failed to create mc-router service")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to expose server with mc-router: " + err.Error()})
+		return
+	}
+
+	logging.Server.WithFields(
+		"server_name", baseName,
+		"deployment", deploymentName,
+		"service", serviceName,
+		"domain", domain,
+		"user_id", userID,
+	).Info("Minecraft server exposed through mc-router")
+
 	// After successful deployment creation, record the server in database
 	server := &database.MinecraftServer{
 		ServerName:     baseName,
@@ -361,7 +390,13 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		"username", username,
 	).Info("Minecraft server created successfully")
 
-	c.JSON(http.StatusOK, gin.H{"message": "Minecraft server started", "deploymentName": deploymentName, "pvcName": pvcName})
+	c.JSON(http.StatusOK, gin.H{
+		"message":        "Minecraft server started",
+		"deploymentName": deploymentName,
+		"pvcName":        pvcName,
+		"domain":         domain,
+		"serviceName":    service.Name,
+	})
 }
 
 // RestartMinecraftServerHandler saves the world and then restarts the deployment.
