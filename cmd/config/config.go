@@ -8,12 +8,13 @@ import (
 // Global configuration variables, configurable via environment variables.
 var (
 	// Server configuration
-	DefaultNamespace = getEnv("MINECHARTS_NAMESPACE", "minecharts")
-	DeploymentPrefix = getEnv("MINECHARTS_DEPLOYMENT_PREFIX", "minecraft-server-")
-	PVCSuffix        = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
-	StorageSize      = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
-	StorageClass     = getEnv("MINECHARTS_STORAGE_CLASS", "rook-ceph-block")
-	DefaultReplicas  = 1
+	DefaultNamespace     = getEnv("MINECHARTS_NAMESPACE", "minecharts")
+	DeploymentPrefix     = getEnv("MINECHARTS_DEPLOYMENT_PREFIX", "minecraft-server-")
+	PVCSuffix            = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
+	StorageSize          = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
+	StorageClass         = getEnv("MINECHARTS_STORAGE_CLASS", "rook-ceph-block")
+	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "test.nasdak.fr")
+	DefaultReplicas      = 1
 
 	//  Reverse proxy configuration
 	TrustedProxies = getEnv("MINECHARTS_TRUSTED_PROXIES", "127.0.0.1")
