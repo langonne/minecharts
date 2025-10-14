@@ -6,9 +6,6 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/lib/pq v1.10.9
-	github.com/swaggo/files v1.0.1
-	github.com/swaggo/gin-swagger v1.6.0
-	github.com/swaggo/swag v1.16.3
 	golang.org/x/crypto v0.36.0
 	golang.org/x/oauth2 v0.28.0
 	k8s.io/api v0.32.3
