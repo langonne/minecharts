@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>http://127.0.0.1/</loc>
-         <lastmod>2025-07-25</lastmod>
+         <loc>https://langonne.github.io/minecharts-api/</loc>
+         <lastmod>2025-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts-api/api/</loc>
+         <lastmod>2025-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts-api/configuration/</loc>
+         <lastmod>2025-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts-api/database/</loc>
+         <lastmod>2025-10-14</lastmod>
     </url>
 </urlset>
