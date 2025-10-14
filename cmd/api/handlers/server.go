@@ -21,6 +21,43 @@ import (
 type MinecraftServerEnv struct {
 	*database.MinecraftServer
 	Environment map[string]string `json:"environment,omitempty"`
+	URL         string            `json:"url,omitempty"`
+}
+
+const mcRouterAnnotation = "mc-router.itzg.me/externalServerName"
+
+func formatServerURL(domain string, port int32) string {
+	if domain == "" {
+		return ""
+	}
+
+	if port <= 0 || port == 25565 {
+		return domain
+	}
+
+	return fmt.Sprintf("%s:%d", domain, port)
+}
+
+func extractMCRouterURL(service *corev1.Service) string {
+	if service == nil {
+		return ""
+	}
+
+	annotations := service.Annotations
+	var domain string
+	if annotations != nil {
+		domain = annotations[mcRouterAnnotation]
+	}
+	if domain == "" {
+		return ""
+	}
+
+	var port int32 = 25565
+	if len(service.Spec.Ports) > 0 {
+		port = service.Spec.Ports[0].Port
+	}
+
+	return formatServerURL(domain, port)
 }
 
 // GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
@@ -107,10 +144,23 @@ func GetMinecraftServerHandler(c *gin.Context) {
 		return
 	}
 
-	// Build response with env vars and status
+	// Build response with env vars, status, and optional mc-router URL
 	enriched := MinecraftServerEnv{
 		MinecraftServer: srv,
 		Environment:     make(map[string]string),
+	}
+
+	serviceName := srv.DeploymentName + "-svc"
+	if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"service", serviceName,
+			"error", svcErr.Error(),
+		).Debug("Unable to retrieve service; URL will not be included")
+	} else {
+		if url := extractMCRouterURL(service); url != "" {
+			enriched.URL = url
+		}
 	}
 
 	if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas == 0 {
@@ -199,6 +249,19 @@ func ListMinecraftServersHandler(c *gin.Context) {
 		enriched := MinecraftServerEnv{
 			MinecraftServer: server,
 			Environment:     make(map[string]string),
+		}
+
+		serviceName := server.DeploymentName + "-svc"
+		if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
+			logging.Server.WithFields(
+				"server_name", server.ServerName,
+				"service", serviceName,
+				"error", svcErr.Error(),
+			).Debug("Unable to retrieve service for list; URL omitted")
+		} else {
+			if url := extractMCRouterURL(service); url != "" {
+				enriched.URL = url
+			}
 		}
 
 		// Update status based on deployment replicas
@@ -390,13 +453,19 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		"username", username,
 	).Info("Minecraft server created successfully")
 
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"message":        "Minecraft server started",
 		"deploymentName": deploymentName,
 		"pvcName":        pvcName,
 		"domain":         domain,
 		"serviceName":    service.Name,
-	})
+	}
+
+	if url := extractMCRouterURL(service); url != "" {
+		response["url"] = url
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // RestartMinecraftServerHandler saves the world and then restarts the deployment.
