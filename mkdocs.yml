@@ -1,49 +1,40 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
-site_name: Minecharts API
-site_url : http://127.0.0.1
+site_name: Minecharts
+site_url: https://langonne.github.io/minecharts-api/
 
-repo_url: https://github.com/ZenT0x/minecharts-api
-repo_name: ZenT0x/minecharts-api
+repo_url: https://github.com/langonne/minecharts-api
+repo_name: langonne/minecharts-api
 
 nav:
   - Home: index.md
+  - API: api.md
+  - Configuration: configuration.md
+  - Database Architecture: database.md
 
 plugins:
   - search
+  - macros
 
 extra:
-  consent:
-    title: Cookie consent
-    description: >- 
-      We use cookies to recognize your repeated visits and preferences, as well
-      as to measure the effectiveness of our documentation and whether users
-      find what they're searching for. With your consent, you're helping us to
-      make our documentation better.
-    actions:
-      - reject
-      - manage
-      - accept
-    cookies:
-      analytics:
-        name: Google Analytics
-        checked: false
-      github:
-        name: Github
-        checked: false
+  nasdak_url: "nasdak.fr"
+  prod_prefix_url: "prod"
 
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 
 copyright: >
-  <a href="#__consent">Change cookie settings</a>
+  © NASDAK | <a href="https://status.allaine.cc/status/nasdak">Service status</a>
 
 theme:
   name: material
   language: en
   features:
     - navigation.instant
+    - navigation.instant.progress
     - navigation.tracking
     - navigation.tabs
     - navigation.tabs.sticky
@@ -58,24 +49,21 @@ theme:
     - content.code.select
 
   palette:
-    # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
         name: Switch to light mode
-
-    # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: default 
-
-
+      scheme: default
+      primary: green
+      accent: green
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-
-    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: green
+      accent: green
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
