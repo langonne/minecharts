@@ -1,0 +1,102 @@
+# Authentication Endpoints
+
+## `POST /auth/register`
+- **Purpose:** Create a user account and issue an authenticated session.
+- **Auth required:** None
+
+=== "Request"
+
+    ```http
+    POST /auth/register HTTP/1.1
+    Content-Type: application/json
+
+    {
+      "username": "overseer",
+      "email": "overseer@example.com",
+      "password": "Sup3rStrongPassword!"
+    }
+    ```
+
+=== "Response"
+
+    ```json
+    {
+      "token": "<jwt>",
+      "user_id": 1,
+      "username": "overseer",
+      "email": "overseer@example.com",
+      "permissions": 0
+    }
+    ```
+
+## `POST /auth/login`
+- **Purpose:** Authenticate an existing user and receive the `auth_token` cookie.
+- **Auth required:** None
+
+=== "Request"
+
+    ```http
+    POST /auth/login HTTP/1.1
+    Content-Type: application/json
+
+    {
+      "username": "overseer",
+      "password": "Sup3rStrongPassword!"
+    }
+    ```
+
+=== "Response"
+
+    ```json
+    {
+      "user_id": 1,
+      "username": "overseer",
+      "email": "overseer@example.com",
+      "permissions": 255
+    }
+    ```
+
+## `POST /auth/logout`
+- **Purpose:** Invalidate the active session cookie.
+- **Auth required:** JWT cookie
+
+=== "Request"
+
+    ```http
+    POST /auth/logout HTTP/1.1
+    Cookie: auth_token=<jwt>
+    ```
+
+=== "Response"
+
+    ```json
+    {
+      "message": "Logout successful",
+      "status": "success"
+    }
+    ```
+
+## `GET /auth/me`
+- **Purpose:** Retrieve the authenticated user profile and permissions.
+- **Auth required:** JWT cookie
+
+=== "Request"
+
+    ```http
+    GET /auth/me HTTP/1.1
+    Cookie: auth_token=<jwt>
+    ```
+
+=== "Response"
+
+    ```json
+    {
+      "user_id": 1,
+      "username": "overseer",
+      "email": "overseer@example.com",
+      "permissions": 255,
+      "active": true,
+      "last_login": "2024-05-10T18:12:44Z",
+      "created_at": "2024-03-01T09:15:32Z"
+    }
+    ```
