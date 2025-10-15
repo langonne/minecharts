@@ -7,7 +7,17 @@ repo_name: langonne/minecharts-api
 
 nav:
   - Home: index.md
-  - API: api.md
+  - API:
+      - api/index.md
+      - Authentification model: api/authentification_model.md
+      - Request flow: api/request_flow.md
+      - Operational notes: api/operational_notes.md
+      - Endpoint reference:
+          - Authentification: api/endpoint/authentification.md
+          - API Keys: api/endpoint/api_keys.md
+          - Servers: api/endpoint/servers.md
+          - Users: api/endpoint/users.md
+
   - Configuration: configuration.md
   - Database Architecture: database.md
 
@@ -43,7 +53,7 @@ theme:
     - navigation.path
     - navigation.top
     - toc.follow
-    - toc.integrate
+    # - toc.integrate
     - search.suggest
     - content.code.copy
     - content.code.select
