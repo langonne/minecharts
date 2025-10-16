@@ -4,6 +4,9 @@
 - **Purpose:** Generate a new API key (revealed once).
 - **Auth required:** JWT cookie
 
+!!! info "Storage"
+    API keys are hashed before being stored in the database. Only the identifier and metadata are kept, so the raw value is visible **only** in the creation response. Rotate or reissue keys if you suspect a leak.
+
 === "Request"
 
     ```http

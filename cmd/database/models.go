@@ -39,7 +39,8 @@ var (
 type APIKey struct {
 	ID          int64      `json:"id"`
 	UserID      int64      `json:"user_id"`
-	Key         string     `json:"key"`
+	KeyID       string     `json:"-"`
+	KeyHash     string     `json:"-"`
 	Description string     `json:"description"`
 	LastUsed    time.Time  `json:"last_used"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"` // Make this a pointer to allow null values

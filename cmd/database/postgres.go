@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"minecharts/cmd/auth"
 	"minecharts/cmd/logging"
 
 	pq "github.com/lib/pq"
@@ -70,6 +71,7 @@ func (p *PostgresDB) Init() error {
 			id SERIAL PRIMARY KEY,
 			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 			key TEXT UNIQUE NOT NULL,
+			key_hash TEXT,
 			description TEXT,
 			last_used TIMESTAMP,
 			expires_at TIMESTAMP,
@@ -80,6 +82,14 @@ func (p *PostgresDB) Init() error {
 		logging.DB.WithFields(
 			"error", err.Error(),
 		).Error("Failed to create api_keys table")
+		return err
+	}
+
+	_, err = p.db.Exec(`ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS key_hash TEXT`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to add key_hash column to api_keys")
 		return err
 	}
 
@@ -482,8 +492,8 @@ func (p *PostgresDB) CreateAPIKey(ctx context.Context, key *APIKey) error {
 	key.CreatedAt = now
 
 	err := p.db.QueryRowContext(ctx,
-		"INSERT INTO api_keys (user_id, key, description, expires_at, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		key.UserID, key.Key, key.Description, key.ExpiresAt, key.CreatedAt,
+		"INSERT INTO api_keys (user_id, key, key_hash, description, expires_at, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		key.UserID, key.KeyID, key.KeyHash, key.Description, key.ExpiresAt, key.CreatedAt,
 	).Scan(&key.ID)
 	if err != nil {
 		logging.DB.WithFields(
@@ -502,39 +512,74 @@ func (p *PostgresDB) CreateAPIKey(ctx context.Context, key *APIKey) error {
 
 // GetAPIKey retrieves an API key by the key string
 func (p *PostgresDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, error) {
-	// Mask the full key in logs for security
-	maskedKey := keyStr
-	if len(keyStr) > 8 {
-		maskedKey = keyStr[:4] + "..." + keyStr[len(keyStr)-4:]
-	}
-
+	maskedKey := maskKeyForLog(keyStr)
 	logging.DB.WithFields(
 		"key", maskedKey,
 	).Debug("Looking up API key in PostgreSQL")
 
+	keyID := extractAPIKeyID(keyStr)
 	key := &APIKey{}
 	err := p.db.QueryRowContext(ctx,
-		"SELECT id, user_id, key, description, last_used, expires_at, created_at FROM api_keys WHERE key = $1",
-		keyStr,
+		"SELECT id, user_id, key, key_hash, description, last_used, expires_at, created_at FROM api_keys WHERE key = $1",
+		keyID,
 	).Scan(
-		&key.ID, &key.UserID, &key.Key, &key.Description, &key.LastUsed, &key.ExpiresAt, &key.CreatedAt,
+		&key.ID, &key.UserID, &key.KeyID, &key.KeyHash, &key.Description, &key.LastUsed, &key.ExpiresAt, &key.CreatedAt,
 	)
 	if err == sql.ErrNoRows {
-		logging.DB.WithFields(
-			"key", maskedKey,
-			"error", "invalid_api_key",
-		).Warn("API key not found")
-		return nil, ErrInvalidAPIKey
+		err = p.db.QueryRowContext(ctx,
+			"SELECT id, user_id, key, key_hash, description, last_used, expires_at, created_at FROM api_keys WHERE key = $1",
+			keyStr,
+		).Scan(
+			&key.ID, &key.UserID, &key.KeyID, &key.KeyHash, &key.Description, &key.LastUsed, &key.ExpiresAt, &key.CreatedAt,
+		)
+		if err == sql.ErrNoRows {
+			logging.DB.WithFields(
+				"key", maskedKey,
+				"error", "invalid_api_key",
+			).Warn("API key not found")
+			return nil, ErrInvalidAPIKey
+		}
+		if err != nil {
+			logging.DB.WithFields(
+				"key", maskedKey,
+				"error", err.Error(),
+			).Error("Database error when retrieving legacy API key")
+			return nil, err
+		}
 	}
 	if err != nil {
-		logging.DB.WithFields(
-			"key", maskedKey,
-			"error", err.Error(),
-		).Error("Database error when retrieving API key")
 		return nil, err
 	}
 
-	// Update last used time
+	if key.KeyHash == "" {
+		if key.KeyID != keyStr {
+			logging.DB.WithFields(
+				"key", maskedKey,
+				"error", "plaintext mismatch",
+			).Warn("Legacy API key did not match provided value")
+			return nil, ErrInvalidAPIKey
+		}
+		hashed, hashErr := auth.HashAPIKey(keyStr)
+		if hashErr == nil {
+			_, updErr := p.db.ExecContext(ctx,
+				"UPDATE api_keys SET key = $1, key_hash = $2 WHERE id = $3",
+				keyID, hashed, key.ID,
+			)
+			if updErr == nil {
+				key.KeyID = keyID
+				key.KeyHash = hashed
+			}
+		}
+	} else {
+		if err := auth.VerifyAPIKey(key.KeyHash, keyStr); err != nil {
+			logging.DB.WithFields(
+				"key", maskedKey,
+			).Warn("API key hash mismatch")
+			return nil, ErrInvalidAPIKey
+		}
+		key.KeyID = keyID
+	}
+
 	now := time.Now()
 	key.LastUsed = now
 	_, err = p.db.ExecContext(ctx, "UPDATE api_keys SET last_used = $1 WHERE id = $2", now, key.ID)
@@ -546,7 +591,6 @@ func (p *PostgresDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, err
 		return nil, err
 	}
 
-	// Check if the key has expired
 	if !key.ExpiresAt.IsZero() && key.ExpiresAt.Before(now) {
 		logging.DB.WithFields(
 			"key_id", key.ID,
@@ -556,10 +600,6 @@ func (p *PostgresDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, err
 		return nil, ErrInvalidAPIKey
 	}
 
-	logging.DB.WithFields(
-		"key_id", key.ID,
-		"user_id", key.UserID,
-	).Debug("API key found and last used time updated")
 	return key, nil
 }
 
@@ -591,7 +631,7 @@ func (p *PostgresDB) ListAPIKeysByUser(ctx context.Context, userID int64) ([]*AP
 	).Debug("Listing API keys for user from PostgreSQL")
 
 	rows, err := p.db.QueryContext(ctx,
-		"SELECT id, user_id, key, description, last_used, expires_at, created_at FROM api_keys WHERE user_id = $1",
+		"SELECT id, user_id, key, key_hash, description, last_used, expires_at, created_at FROM api_keys WHERE user_id = $1",
 		userID,
 	)
 	if err != nil {
@@ -607,7 +647,7 @@ func (p *PostgresDB) ListAPIKeysByUser(ctx context.Context, userID int64) ([]*AP
 	for rows.Next() {
 		key := &APIKey{}
 		if err := rows.Scan(
-			&key.ID, &key.UserID, &key.Key, &key.Description, &key.LastUsed, &key.ExpiresAt, &key.CreatedAt,
+			&key.ID, &key.UserID, &key.KeyID, &key.KeyHash, &key.Description, &key.LastUsed, &key.ExpiresAt, &key.CreatedAt,
 		); err != nil {
 			logging.DB.WithFields(
 				"user_id", userID,

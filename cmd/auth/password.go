@@ -97,3 +97,22 @@ func GenerateAPIKey(prefix string) (string, error) {
 
 	return apiKey, nil
 }
+
+// HashAPIKey hashes an API key using bcrypt so the raw value is not stored.
+func HashAPIKey(key string) (string, error) {
+	logging.API.Keys.Debug("Hashing API key for storage")
+	hash, err := bcrypt.GenerateFromPassword([]byte(key), bcryptCost)
+	if err != nil {
+		logging.API.Keys.WithFields(
+			"error", err.Error(),
+		).Error("Failed to hash API key")
+		return "", err
+	}
+	return string(hash), nil
+}
+
+// VerifyAPIKey compares a hashed API key with the provided plaintext value.
+func VerifyAPIKey(hashedKey, key string) error {
+	logging.API.Keys.Debug("Verifying API key against stored hash")
+	return bcrypt.CompareHashAndPassword([]byte(hashedKey), []byte(key))
+}

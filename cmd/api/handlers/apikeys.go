@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"minecharts/cmd/auth"
@@ -65,12 +66,27 @@ func CreateAPIKeyHandler(c *gin.Context) {
 
 	logging.API.Keys.Debug("API key generated successfully")
 
+	keyID := extractAPIKeyID(keyValue)
+	keyHash, err := auth.HashAPIKey(keyValue)
+	if err != nil {
+		logging.API.Keys.WithFields(
+			"user_id", user.ID,
+			"username", user.Username,
+			"error", err.Error(),
+		).Error("Failed to hash API key")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create API key"})
+		return
+	}
+
 	// Create API key record
 	apiKey := &database.APIKey{
 		UserID:      user.ID,
-		Key:         keyValue,
+		KeyID:       keyID,
+		KeyHash:     keyHash,
 		Description: req.Description,
-		ExpiresAt:   &req.ExpiresAt,
+	}
+	if !req.ExpiresAt.IsZero() {
+		apiKey.ExpiresAt = &req.ExpiresAt
 	}
 
 	db := database.GetDB()
@@ -93,7 +109,7 @@ func CreateAPIKeyHandler(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"id":          apiKey.ID,
-		"key":         apiKey.Key, // This is the only time the full key will be shown
+		"key":         keyValue, // This is the only time the full key will be shown
 		"description": apiKey.Description,
 		"expires_at":  apiKey.ExpiresAt,
 		"created_at":  apiKey.CreatedAt,
@@ -136,8 +152,7 @@ func ListAPIKeysHandler(c *gin.Context) {
 	response := make([]gin.H, len(apiKeys))
 	for i, key := range apiKeys {
 		// Create a masked version of the key (e.g., "mcapi.XXXX")
-		maskedKey := key.Key[:8] + "..." // Only show first part of the key
-
+		maskedKey := maskAPIKeyForDisplay(key.KeyID)
 		response[i] = gin.H{
 			"id":          key.ID,
 			"key":         maskedKey,
@@ -250,4 +265,32 @@ func DeleteAPIKeyHandler(c *gin.Context) {
 	).Info("API key deleted successfully")
 
 	c.JSON(http.StatusOK, gin.H{"message": "API key deleted"})
+}
+
+func extractAPIKeyID(fullKey string) string {
+	if idx := strings.Index(fullKey, "."); idx >= 0 && idx < len(fullKey)-1 {
+		return fullKey[idx+1:]
+	}
+	return fullKey
+}
+
+func maskAPIKeyForDisplay(stored string) string {
+	if stored == "" {
+		return "***"
+	}
+	if strings.Contains(stored, ".") {
+		parts := strings.SplitN(stored, ".", 2)
+		return parts[0] + "." + maskSegment(parts[1])
+	}
+	return config.APIKeyPrefix + "." + maskSegment(stored)
+}
+
+func maskSegment(token string) string {
+	if len(token) <= 4 {
+		return token
+	}
+	if len(token) <= 8 {
+		return token[:2] + "..." + token[len(token)-2:]
+	}
+	return token[:4] + "..." + token[len(token)-4:]
 }
