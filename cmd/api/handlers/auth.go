@@ -74,7 +74,7 @@ func LoginHandler(c *gin.Context) {
 	if !user.Active {
 		logging.Auth.Login.WithFields("username", req.Username, "user_id", user.ID, "remote_ip", c.ClientIP(), "reason", "account_inactive").
 			Warn("Login failed: account inactive")
-		c.JSON(http.StatusForbidden, gin.H{"error": "User account is inactive"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
