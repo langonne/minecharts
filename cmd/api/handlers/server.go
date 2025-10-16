@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"minecharts/cmd/auth"
@@ -850,14 +851,17 @@ func ExecCommandHandler(c *gin.Context) {
 
 	// Parse the command from the JSON body
 	var req ExecCommandRequest
-	//TODO Validate the command
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logging.API.InvalidRequest.WithFields(
 			"server_name", serverName,
 			"error", err.Error(),
 		).Warn("Invalid command request format")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if strings.TrimSpace(req.Command) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Command cannot be empty"})
 		return
 	}
 
@@ -868,8 +872,8 @@ func ExecCommandHandler(c *gin.Context) {
 		"username", username,
 	).Debug("Executing Minecraft command")
 
-	// Prepare the command to send to the console
-	execCommand := "mc-send-to-console " + req.Command
+	// Prepare the command to send to the console with shell-safe quoting
+	execCommand := "mc-send-to-console " + shellQuote(req.Command)
 
 	// Execute the command in the pod
 	stdout, stderr, err := kubernetes.ExecuteCommandInPod(pod.Name, config.DefaultNamespace, "minecraft-server", execCommand)
@@ -900,4 +904,11 @@ func ExecCommandHandler(c *gin.Context) {
 		"stderr":  stderr,
 		"command": req.Command,
 	})
+}
+
+func shellQuote(value string) string {
+	if value == "" {
+		return "''"
+	}
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
