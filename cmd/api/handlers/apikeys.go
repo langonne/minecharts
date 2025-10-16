@@ -110,7 +110,6 @@ func CreateAPIKeyHandler(c *gin.Context) {
 		apiKey.ExpiresAt = &req.ExpiresAt
 	}
 
-	db := database.GetDB()
 	if err := db.CreateAPIKey(c.Request.Context(), apiKey); err != nil {
 		logging.DB.WithFields(
 			"user_id", user.ID,

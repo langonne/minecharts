@@ -8,10 +8,10 @@ import (
 	"math"
 	"time"
 
-	"minecharts/cmd/auth"
 	"minecharts/cmd/logging"
 
 	pq "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // PostgresDB implements the DB interface for PostgreSQL
@@ -567,19 +567,19 @@ func (p *PostgresDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, err
 			).Warn("Legacy API key did not match provided value")
 			return nil, ErrInvalidAPIKey
 		}
-		hashed, hashErr := auth.HashAPIKey(keyStr)
+		hashedBytes, hashErr := bcrypt.GenerateFromPassword([]byte(keyStr), apiKeyBcryptCost)
 		if hashErr == nil {
 			_, updErr := p.db.ExecContext(ctx,
 				"UPDATE api_keys SET key = $1, key_hash = $2 WHERE id = $3",
-				keyID, hashed, key.ID,
+				keyID, string(hashedBytes), key.ID,
 			)
 			if updErr == nil {
 				key.KeyID = keyID
-				key.KeyHash = hashed
+				key.KeyHash = string(hashedBytes)
 			}
 		}
 	} else {
-		if err := auth.VerifyAPIKey(key.KeyHash, keyStr); err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(key.KeyHash), []byte(keyStr)); err != nil {
 			logging.DB.WithFields(
 				"key", maskedKey,
 			).Warn("API key hash mismatch")

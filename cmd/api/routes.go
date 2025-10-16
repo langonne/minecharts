@@ -2,8 +2,6 @@
 package api
 
 import (
-	"time"
-
 	"minecharts/cmd/api/handlers"
 	"minecharts/cmd/api/middleware"
 	"minecharts/cmd/auth"
