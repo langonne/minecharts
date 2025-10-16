@@ -252,3 +252,27 @@
       "nodePort": 32751
     }
     ```
+
+## `GET /ws` (WebSocket log stream)
+- **Purpose:** Stream `logs/latest.log` from a running Minecraft pod in real time.
+- **Auth required:** JWT cookie (`auth_token`) or API key (`X-API-Key` header on the upgrade request) + owner or `PermViewServer` permission for the target server.
+
+1. Open a WebSocket connection to `GET /ws`, including the authentication headers/cookies you normally use with the API.
+2. Immediately after the handshake, send a single JSON message selecting the server:
+
+    ```json
+    { "server_id": 42 }
+    ```
+
+    The `server_id` is the numeric identifier returned by `GET /servers`.
+
+3. When the subscription is accepted, the API responds with a `status` message and begins streaming the log file.
+
+### Message types
+
+- `{"type":"status","message":"connected"}` — WebSocket upgrade acknowledged.
+- `{"type":"status","message":"streaming"}` — log streaming has started.
+- `{"type":"log","data":"[Server thread/INFO]: ...\n"}` — raw lines from `logs/latest.log` (standard output).
+- `{"type":"error","message":"..."}` — authentication/authorization errors, missing pods, or stderr output from the tail command.
+
+The server executes `tail -n +1 -F`, so the entire file is replayed before following new lines. Each client connection has its own tail process; closing the WebSocket stops the stream immediately.
