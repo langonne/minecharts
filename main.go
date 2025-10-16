@@ -19,6 +19,10 @@ func main() {
 	logging.Init()
 	logger := logging.Logger
 
+	if config.JWTSecret == "your-secret-key-change-me-in-production" {
+		logger.Fatal("MINECHARTS_JWT_SECRET must be overridden in production")
+	}
+
 	// Initialize timezone
 	location, err := time.LoadLocation(config.TimeZone)
 	if err != nil {
