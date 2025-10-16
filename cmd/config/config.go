@@ -58,6 +58,7 @@ var (
 	RegisterRateLimitInterval  = getEnvDuration("MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL", 5*time.Minute)
 	UserPatchRateLimitCapacity = getEnvFloat("MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY", 5)
 	UserPatchRateLimitInterval = getEnvDuration("MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL", time.Minute)
+	MaxAPIKeysPerUser          = getEnvInt("MINECHARTS_API_KEYS_PER_USER", 5)
 )
 
 func getEnv(key, fallback string) string {

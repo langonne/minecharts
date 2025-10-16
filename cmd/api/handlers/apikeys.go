@@ -52,6 +52,27 @@ func CreateAPIKeyHandler(c *gin.Context) {
 		return
 	}
 
+	db := database.GetDB()
+	existingKeys, err := db.ListAPIKeysByUser(c.Request.Context(), user.ID)
+	if err != nil {
+		logging.DB.WithFields(
+			"user_id", user.ID,
+			"username", user.Username,
+			"error", err.Error(),
+		).Error("Failed to list API keys before creation")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create API key"})
+		return
+	}
+	if len(existingKeys) >= config.MaxAPIKeysPerUser {
+		logging.API.Keys.WithFields(
+			"user_id", user.ID,
+			"username", user.Username,
+			"max_keys", config.MaxAPIKeysPerUser,
+		).Warn("API key creation blocked: user reached limit")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "API key limit reached"})
+		return
+	}
+
 	// Generate a new API key
 	keyValue, err := auth.GenerateAPIKey(config.APIKeyPrefix)
 	if err != nil {

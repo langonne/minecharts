@@ -57,6 +57,7 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL` | `1m` | Refill interval for user patch tokens. |
 | `MINECHARTS_RATE_LIMIT_CLEANUP_EVERY` | `100` | Cleanup frequency (in requests) for purging stale rate-limit rows. |
 | `MINECHARTS_RATE_LIMIT_RETENTION` | `30m` | How long to retain inactive rate-limit rows before cleanup. |
+| `MINECHARTS_API_KEYS_PER_USER` | `5` | Maximum number of active API keys per user. |
 
 !!! note
     The limiter state lives in the application database. PostgreSQL handles concurrent updates efficiently; SQLite serialises writes and may emit short `database is locked` retries under load. For high-traffic deployments, prefer PostgreSQL or an external rate-limiting tier.
