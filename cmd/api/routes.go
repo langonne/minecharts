@@ -115,6 +115,6 @@ func SetupRoutes(router *gin.Engine) {
 		serverGroup.POST("/:serverName/exec", auth.RequireServerPermission(database.PermExecCommand), handlers.ExecCommandHandler)
 
 		// Network exposure endpoint
-		serverGroup.POST("/:serverName/expose", auth.RequireServerPermission(database.PermCreateServer), handlers.ExposeMinecraftServerHandler)
+		serverGroup.POST("/:serverName/expose", auth.RequirePermission(database.PermAdmin), handlers.ExposeMinecraftServerHandler)
 	}
 }
