@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 )
 
 // Global configuration variables, configurable via environment variables.
@@ -47,6 +48,16 @@ var (
 	// Logging configuration
 	LogLevel  = getEnv("MINECHARTS_LOG_LEVEL", "info")  // Possible values: trace, debug, info, warn, error, fatal, panic
 	LogFormat = getEnv("MINECHARTS_LOG_FORMAT", "json") // Possible values: json, text
+
+	// Rate limiting configuration
+	RateLimitCleanupEvery      = getEnvInt("MINECHARTS_RATE_LIMIT_CLEANUP_EVERY", 100)
+	RateLimitRetention         = getEnvDuration("MINECHARTS_RATE_LIMIT_RETENTION", 30*time.Minute)
+	LoginRateLimitCapacity     = getEnvFloat("MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY", 5)
+	LoginRateLimitInterval     = getEnvDuration("MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL", time.Minute)
+	RegisterRateLimitCapacity  = getEnvFloat("MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY", 2)
+	RegisterRateLimitInterval  = getEnvDuration("MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL", 5*time.Minute)
+	UserPatchRateLimitCapacity = getEnvFloat("MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY", 5)
+	UserPatchRateLimitInterval = getEnvDuration("MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL", time.Minute)
 )
 
 func getEnv(key, fallback string) string {
@@ -67,6 +78,24 @@ func getEnvInt(key string, fallback int) int {
 	if value, exists := os.LookupEnv(key); exists {
 		if intVal, err := strconv.Atoi(value); err == nil {
 			return intVal
+		}
+	}
+	return fallback
+}
+
+func getEnvFloat(key string, fallback float64) float64 {
+	if value, exists := os.LookupEnv(key); exists {
+		if floatVal, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatVal
+		}
+	}
+	return fallback
+}
+
+func getEnvDuration(key string, fallback time.Duration) time.Duration {
+	if value, exists := os.LookupEnv(key); exists {
+		if duration, err := time.ParseDuration(value); err == nil {
+			return duration
 		}
 	}
 	return fallback

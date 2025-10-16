@@ -7,6 +7,7 @@ import (
 	"minecharts/cmd/api/handlers"
 	"minecharts/cmd/api/middleware"
 	"minecharts/cmd/auth"
+	"minecharts/cmd/config"
 	"minecharts/cmd/database"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,24 @@ import (
 // SetupRoutes registers all the API routes with their respective handlers.
 // It defines the authentication middleware, permissions, and path grouping.
 func SetupRoutes(router *gin.Engine) {
-	loginLimiter := middleware.NewDBRateLimiter(5, time.Minute, 100, 30*time.Minute)
-	registerLimiter := middleware.NewDBRateLimiter(2, 5*time.Minute, 100, 30*time.Minute)
-	userPatchLimiter := middleware.NewDBRateLimiter(5, time.Minute, 100, 30*time.Minute)
+	loginLimiter := middleware.NewDBRateLimiter(
+		config.LoginRateLimitCapacity,
+		config.LoginRateLimitInterval,
+		int64(config.RateLimitCleanupEvery),
+		config.RateLimitRetention,
+	)
+	registerLimiter := middleware.NewDBRateLimiter(
+		config.RegisterRateLimitCapacity,
+		config.RegisterRateLimitInterval,
+		int64(config.RateLimitCleanupEvery),
+		config.RateLimitRetention,
+	)
+	userPatchLimiter := middleware.NewDBRateLimiter(
+		config.UserPatchRateLimitCapacity,
+		config.UserPatchRateLimitInterval,
+		int64(config.RateLimitCleanupEvery),
+		config.RateLimitRetention,
+	)
 	loginRateLimitMiddleware := loginLimiter.Middleware(middleware.IPKeyExtractor)
 	registerRateLimitMiddleware := registerLimiter.Middleware(middleware.IPKeyExtractor)
 	userPatchRateLimitMiddleware := userPatchLimiter.Middleware(middleware.IPKeyExtractor)

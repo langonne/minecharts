@@ -46,6 +46,21 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_LOG_LEVEL` | `info` | Supported levels: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `panic`. |
 | `MINECHARTS_LOG_FORMAT` | `json` | Output format for Logrus (`json` or `text`). |
 
+## Rate Limiting
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY` | `5` | Maximum bursts allowed for `POST /auth/login` per IP. |
+| `MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL` | `1m` | Refill interval (Go duration format) for login tokens. |
+| `MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY` | `2` | Maximum bursts allowed for `POST /auth/register` per IP. |
+| `MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL` | `5m` | Refill interval for registration tokens. |
+| `MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY` | `5` | Maximum bursts allowed for `PATCH /users/:id` per IP. |
+| `MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL` | `1m` | Refill interval for user patch tokens. |
+| `MINECHARTS_RATE_LIMIT_CLEANUP_EVERY` | `100` | Cleanup frequency (in requests) for purging stale rate-limit rows. |
+| `MINECHARTS_RATE_LIMIT_RETENTION` | `30m` | How long to retain inactive rate-limit rows before cleanup. |
+
+!!! note
+    The limiter state lives in the application database. PostgreSQL handles concurrent updates efficiently; SQLite serialises writes and may emit short `database is locked` retries under load. For high-traffic deployments, prefer PostgreSQL or an external rate-limiting tier.
+
 ## Additional Tweaks
 Some behaviours are currently hard-coded but easy to adapt if required:
 - `DefaultReplicas` is set to `1`, meaning each server starts with a single pod. Update `cmd/config/config.go` if you need a different default.
