@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"minecharts/cmd/logging"
@@ -13,6 +14,20 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
 )
+
+func wrapCommandForUser(command string) string {
+	return fmt.Sprintf(`if [ "$(id -u)" != "1000" ]; then
+	if command -v gosu >/dev/null 2>&1; then
+		exec gosu 1000:1000 /bin/bash -c %q
+	elif command -v runuser >/dev/null 2>&1; then
+		exec runuser -u 1000 -- /bin/bash -c %q
+	else
+		exec /bin/bash -c %q
+	fi
+else
+	exec /bin/bash -c %q
+fi`, command, command, command, command)
+}
 
 // getMinecraftPod gets the first pod associated with a deployment
 func GetMinecraftPod(namespace, deploymentName string) (*corev1.Pod, error) {
@@ -72,17 +87,7 @@ func ExecuteCommandInPod(podName, namespace, containerName, command string) (std
 		Namespace(namespace).
 		SubResource("exec")
 
-	wrappedCommand := fmt.Sprintf(`if [ "$(id -u)" != "1000" ]; then
-	if command -v gosu >/dev/null 2>&1; then
-		exec gosu 1000:1000 /bin/bash -c %q
-	elif command -v runuser >/dev/null 2>&1; then
-		exec runuser -u 1000 -- /bin/bash -c %q
-	else
-		exec /bin/bash -c %q
-	fi
-else
-	exec /bin/bash -c %q
-fi`, command, command, command, command)
+	wrappedCommand := wrapCommandForUser(command)
 
 	execReq.VersionedParams(&corev1.PodExecOptions{
 		Container: containerName,
@@ -142,4 +147,88 @@ fi`, command, command, command, command)
 
 	// Return the command output even if there was an error.
 	return stdout, stderr, err
+}
+
+// StreamCommandInPod executes a long-running command inside a pod and streams its output.
+func StreamCommandInPod(ctx context.Context, podName, namespace, containerName, command string, stdout, stderr io.Writer) error {
+	logging.K8s.WithFields(
+		"namespace", namespace,
+		"pod_name", podName,
+		"container_name", containerName,
+		"command", command,
+	).Debug("Streaming command output from pod")
+
+	execReq := Clientset.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(namespace).
+		SubResource("exec")
+
+	wrappedCommand := wrapCommandForUser(command)
+
+	execReq.VersionedParams(&corev1.PodExecOptions{
+		Container: containerName,
+		Command:   []string{"/bin/bash", "-c", wrappedCommand},
+		Stdout:    true,
+		Stderr:    true,
+	}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(Config, "POST", execReq.URL())
+	if err != nil {
+		logging.K8s.WithFields(
+			"namespace", namespace,
+			"pod_name", podName,
+			"container_name", containerName,
+			"error", err.Error(),
+		).Error("Failed to create SPDY executor for streaming")
+		return err
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	streamErr := exec.StreamWithContext(ctx, remotecommand.StreamOptions{
+		Stdout: stdout,
+		Stderr: stderr,
+	})
+
+	if streamErr != nil {
+		logging.K8s.WithFields(
+			"namespace", namespace,
+			"pod_name", podName,
+			"container_name", containerName,
+			"command", command,
+			"error", streamErr.Error(),
+		).Error("Streaming command output failed")
+		return streamErr
+	}
+
+	logging.K8s.WithFields(
+		"namespace", namespace,
+		"pod_name", podName,
+		"container_name", containerName,
+		"command", command,
+	).Debug("Streaming command completed")
+	return nil
+}
+
+// StreamMinecraftLogs streams the Minecraft server logs (logs/latest.log) from the given pod.
+func StreamMinecraftLogs(ctx context.Context, podName, namespace, containerName string, stdout, stderr io.Writer) error {
+	command := `
+set -euo pipefail
+PRIMARY_LOG="logs/latest.log"
+ALT_LOG="/data/logs/latest.log"
+if [ -f "$PRIMARY_LOG" ]; then
+	LOG_FILE="$PRIMARY_LOG"
+elif [ -f "$ALT_LOG" ]; then
+	LOG_FILE="$ALT_LOG"
+else
+	LOG_FILE="$PRIMARY_LOG"
+	mkdir -p "$(dirname "$LOG_FILE")"
+	touch "$LOG_FILE"
+fi
+tail -n +1 -F "$LOG_FILE"`
+
+	return StreamCommandInPod(ctx, podName, namespace, containerName, command, stdout, stderr)
 }

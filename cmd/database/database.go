@@ -40,6 +40,7 @@ type DB interface {
 
 	// Server methods
 	CreateServerRecord(ctx context.Context, server *MinecraftServer) error
+	GetServerByID(ctx context.Context, serverID int64) (*MinecraftServer, error)
 	GetServerByName(ctx context.Context, serverName string) (*MinecraftServer, error)
 	ListServersByOwner(ctx context.Context, ownerID int64) ([]*MinecraftServer, error)
 	UpdateServerStatus(ctx context.Context, serverName string, status string) error

@@ -5,6 +5,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -196,6 +197,16 @@ func APIKeyMiddleware() gin.HandlerFunc {
 			"remote_ip", c.ClientIP(),
 		).Debug("User authenticated successfully via API key")
 
+		c.Next()
+	}
+}
+
+// RequestTimeMiddleware injects the current time into the request context.
+// This is required for handlers that rely on the "now" context value.
+func RequestTimeMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.WithValue(c.Request.Context(), "now", time.Now())
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

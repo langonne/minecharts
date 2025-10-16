@@ -15,6 +15,14 @@ func SetupRoutes(router *gin.Engine) {
 	// Ping endpoint for health checks
 	router.GET("/ping", handlers.PingHandler)
 
+	// Websocket endpoint for streaming Minecraft logs
+	router.GET("/ws",
+		auth.RequestTimeMiddleware(),
+		auth.JWTMiddleware(),
+		auth.APIKeyMiddleware(),
+		handlers.LogsWebsocketHandler,
+	)
+
 	// Authentication group
 	authGroup := router.Group("/auth")
 	{
@@ -61,7 +69,7 @@ func SetupRoutes(router *gin.Engine) {
 	// Server management endpoints - protected with authentication
 	// First try JWT, then fall back to API key
 	serverGroup := router.Group("/servers")
-	serverGroup.Use(auth.JWTMiddleware(), auth.APIKeyMiddleware())
+	serverGroup.Use(auth.RequestTimeMiddleware(), auth.JWTMiddleware(), auth.APIKeyMiddleware())
 	{
 		// Create server (requires PermCreateServer)
 		serverGroup.POST("", auth.RequirePermission(database.PermCreateServer), handlers.StartMinecraftServerHandler)
