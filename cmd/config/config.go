@@ -49,6 +49,9 @@ var (
 	LogLevel  = getEnv("MINECHARTS_LOG_LEVEL", "info")  // Possible values: trace, debug, info, warn, error, fatal, panic
 	LogFormat = getEnv("MINECHARTS_LOG_FORMAT", "json") // Possible values: json, text
 
+	// Security configuration
+	BCryptCost = clampBcryptCost(getEnvInt("MINECHARTS_BCRYPT_COST", 14))
+
 	// Rate limiting configuration
 	RateLimitCleanupEvery      = getEnvInt("MINECHARTS_RATE_LIMIT_CLEANUP_EVERY", 100)
 	RateLimitRetention         = getEnvDuration("MINECHARTS_RATE_LIMIT_RETENTION", 30*time.Minute)
@@ -82,6 +85,16 @@ func getEnvInt(key string, fallback int) int {
 		}
 	}
 	return fallback
+}
+
+func clampBcryptCost(cost int) int {
+	if cost < 4 {
+		return 4
+	}
+	if cost > 31 {
+		return 31
+	}
+	return cost
 }
 
 func getEnvFloat(key string, fallback float64) float64 {

@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"minecharts/cmd/config"
 	"minecharts/cmd/logging"
 
 	pq "github.com/lib/pq"
@@ -567,7 +568,7 @@ func (p *PostgresDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, err
 			).Warn("Legacy API key did not match provided value")
 			return nil, ErrInvalidAPIKey
 		}
-		hashedBytes, hashErr := bcrypt.GenerateFromPassword([]byte(keyStr), apiKeyBcryptCost)
+		hashedBytes, hashErr := bcrypt.GenerateFromPassword([]byte(keyStr), config.BCryptCost)
 		if hashErr == nil {
 			_, updErr := p.db.ExecContext(ctx,
 				"UPDATE api_keys SET key = $1, key_hash = $2 WHERE id = $3",

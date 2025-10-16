@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"minecharts/cmd/config"
 	"minecharts/cmd/logging"
 
 	"golang.org/x/crypto/bcrypt"
@@ -627,7 +628,7 @@ func (s *SQLiteDB) GetAPIKey(ctx context.Context, keyStr string) (*APIKey, error
 			).Warn("Legacy API key did not match provided value")
 			return nil, ErrInvalidAPIKey
 		}
-		hashedBytes, hashErr := bcrypt.GenerateFromPassword([]byte(keyStr), apiKeyBcryptCost)
+		hashedBytes, hashErr := bcrypt.GenerateFromPassword([]byte(keyStr), config.BCryptCost)
 		if hashErr == nil {
 			_, updErr := s.db.ExecContext(ctx,
 				"UPDATE api_keys SET key = ?, key_hash = ? WHERE id = ?",

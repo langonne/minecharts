@@ -5,12 +5,11 @@ import (
 	"encoding/base64"
 	"errors"
 
+	"minecharts/cmd/config"
 	"minecharts/cmd/logging"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-const bcryptCost = 14
 
 var (
 	ErrInvalidPassword = errors.New("invalid password")
@@ -20,11 +19,11 @@ var (
 func HashPassword(password string) (string, error) {
 	logging.Auth.Password.Debug("Hashing password")
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), config.BCryptCost)
 	if err != nil {
 		logging.Auth.Password.WithFields(
 			"error", err.Error(),
-			"bcrypt_cost", bcrypt.DefaultCost,
+			"bcrypt_cost", config.BCryptCost,
 		).Error("Failed to hash password")
 		return "", err
 	}
@@ -101,7 +100,7 @@ func GenerateAPIKey(prefix string) (string, error) {
 // HashAPIKey hashes an API key using bcrypt so the raw value is not stored.
 func HashAPIKey(key string) (string, error) {
 	logging.API.Keys.Debug("Hashing API key for storage")
-	hash, err := bcrypt.GenerateFromPassword([]byte(key), bcryptCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(key), config.BCryptCost)
 	if err != nil {
 		logging.API.Keys.WithFields(
 			"error", err.Error(),

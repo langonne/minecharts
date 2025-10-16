@@ -45,6 +45,7 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | --- | --- | --- |
 | `MINECHARTS_LOG_LEVEL` | `info` | Supported levels: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `panic`. |
 | `MINECHARTS_LOG_FORMAT` | `json` | Output format for Logrus (`json` or `text`). |
+| `MINECHARTS_BCRYPT_COST` | `14` | Work factor for bcrypt hashing (valid range 4–31); raise for stronger security at the cost of CPU. |
 
 ## Rate Limiting
 | Variable | Default | Purpose |
