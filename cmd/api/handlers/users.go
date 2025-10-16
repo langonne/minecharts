@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/mail"
@@ -431,7 +432,7 @@ func UpdateUserHandler(c *gin.Context) {
 
 	// Update user in database
 	if err := db.UpdateUser(c.Request.Context(), user); err != nil {
-		if isUniqueConstraintError(err) {
+		if errors.Is(err, database.ErrDuplicate) {
 			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already in use"})
 			return
 		}
@@ -760,12 +761,4 @@ func validatePasswordStrength(password string) error {
 		return fmt.Errorf("password must include upper, lower, digit, and symbol characters")
 	}
 	return nil
-}
-
-func isUniqueConstraintError(err error) bool {
-	if err == nil {
-		return false
-	}
-	lower := strings.ToLower(err.Error())
-	return strings.Contains(lower, "unique") || strings.Contains(lower, "duplicate key")
 }

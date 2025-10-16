@@ -337,6 +337,9 @@ func (s *SQLiteDB) UpdateUser(ctx context.Context, user *User) error {
 		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.UpdatedAt, user.ID,
 	)
 	if err != nil {
+		if isSQLiteUniqueError(err) {
+			return ErrDuplicate
+		}
 		logging.DB.WithFields(
 			"user_id", user.ID,
 			"username", user.Username,
@@ -435,6 +438,14 @@ func isSQLiteBusy(err error) bool {
 		return false
 	}
 	return strings.Contains(err.Error(), "locked")
+}
+
+func isSQLiteUniqueError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "unique constraint failed") || strings.Contains(msg, "is not unique")
 }
 
 // DeleteUser deletes a user by ID

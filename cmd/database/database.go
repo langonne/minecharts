@@ -21,6 +21,7 @@ var (
 	ErrUserNotFound    = errors.New("user not found")
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrInvalidAPIKey   = errors.New("invalid API key")
+	ErrDuplicate       = errors.New("duplicate value")
 )
 
 // DB is the interface that must be implemented by database providers

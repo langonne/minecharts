@@ -10,7 +10,7 @@ import (
 
 	"minecharts/cmd/logging"
 
-	_ "github.com/lib/pq"
+	pq "github.com/lib/pq"
 )
 
 // PostgresDB implements the DB interface for PostgreSQL
@@ -320,6 +320,9 @@ func (p *PostgresDB) UpdateUser(ctx context.Context, user *User) error {
 		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.UpdatedAt, user.ID,
 	)
 	if err != nil {
+		if isPostgresUniqueError(err) {
+			return ErrDuplicate
+		}
 		logging.DB.WithFields(
 			"user_id", user.ID,
 			"username", user.Username,
@@ -333,6 +336,14 @@ func (p *PostgresDB) UpdateUser(ctx context.Context, user *User) error {
 		"username", user.Username,
 	).Info("User updated successfully")
 	return nil
+}
+
+func isPostgresUniqueError(err error) bool {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == "23505"
+	}
+	return false
 }
 
 func (p *PostgresDB) AllowRateLimit(ctx context.Context, key string, capacity float64, refillInterval time.Duration, now time.Time) (bool, time.Duration, error) {
