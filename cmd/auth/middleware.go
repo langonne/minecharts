@@ -17,8 +17,11 @@ import (
 
 // AuthUserKey is the key used to store authenticated user in the Gin context.
 const (
-	AuthUserKey = "auth_user"
+	AuthUserKey    = "auth_user"
+	requestTimeKey = contextKey("request_time")
 )
+
+type contextKey string
 
 // JWTMiddleware validates JWT tokens in the Authorization header.
 // It extracts the token from the Authorization header, validates it,
@@ -148,7 +151,8 @@ func APIKeyMiddleware() gin.HandlerFunc {
 		).Debug("API key validated")
 
 		// Check if API key is expired
-		if !key.ExpiresAt.IsZero() && key.ExpiresAt.Before(c.Request.Context().Value("now").(time.Time)) {
+		now := getRequestTime(c)
+		if !key.ExpiresAt.IsZero() && key.ExpiresAt.Before(now) {
 			logging.API.Keys.WithFields(
 				"path", c.Request.URL.Path,
 				"api_key_id", key.ID,
@@ -205,10 +209,19 @@ func APIKeyMiddleware() gin.HandlerFunc {
 // This is required for handlers that rely on the "now" context value.
 func RequestTimeMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), "now", time.Now())
+		ctx := context.WithValue(c.Request.Context(), requestTimeKey, time.Now())
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
+}
+
+func getRequestTime(c *gin.Context) time.Time {
+	if val := c.Request.Context().Value(requestTimeKey); val != nil {
+		if ts, ok := val.(time.Time); ok {
+			return ts
+		}
+	}
+	return time.Now()
 }
 
 // extractAuthenticatedUser extracts the user from the context and verifies authentication.
