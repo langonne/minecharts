@@ -466,6 +466,14 @@ func (s *SQLiteDB) DeleteUser(ctx context.Context, id int64) error {
 		"user_id", id,
 	).Info("Deleting user")
 
+	if _, err := s.db.ExecContext(ctx, "DELETE FROM api_keys WHERE user_id = ?", id); err != nil {
+		logging.DB.WithFields(
+			"user_id", id,
+			"error", err.Error(),
+		).Error("Failed to delete user API keys")
+		return err
+	}
+
 	_, err := s.db.ExecContext(ctx, "DELETE FROM users WHERE id = ?", id)
 	if err != nil {
 		logging.DB.WithFields(

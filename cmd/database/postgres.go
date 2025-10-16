@@ -421,6 +421,14 @@ func (p *PostgresDB) DeleteUser(ctx context.Context, id int64) error {
 		"user_id", id,
 	).Info("Deleting user from PostgreSQL")
 
+	if _, err := p.db.ExecContext(ctx, "DELETE FROM api_keys WHERE user_id = $1", id); err != nil {
+		logging.DB.WithFields(
+			"user_id", id,
+			"error", err.Error(),
+		).Error("Failed to delete user API keys")
+		return err
+	}
+
 	_, err := p.db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", id)
 	if err != nil {
 		logging.DB.WithFields(
