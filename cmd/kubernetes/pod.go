@@ -15,18 +15,21 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+const wrapHeredocName = "MINECHARTS_CMD"
+
 func wrapCommandForUser(command string) string {
+	script := fmt.Sprintf("<<'%s'\n%s\n%s\n", wrapHeredocName, command, wrapHeredocName)
 	return fmt.Sprintf(`if [ "$(id -u)" != "1000" ]; then
-	if command -v gosu >/dev/null 2>&1; then
-		exec gosu 1000:1000 /bin/bash -c %q
-	elif command -v runuser >/dev/null 2>&1; then
-		exec runuser -u 1000 -- /bin/bash -c %q
-	else
-		exec /bin/bash -c %q
-	fi
+if command -v gosu >/dev/null 2>&1; then
+	exec gosu 1000:1000 /bin/bash %s
+elif command -v runuser >/dev/null 2>&1; then
+	exec runuser -u 1000 -- /bin/bash %s
 else
-	exec /bin/bash -c %q
-fi`, command, command, command, command)
+	exec /bin/bash %s
+fi
+else
+	exec /bin/bash %s
+fi`, script, script, script, script)
 }
 
 // getMinecraftPod gets the first pod associated with a deployment
