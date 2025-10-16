@@ -36,7 +36,7 @@ type UpdateUserRequest struct {
 // PermissionAction represents a single permission action.
 type PermissionAction struct {
 	Permission int64  `json:"permission" binding:"required" example:"128"`
-	Name       string `json:"name" example:"PermViewServer"` // Optionnel, pour la lisibilité
+	Name       string `json:"name" example:"PermViewServer"` // Optional, for readability
 }
 
 // ModifyPermissionsRequest represents a request to modify user permissions.

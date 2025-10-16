@@ -43,7 +43,7 @@ var (
 	FrontendURL = "http://localhost:3000"
 
 	// Timezone configuration
-	TimeZone = getEnv("MINECHARTS_TIMEZONE", "UTC") // Valeur par défaut: UTC
+	TimeZone = getEnv("MINECHARTS_TIMEZONE", "UTC") // Default value: UTC
 
 	// Logging configuration
 	LogLevel  = getEnv("MINECHARTS_LOG_LEVEL", "info")  // Possible values: trace, debug, info, warn, error, fatal, panic
