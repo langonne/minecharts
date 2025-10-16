@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"net/mail"
 	"strconv"
+	"strings"
+	"unicode"
 
 	"minecharts/cmd/auth"
 	"minecharts/cmd/database"
@@ -11,14 +15,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PasswordUpdateRequest models a password change payload.
+type PasswordUpdateRequest struct {
+	Current string `json:"current" example:"oldPassword123!"`
+	New     string `json:"new" example:"NewStrongPassword123!"`
+	Confirm string `json:"confirm" example:"NewStrongPassword123!"`
+}
+
 // UpdateUserRequest represents a request to update user information.
 // All fields are optional to allow partial updates.
 type UpdateUserRequest struct {
-	Username    *string `json:"username" example:"newusername"`
-	Email       *string `json:"email" example:"new@example.com"`
-	Password    *string `json:"password" example:"newStrongPassword123"`
-	Permissions *int64  `json:"permissions" example:"143"` // Bit flags for permissions
-	Active      *bool   `json:"active" example:"true"`
+	Username    *string                `json:"username" example:"newusername"`
+	Email       *string                `json:"email" example:"new@example.com"`
+	Password    *PasswordUpdateRequest `json:"password"`
+	Permissions *int64                 `json:"permissions" example:"143"` // Bit flags for permissions
+	Active      *bool                  `json:"active" example:"true"`
 }
 
 // PermissionAction represents a single permission action.
@@ -210,7 +221,7 @@ func GetUserHandler(c *gin.Context) {
 // @Failure      403      {object}  map[string]string       "Permission denied"
 // @Failure      404      {object}  map[string]string       "User not found"
 // @Failure      500      {object}  map[string]string       "Server error"
-// @Router       /users/{id} [put]
+// @Router       /users/{id} [patch]
 func UpdateUserHandler(c *gin.Context) {
 	// Get current user
 	currentUser, ok := auth.GetCurrentUser(c)
@@ -299,18 +310,48 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	// Log which fields are being updated
+	if req.Username == nil && req.Email == nil && req.Password == nil && req.Permissions == nil && req.Active == nil {
+		logging.API.InvalidRequest.WithFields(
+			"current_user_id", currentUser.ID,
+			"username", currentUser.Username,
+			"target_user_id", id,
+		).Warn("Update user failed: empty payload")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields provided"})
+		return
+	}
+
 	updateFields := make([]string, 0)
 
-	// Apply updates
 	if req.Username != nil {
-		updateFields = append(updateFields, "username")
-		user.Username = *req.Username
+		candidate := strings.TrimSpace(*req.Username)
+		if candidate == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Username cannot be blank"})
+			return
+		}
+		if err := validateUsername(candidate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if candidate != user.Username {
+			user.Username = candidate
+			updateFields = append(updateFields, "username")
+		}
 	}
 
 	if req.Email != nil {
-		updateFields = append(updateFields, "email")
-		user.Email = *req.Email
+		email := strings.TrimSpace(*req.Email)
+		if email == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Email cannot be blank"})
+			return
+		}
+		if _, err := mail.ParseAddress(email); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email address"})
+			return
+		}
+		if email != user.Email {
+			user.Email = email
+			updateFields = append(updateFields, "email")
+		}
 	}
 
 	if req.Password != nil {
@@ -326,8 +367,43 @@ func UpdateUserHandler(c *gin.Context) {
 			return
 		}
 
-		updateFields = append(updateFields, "password")
-		passwordHash, err := auth.HashPassword(*req.Password)
+		if req.Password.New == "" || req.Password.Confirm == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "New password and confirmation are required"})
+			return
+		}
+		if req.Password.New != req.Password.Confirm {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password confirmation does not match"})
+			return
+		}
+		if err := validatePasswordStrength(req.Password.New); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if isSelf {
+			if req.Password.Current == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Current password is required"})
+				return
+			}
+			if err := auth.VerifyPassword(user.PasswordHash, req.Password.Current); err != nil {
+				logging.Auth.Password.WithFields(
+					"user_id", currentUser.ID,
+				).Warn("Password update failed: current password mismatch")
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Current password is incorrect"})
+				return
+			}
+		} else if req.Password.Current != "" {
+			if err := auth.VerifyPassword(user.PasswordHash, req.Password.Current); err != nil {
+				logging.Auth.Password.WithFields(
+					"actor_user_id", currentUser.ID,
+					"target_user_id", user.ID,
+				).Warn("Password update failed: provided current password mismatch")
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Current password is incorrect"})
+				return
+			}
+		}
+
+		passwordHash, err := auth.HashPassword(req.Password.New)
 		if err != nil {
 			logging.Auth.WithFields(
 				"current_user_id", currentUser.ID,
@@ -339,6 +415,7 @@ func UpdateUserHandler(c *gin.Context) {
 			return
 		}
 		user.PasswordHash = passwordHash
+		updateFields = append(updateFields, "password")
 	}
 
 	if req.Permissions != nil {
@@ -353,8 +430,10 @@ func UpdateUserHandler(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Only administrators can modify permissions"})
 			return
 		}
-		updateFields = append(updateFields, "permissions")
-		user.Permissions = *req.Permissions
+		if user.Permissions != *req.Permissions {
+			updateFields = append(updateFields, "permissions")
+			user.Permissions = *req.Permissions
+		}
 	}
 
 	if req.Active != nil {
@@ -369,8 +448,15 @@ func UpdateUserHandler(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Only administrators can change account status"})
 			return
 		}
-		updateFields = append(updateFields, "active")
-		user.Active = *req.Active
+		if user.Active != *req.Active {
+			updateFields = append(updateFields, "active")
+			user.Active = *req.Active
+		}
+	}
+
+	if len(updateFields) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No changes detected"})
+		return
 	}
 
 	logging.Auth.WithFields(
@@ -383,6 +469,10 @@ func UpdateUserHandler(c *gin.Context) {
 
 	// Update user in database
 	if err := db.UpdateUser(c.Request.Context(), user); err != nil {
+		if isUniqueConstraintError(err) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already in use"})
+			return
+		}
 		logging.DB.WithFields(
 			"current_user_id", currentUser.ID,
 			"username", currentUser.Username,
@@ -722,4 +812,50 @@ func GetPermissionsMapHandler(c *gin.Context) {
 	permissionsMap["PermReadOnly"] = database.PermReadOnly
 
 	c.JSON(http.StatusOK, permissionsMap)
+}
+
+func validateUsername(username string) error {
+	if len(username) < 3 || len(username) > 32 {
+		return fmt.Errorf("username must be between 3 and 32 characters")
+	}
+	for _, r := range username {
+		switch {
+		case unicode.IsLetter(r), unicode.IsDigit(r), r == '-', r == '_', r == '.':
+			continue
+		default:
+			return fmt.Errorf("username contains invalid character: %q", r)
+		}
+	}
+	return nil
+}
+
+func validatePasswordStrength(password string) error {
+	if len(password) < 12 {
+		return fmt.Errorf("password must be at least 12 characters long")
+	}
+	var hasUpper, hasLower, hasDigit, hasSymbol bool
+	for _, r := range password {
+		switch {
+		case unicode.IsUpper(r):
+			hasUpper = true
+		case unicode.IsLower(r):
+			hasLower = true
+		case unicode.IsDigit(r):
+			hasDigit = true
+		case unicode.IsPunct(r), unicode.IsSymbol(r):
+			hasSymbol = true
+		}
+	}
+	if !(hasUpper && hasLower && hasDigit && hasSymbol) {
+		return fmt.Errorf("password must include upper, lower, digit, and symbol characters")
+	}
+	return nil
+}
+
+func isUniqueConstraintError(err error) bool {
+	if err == nil {
+		return false
+	}
+	lower := strings.ToLower(err.Error())
+	return strings.Contains(lower, "unique") || strings.Contains(lower, "duplicate key")
 }

@@ -54,19 +54,36 @@
     }
     ```
 
-## `PUT /users/{id}`
-- **Purpose:** Update username, email, password, permissions, or active flag.
-- **Auth required:** JWT cookie + `PermAdmin`
+## `PATCH /users/{id}`
+- **Purpose:** Partially update username, email, password, permissions, or active flag.
+- **Auth required:** JWT cookie. Users may patch their own record; administrators may patch any user. Only admins may modify `permissions` or `active`.
 
-=== "Request"
+=== "Self-update"
 
     ```http
-    PUT /users/2 HTTP/1.1
-    Cookie: auth_token=<admin_jwt>
+    PATCH /users/2 HTTP/1.1
+    Cookie: auth_token=<user_jwt>
     Content-Type: application/json
 
     {
       "email": "player2@example.com",
+      "password": {
+        "current": "OldPassword123!",
+        "new": "NewPassword456@",
+        "confirm": "NewPassword456@"
+      }
+    }
+    ```
+
+=== "Admin update"
+
+    ```http
+    PATCH /users/2 HTTP/1.1
+    Cookie: auth_token=<admin_jwt>
+    Content-Type: application/json
+
+    {
+      "username": "builder",
       "permissions": 10,
       "active": true
     }
@@ -85,6 +102,9 @@
       "updated_at": "2024-05-12T10:05:33Z"
     }
     ```
+
+!!! info "Password policy"
+    When changing a password, the payload must include `current`, `new`, and `confirm`. The new password must be at least 12 characters long and contain upper-case, lower-case, digit, and symbol characters.
 
 ## `POST /users/{id}/permissions/grant`
 - **Purpose:** Add one or more permission bits to a user.
