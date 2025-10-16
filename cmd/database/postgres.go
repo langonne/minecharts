@@ -710,6 +710,53 @@ func (p *PostgresDB) GetServerByName(ctx context.Context, serverName string) (*M
 	return &server, nil
 }
 
+func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serverName string) (*MinecraftServer, error) {
+	logging.DB.WithFields(
+		"owner_id", ownerID,
+		"server_name", serverName,
+	).Debug("Getting server by owner and name")
+
+	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+              status, created_at, updated_at
+              FROM minecraft_servers WHERE owner_id = $1 AND server_name = $2`
+
+	var server MinecraftServer
+	err := p.db.QueryRowContext(ctx, query, ownerID, serverName).Scan(
+		&server.ID,
+		&server.ServerName,
+		&server.DeploymentName,
+		&server.PVCName,
+		&server.OwnerID,
+		&server.Status,
+		&server.CreatedAt,
+		&server.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		logging.DB.WithFields(
+			"owner_id", ownerID,
+			"server_name", serverName,
+		).Debug("Owner does not own requested server")
+		return nil, ErrServerNotFound
+	}
+
+	if err != nil {
+		logging.DB.WithFields(
+			"owner_id", ownerID,
+			"server_name", serverName,
+			"error", err.Error(),
+		).Error("Failed to get server for owner")
+		return nil, fmt.Errorf("failed to get server: %w", err)
+	}
+
+	logging.DB.WithFields(
+		"owner_id", ownerID,
+		"server_name", serverName,
+		"server_id", server.ID,
+	).Debug("Server found for owner")
+	return &server, nil
+}
+
 // GetServerByID retrieves a Minecraft server record by its ID.
 func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*MinecraftServer, error) {
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,

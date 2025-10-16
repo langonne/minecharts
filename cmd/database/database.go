@@ -19,6 +19,7 @@ const (
 var (
 	ErrUserExists      = errors.New("user already exists")
 	ErrUserNotFound    = errors.New("user not found")
+	ErrServerNotFound  = errors.New("server not found")
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrInvalidAPIKey   = errors.New("invalid API key")
 	ErrDuplicate       = errors.New("duplicate value")
@@ -44,6 +45,7 @@ type DB interface {
 	CreateServerRecord(ctx context.Context, server *MinecraftServer) error
 	GetServerByID(ctx context.Context, serverID int64) (*MinecraftServer, error)
 	GetServerByName(ctx context.Context, serverName string) (*MinecraftServer, error)
+	GetServerForOwner(ctx context.Context, ownerID int64, serverName string) (*MinecraftServer, error)
 	ListServersByOwner(ctx context.Context, ownerID int64) ([]*MinecraftServer, error)
 	UpdateServerStatus(ctx context.Context, serverName string, status string) error
 	DeleteServerRecord(ctx context.Context, serverName string) error

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -87,31 +88,22 @@ func GetMinecraftServerHandler(c *gin.Context) {
 	db := database.GetDB()
 
 	// Find the server by owner then by name to ensure ownership
-	servers, err := db.ListServersByOwner(c.Request.Context(), userID)
+	srv, err := db.GetServerForOwner(c.Request.Context(), userID, serverName)
 	if err != nil {
+		if errors.Is(err, database.ErrServerNotFound) {
+			logging.Server.WithFields(
+				"server_name", serverName,
+				"user_id", userID,
+			).Warn("Server not found for owner")
+			c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
+			return
+		}
 		logging.DB.WithFields(
 			"user_id", userID,
-			"error", err.Error(),
-		).Error("Failed to list servers for owner")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query servers"})
-		return
-	}
-
-	var srv *database.MinecraftServer
-	for _, s := range servers {
-		if s.ServerName == serverName {
-			srv = s
-			break
-		}
-	}
-
-	// Not found for this owner
-	if srv == nil {
-		logging.Server.WithFields(
 			"server_name", serverName,
-			"user_id", userID,
-		).Warn("Server not found for owner")
-		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
+			"error", err.Error(),
+		).Error("Failed to fetch server for owner")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query server"})
 		return
 	}
 
