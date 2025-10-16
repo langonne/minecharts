@@ -502,21 +502,7 @@ func UpdateUserHandler(c *gin.Context) {
 	})
 }
 
-// DeleteUserHandler deletes a user (admin only).
-//
-// @Summary      Delete user
-// @Description  Deletes a user from the system
-// @Tags         users
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      integer  true  "User ID"
-// @Success      200  {object}  map[string]string  "User deleted successfully"
-// @Failure      400  {object}  map[string]string  "Invalid user ID"
-// @Failure      401  {object}  map[string]string  "Authentication required"
-// @Failure      403  {object}  map[string]string  "Permission denied"
-// @Failure      404  {object}  map[string]string  "User not found"
-// @Failure      500  {object}  map[string]string  "Server error"
-// @Router       /users/{id} [delete]
+// DeleteUserHandler removes a user account; only administrators may invoke it.
 func DeleteUserHandler(c *gin.Context) {
 	// Get current admin user for logging
 	adminUser, _ := auth.GetCurrentUser(c)
