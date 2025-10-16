@@ -379,6 +379,19 @@ func UpdateUserHandler(c *gin.Context) {
 		}
 		user.PasswordHash = passwordHash
 		updateFields = append(updateFields, "password")
+
+		logEntry := logging.Auth.Password.WithFields(
+			"actor_user_id", currentUser.ID,
+			"actor_username", currentUser.Username,
+			"target_user_id", user.ID,
+			"target_username", user.Username,
+			"remote_ip", c.ClientIP(),
+		)
+		if isSelf {
+			logEntry.Info("User updated own password")
+		} else {
+			logEntry.Warn("Administrator updated user password")
+		}
 	}
 
 	if req.Permissions != nil {
