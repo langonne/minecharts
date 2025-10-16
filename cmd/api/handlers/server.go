@@ -77,6 +77,54 @@ func GetMinecraftServerHandler(c *gin.Context) {
 	}
 
 	serverName := c.Param("serverName")
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
+	if !validateServerName(serverName) {
+		logging.Server.WithFields(
+			"server_name", serverName,
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid server name provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server name"})
+		return
+	}
 	userID := user.ID
 
 	logging.Server.WithFields(
@@ -911,4 +959,17 @@ func shellQuote(value string) string {
 		return "''"
 	}
 	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
+func validateServerName(name string) bool {
+	if len(name) == 0 || len(name) > 63 {
+		return false
+	}
+	for _, r := range name {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			continue
+		}
+		return false
+	}
+	return true
 }

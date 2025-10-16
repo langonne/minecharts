@@ -83,6 +83,9 @@
 - **Purpose:** Retrieve logical metadata, environment variables, and status for a server.
 - **Auth required:** JWT cookie or API key + owner or `PermViewServer`
 
+!!! note "Server name format"
+    Server identifiers must comply with Kubernetes DNS-1123 naming: lowercase letters, digits, and dashes only, up to 63 characters. Requests with invalid names are rejected with HTTP 400.
+
 === "Request"
 
     ```http
