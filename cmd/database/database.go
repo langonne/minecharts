@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"sync"
+	"time"
 
 	"minecharts/cmd/logging"
 )
@@ -45,6 +46,8 @@ type DB interface {
 	ListServersByOwner(ctx context.Context, ownerID int64) ([]*MinecraftServer, error)
 	UpdateServerStatus(ctx context.Context, serverName string, status string) error
 	DeleteServerRecord(ctx context.Context, serverName string) error
+	AllowRateLimit(ctx context.Context, key string, capacity float64, refillInterval time.Duration, now time.Time) (bool, time.Duration, error)
+	CleanupRateLimits(ctx context.Context, cutoff time.Time) error
 
 	// Database operations
 	Init() error

@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"minecharts/cmd/logging"
@@ -99,6 +101,20 @@ func (p *PostgresDB) Init() error {
 			"error", err.Error(),
 		).Error("Failed to create minecraft_servers table")
 		return fmt.Errorf("failed to create minecraft_servers table: %w", err)
+	}
+
+	_, err = p.db.Exec(`
+		CREATE TABLE IF NOT EXISTS rate_limits (
+			key TEXT PRIMARY KEY,
+			tokens DOUBLE PRECISION NOT NULL,
+			last_refill TIMESTAMPTZ NOT NULL
+		)
+	`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to create rate_limits table")
+		return fmt.Errorf("failed to create rate_limits table: %w", err)
 	}
 
 	// Check if we need to create an admin user
@@ -317,6 +333,65 @@ func (p *PostgresDB) UpdateUser(ctx context.Context, user *User) error {
 		"username", user.Username,
 	).Info("User updated successfully")
 	return nil
+}
+
+func (p *PostgresDB) AllowRateLimit(ctx context.Context, key string, capacity float64, refillInterval time.Duration, now time.Time) (bool, time.Duration, error) {
+	tx, err := p.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return false, 0, err
+	}
+
+	var tokens float64
+	var lastRefill time.Time
+	row := tx.QueryRowContext(ctx, "SELECT tokens, last_refill FROM rate_limits WHERE key = $1 FOR UPDATE", key)
+	if err := row.Scan(&tokens, &lastRefill); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			tokens = capacity
+			lastRefill = now
+		} else {
+			tx.Rollback()
+			return false, 0, err
+		}
+	} else {
+		elapsed := now.Sub(lastRefill)
+		if elapsed > 0 {
+			refillTokens := elapsed.Seconds() / refillInterval.Seconds()
+			tokens = math.Min(capacity, tokens+refillTokens)
+		}
+	}
+
+	allowed := tokens >= 1.0
+	var retryAfter time.Duration
+	if allowed {
+		tokens -= 1
+	} else {
+		missing := 1.0 - tokens
+		if missing < 0 {
+			missing = 0
+		}
+		seconds := missing * refillInterval.Seconds()
+		retryAfter = time.Duration(math.Ceil(seconds)) * time.Second
+	}
+
+	_, err = tx.ExecContext(ctx,
+		"INSERT INTO rate_limits(key, tokens, last_refill) VALUES ($1, $2, $3) ON CONFLICT(key) DO UPDATE SET tokens = EXCLUDED.tokens, last_refill = EXCLUDED.last_refill",
+		key, tokens, now,
+	)
+	if err != nil {
+		tx.Rollback()
+		return false, 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return false, 0, err
+	}
+
+	return allowed, retryAfter, nil
+}
+
+func (p *PostgresDB) CleanupRateLimits(ctx context.Context, cutoff time.Time) error {
+	_, err := p.db.ExecContext(ctx, "DELETE FROM rate_limits WHERE last_refill < $1", cutoff)
+	return err
 }
 
 // DeleteUser deletes a user by ID

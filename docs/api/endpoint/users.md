@@ -58,6 +58,9 @@
 - **Purpose:** Partially update username, email, password, permissions, or active flag.
 - **Auth required:** JWT cookie. Users may patch their own record; administrators may patch any user. Only admins may modify `permissions` or `active`.
 
+!!! warning "Rate limiting"
+    Updates are throttled to five attempts per minute per client IP to contain brute-force password checks and account enumeration. As with the authentication endpoints, the limiter state is persisted in the database. Under heavy concurrency SQLite can emit brief `database is locked` retries; PostgreSQL is recommended for large installations.
+
 === "Self-update"
 
     ```http

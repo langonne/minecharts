@@ -2,7 +2,10 @@
 package api
 
 import (
+	"time"
+
 	"minecharts/cmd/api/handlers"
+	"minecharts/cmd/api/middleware"
 	"minecharts/cmd/auth"
 	"minecharts/cmd/database"
 
@@ -12,6 +15,12 @@ import (
 // SetupRoutes registers all the API routes with their respective handlers.
 // It defines the authentication middleware, permissions, and path grouping.
 func SetupRoutes(router *gin.Engine) {
+	loginLimiter := middleware.NewDBRateLimiter(5, time.Minute, 100, 30*time.Minute)
+	registerLimiter := middleware.NewDBRateLimiter(2, 5*time.Minute, 100, 30*time.Minute)
+	userPatchLimiter := middleware.NewDBRateLimiter(5, time.Minute, 100, 30*time.Minute)
+	loginRateLimitMiddleware := loginLimiter.Middleware(middleware.IPKeyExtractor)
+	registerRateLimitMiddleware := registerLimiter.Middleware(middleware.IPKeyExtractor)
+	userPatchRateLimitMiddleware := userPatchLimiter.Middleware(middleware.IPKeyExtractor)
 	// Ping endpoint for health checks
 	router.GET("/ping", handlers.PingHandler)
 
@@ -26,8 +35,8 @@ func SetupRoutes(router *gin.Engine) {
 	// Authentication group
 	authGroup := router.Group("/auth")
 	{
-		authGroup.POST("/login", handlers.LoginHandler)
-		authGroup.POST("/register", handlers.RegisterHandler)
+		authGroup.POST("/login", loginRateLimitMiddleware, handlers.LoginHandler)
+		authGroup.POST("/register", registerRateLimitMiddleware, handlers.RegisterHandler)
 		authGroup.POST("/logout", auth.JWTMiddleware(), handlers.LogoutJWTHandler)
 
 		// OAuth endpoints
@@ -67,6 +76,7 @@ func SetupRoutes(router *gin.Engine) {
 
 	router.PATCH("/users/:id",
 		auth.RequestTimeMiddleware(),
+		userPatchRateLimitMiddleware,
 		auth.JWTMiddleware(),
 		handlers.UpdateUserHandler,
 	)
