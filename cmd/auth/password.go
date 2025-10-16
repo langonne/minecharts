@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const bcryptCost = 14
+
 var (
 	ErrInvalidPassword = errors.New("invalid password")
 )
@@ -18,7 +20,7 @@ var (
 func HashPassword(password string) (string, error) {
 	logging.Auth.Password.Debug("Hashing password")
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 	if err != nil {
 		logging.Auth.Password.WithFields(
 			"error", err.Error(),
