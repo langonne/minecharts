@@ -29,20 +29,7 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=8" example:"securepass123"`
 }
 
-// LoginHandler authenticates users with username and password.
-//
-// @Summary      Login user
-// @Description  Authenticate a user with username and password
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      LoginRequest  true  "Login credentials"
-// @Success      200      {object}  map[string]interface{}  "Authentication successful"
-// @Failure      400      {object}  map[string]string       "Invalid request format"
-// @Failure      401      {object}  map[string]string       "Authentication failed"
-// @Failure      403      {object}  map[string]string       "Account inactive"
-// @Failure      500      {object}  map[string]string       "Server error"
-// @Router       /auth/login [post]
+// LoginHandler authenticates a user with a username and password.
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,16 +116,7 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
-// LogoutJWTHandler terminates the user's session by invalidating their JWT token.
-//
-// @Summary      Logout user
-// @Description  Invalidates the user's JWT token and terminates their session
-// @Tags         auth
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  map[string]string  "Logout successful"
-// @Failure      401  {object}  map[string]string  "Not authenticated"
-// @Router       /auth/logout [post]
+// LogoutJWTHandler terminates the user's session by invalidating their JWT cookie.
 func LogoutJWTHandler(c *gin.Context) {
 	// Check if user is authenticated
 	user, ok := auth.GetCurrentUser(c)
@@ -170,19 +148,7 @@ func LogoutJWTHandler(c *gin.Context) {
 	})
 }
 
-// RegisterHandler creates a new user account.
-//
-// @Summary      Register new user
-// @Description  Create a new user account
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      RegisterRequest  true  "Registration information"
-// @Success      201      {object}  map[string]interface{}  "Registration successful"
-// @Failure      400      {object}  map[string]string       "Invalid request format"
-// @Failure      409      {object}  map[string]string       "User already exists"
-// @Failure      500      {object}  map[string]string       "Server error"
-// @Router       /auth/register [post]
+// RegisterHandler creates a new user account using the supplied credentials.
 func RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -249,15 +215,6 @@ func RegisterHandler(c *gin.Context) {
 }
 
 // GetUserInfoHandler returns information about the authenticated user.
-//
-// @Summary      Get current user info
-// @Description  Returns information about the currently authenticated user
-// @Tags         auth
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  map[string]interface{}  "User information"
-// @Failure      401  {object}  map[string]string       "Authentication required"
-// @Router       /auth/me [get]
 func GetUserInfoHandler(c *gin.Context) {
 	user, ok := auth.GetCurrentUser(c)
 	if !ok {
@@ -292,17 +249,7 @@ func GenerateStateValue() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-// OAuthLoginHandler initiates the OAuth login flow.
-//
-// @Summary      Start OAuth login
-// @Description  Redirects to OAuth provider's login page
-// @Tags         auth
-// @Produce      html
-// @Param        provider  path      string  true  "OAuth provider (e.g., 'authentik')"
-// @Success      307       {string}  string  "Redirect to OAuth provider"
-// @Failure      400       {object}  map[string]string  "OAuth not enabled or invalid provider"
-// @Failure      500       {object}  map[string]string  "Server error"
-// @Router       /auth/oauth/{provider} [get]
+// OAuthLoginHandler initiates the OAuth login flow for a given provider.
 func OAuthLoginHandler(c *gin.Context) {
 	// Check if OAuth is enabled
 	if !config.OAuthEnabled {
@@ -365,19 +312,7 @@ func OAuthLoginHandler(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
-// OAuthCallbackHandler handles the OAuth callback from providers.
-//
-// @Summary      OAuth callback
-// @Description  Handles the callback from OAuth provider and creates/authenticates user
-// @Tags         auth
-// @Produce      html
-// @Param        provider  path      string  true  "OAuth provider (e.g., 'authentik')"
-// @Param        code      query     string  true  "OAuth code"
-// @Param        state     query     string  true  "OAuth state"
-// @Success      307       {string}  string  "Redirect to frontend with token"
-// @Failure      400       {object}  map[string]string  "Invalid request or state mismatch"
-// @Failure      500       {object}  map[string]string  "Server error"
-// @Router       /auth/callback/{provider} [get]
+// OAuthCallbackHandler processes the provider callback and finalizes authentication.
 func OAuthCallbackHandler(c *gin.Context) {
 	// Check if OAuth is enabled
 	if !config.OAuthEnabled {

@@ -20,19 +20,7 @@ type CreateAPIKeyRequest struct {
 }
 
 // CreateAPIKeyHandler creates a new API key for the authenticated user.
-//
-// @Summary      Create API key
-// @Description  Creates a new API key for the authenticated user
-// @Tags         api-keys
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        request  body      CreateAPIKeyRequest  true  "API key information"
-// @Success      201      {object}  map[string]interface{}  "Created API key (includes full key)"
-// @Failure      400      {object}  map[string]string       "Invalid request"
-// @Failure      401      {object}  map[string]string       "Authentication required"
-// @Failure      500      {object}  map[string]string       "Server error"
-// @Router       /apikeys [post]
+
 func CreateAPIKeyHandler(c *gin.Context) {
 	user, ok := auth.GetCurrentUser(c)
 	if !ok {
@@ -113,16 +101,7 @@ func CreateAPIKeyHandler(c *gin.Context) {
 }
 
 // ListAPIKeysHandler returns all API keys for the authenticated user.
-//
-// @Summary      List API keys
-// @Description  Returns all API keys owned by the authenticated user
-// @Tags         api-keys
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {array}   map[string]interface{}  "List of API keys (with masked key values)"
-// @Failure      401  {object}  map[string]string       "Authentication required"
-// @Failure      500  {object}  map[string]string       "Server error"
-// @Router       /apikeys [get]
+
 func ListAPIKeysHandler(c *gin.Context) {
 	user, ok := auth.GetCurrentUser(c)
 	if !ok {
@@ -179,19 +158,7 @@ func ListAPIKeysHandler(c *gin.Context) {
 }
 
 // DeleteAPIKeyHandler deletes an API key.
-//
-// @Summary      Delete API key
-// @Description  Deletes an API key by ID
-// @Tags         api-keys
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      integer  true  "API Key ID"
-// @Success      200  {object}  map[string]string  "API key deleted successfully"
-// @Failure      400  {object}  map[string]string  "Invalid API key ID"
-// @Failure      401  {object}  map[string]string  "Authentication required"
-// @Failure      403  {object}  map[string]string  "Permission denied"
-// @Failure      500  {object}  map[string]string  "Server error"
-// @Router       /apikeys/{id} [delete]
+
 func DeleteAPIKeyHandler(c *gin.Context) {
 	user, ok := auth.GetCurrentUser(c)
 	if !ok {

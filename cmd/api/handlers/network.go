@@ -21,23 +21,7 @@ type ExposeServerRequest struct {
 }
 
 // ExposeMinecraftServerHandler exposes a Minecraft server using the specified method.
-//
-// @Summary      Expose Minecraft server
-// @Description  Creates a Kubernetes service to expose the Minecraft server
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string              true  "Server name"
-// @Param        request     body      ExposeServerRequest  true  "Exposure configuration"
-// @Success      200         {object}  map[string]interface{}  "Service created"
-// @Failure      400         {object}  map[string]string       "Invalid request"
-// @Failure      401         {object}  map[string]string       "Authentication required"
-// @Failure      403         {object}  map[string]string       "Permission denied"
-// @Failure      404         {object}  map[string]string       "Server not found"
-// @Failure      500         {object}  map[string]string       "Server error"
-// @Router       /servers/{serverName}/expose [post]
+
 func ExposeMinecraftServerHandler(c *gin.Context) {
 	// Get server info from URL parameter
 	serverName := c.Param("serverName")

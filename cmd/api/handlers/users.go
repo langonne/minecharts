@@ -44,17 +44,7 @@ type ModifyPermissionsRequest struct {
 }
 
 // ListUsersHandler returns a list of all users (admin only).
-//
-// @Summary      List all users
-// @Description  Returns a list of all users in the system (admin only)
-// @Tags         users
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {array}   map[string]interface{}  "List of users"
-// @Failure      401  {object}  map[string]string       "Authentication required"
-// @Failure      403  {object}  map[string]string       "Permission denied"
-// @Failure      500  {object}  map[string]string       "Server error"
-// @Router       /users [get]
+
 func ListUsersHandler(c *gin.Context) {
 	// Get current admin user for logging
 	adminUser, _ := auth.GetCurrentUser(c)
@@ -100,20 +90,7 @@ func ListUsersHandler(c *gin.Context) {
 }
 
 // GetUserHandler returns details for a specific user.
-//
-// @Summary      Get user details
-// @Description  Returns detailed information about a specific user
-// @Tags         users
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      integer  true  "User ID"
-// @Success      200  {object}  map[string]interface{}  "User details"
-// @Failure      400  {object}  map[string]string       "Invalid user ID"
-// @Failure      401  {object}  map[string]string       "Authentication required"
-// @Failure      403  {object}  map[string]string       "Permission denied"
-// @Failure      404  {object}  map[string]string       "User not found"
-// @Failure      500  {object}  map[string]string       "Server error"
-// @Router       /users/{id} [get]
+
 func GetUserHandler(c *gin.Context) {
 	// Get current user
 	currentUser, ok := auth.GetCurrentUser(c)
@@ -206,22 +183,7 @@ func GetUserHandler(c *gin.Context) {
 }
 
 // UpdateUserHandler updates a user's information.
-//
-// @Summary      Update user
-// @Description  Updates information for an existing user
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id       path      integer           true  "User ID"
-// @Param        request  body      UpdateUserRequest  true  "User information to update"
-// @Success      200      {object}  map[string]interface{}  "Updated user details"
-// @Failure      400      {object}  map[string]string       "Invalid request"
-// @Failure      401      {object}  map[string]string       "Authentication required"
-// @Failure      403      {object}  map[string]string       "Permission denied"
-// @Failure      404      {object}  map[string]string       "User not found"
-// @Failure      500      {object}  map[string]string       "Server error"
-// @Router       /users/{id} [patch]
+
 func UpdateUserHandler(c *gin.Context) {
 	// Get current user
 	currentUser, ok := auth.GetCurrentUser(c)
@@ -568,22 +530,7 @@ func DeleteUserHandler(c *gin.Context) {
 }
 
 // GrantUserPermissionsHandler grants permissions to a user (admin only).
-//
-// @Summary      Grant permissions to user
-// @Description  Adds specific permissions to a user
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id        path      integer                 true  "User ID"
-// @Param        request   body      ModifyPermissionsRequest true  "Permissions to grant"
-// @Success      200       {object}  map[string]interface{}  "Updated user permissions"
-// @Failure      400       {object}  map[string]string       "Invalid request"
-// @Failure      401       {object}  map[string]string       "Authentication required"
-// @Failure      403       {object}  map[string]string       "Permission denied"
-// @Failure      404       {object}  map[string]string       "User not found"
-// @Failure      500       {object}  map[string]string       "Server error"
-// @Router       /users/{id}/permissions/grant [post]
+
 func GrantUserPermissionsHandler(c *gin.Context) {
 	// Get admin user
 	adminUser, _ := auth.GetCurrentUser(c)
@@ -669,22 +616,7 @@ func GrantUserPermissionsHandler(c *gin.Context) {
 }
 
 // RevokeUserPermissionsHandler revokes permissions from a user (admin only).
-//
-// @Summary      Revoke permissions from user
-// @Description  Removes specific permissions from a user
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id        path      integer                 true  "User ID"
-// @Param        request   body      ModifyPermissionsRequest true  "Permissions to revoke"
-// @Success      200       {object}  map[string]interface{}  "Updated user permissions"
-// @Failure      400       {object}  map[string]string       "Invalid request"
-// @Failure      401       {object}  map[string]string       "Authentication required"
-// @Failure      403       {object}  map[string]string       "Permission denied"
-// @Failure      404       {object}  map[string]string       "User not found"
-// @Failure      500       {object}  map[string]string       "Server error"
-// @Router       /users/{id}/permissions/revoke [post]
+
 func RevokeUserPermissionsHandler(c *gin.Context) {
 	// Get admin user
 	adminUser, _ := auth.GetCurrentUser(c)
@@ -770,15 +702,7 @@ func RevokeUserPermissionsHandler(c *gin.Context) {
 }
 
 // GetPermissionsMapHandler returns a mapping of permission values to their names.
-//
-// @Summary      Get permissions map
-// @Description  Returns a mapping of permission values to their names
-// @Tags         users
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  map[string]int64  "Permissions map"
-// @Failure      401  {object}  map[string]string "Authentication required"
-// @Router       /permissions [get]
+
 func GetPermissionsMapHandler(c *gin.Context) {
 	// Return a map of permission names to their values
 	permissionsMap := map[string]int64{

@@ -61,20 +61,7 @@ func extractMCRouterURL(service *corev1.Service) string {
 }
 
 // GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
-//
-// @Summary      Get a Minecraft server
-// @Description  Returns a single Minecraft server (with environment variables) owned by the authenticated user and with an existing deployment
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string  true  "Server name"
-// @Success      200         {object}  MinecraftServerEnv      "Server details with environment variables"
-// @Failure      401         {object}  map[string]string       "Authentication required"
-// @Failure      403         {object}  map[string]string       "Permission denied (not owner)"
-// @Failure      404         {object}  map[string]string       "Server not found or deployment missing"
-// @Failure      500         {object}  map[string]string       "Server error"
-// @Router       /servers/{serverName} [get]
+
 func GetMinecraftServerHandler(c *gin.Context) {
 	// Require authenticated user
 	user, ok := auth.GetCurrentUser(c)
@@ -188,17 +175,6 @@ func GetMinecraftServerHandler(c *gin.Context) {
 }
 
 // ListMinecraftServersHandler lists all Minecraft servers of the authenticated user.
-// @Summary      List Minecraft servers
-// @Description  Lists all Minecraft servers owned by the authenticated user that have existing deployments
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Success      200  {array}   MinecraftServerEnv  "List of Minecraft servers with environment variables"
-// @Failure      401  {object}  map[string]string   "Authentication required"
-// @Failure      403  {object}  map[string]string   "Permission denied"
-// @Failure      500  {object}  map[string]string   "Server error"
-// @Router       /servers [get]
 func ListMinecraftServersHandler(c *gin.Context) {
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -300,21 +276,7 @@ type StartMinecraftServerRequest struct {
 }
 
 // StartMinecraftServerHandler creates the PVC and starts the Minecraft deployment.
-//
-// @Summary      Create Minecraft server
-// @Description  Creates a new Minecraft server with the specified configuration
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        request  body      StartMinecraftServerRequest  true  "Server configuration"
-// @Success      200      {object}  map[string]string           "Server created successfully"
-// @Failure      400      {object}  map[string]string           "Invalid request"
-// @Failure      401      {object}  map[string]string           "Authentication required"
-// @Failure      403      {object}  map[string]string           "Permission denied"
-// @Failure      500      {object}  map[string]string           "Server error"
-// @Router       /servers [post]
+
 func StartMinecraftServerHandler(c *gin.Context) {
 	var req StartMinecraftServerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -469,20 +431,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 }
 
 // RestartMinecraftServerHandler saves the world and then restarts the deployment.
-//
-// @Summary      Restart Minecraft server
-// @Description  Saves the world and restarts the Minecraft server
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string  true  "Server name"
-// @Success      200         {object}  map[string]interface{}  "Server restarting"
-// @Failure      401         {object}  map[string]string       "Authentication required"
-// @Failure      403         {object}  map[string]string       "Permission denied"
-// @Failure      404         {object}  map[string]string       "Server not found"
-// @Failure      500         {object}  map[string]string       "Server error"
-// @Router       /servers/{serverName}/restart [post]
+
 func RestartMinecraftServerHandler(c *gin.Context) {
 	deploymentName, _ := kubernetes.GetServerInfo(c)
 
@@ -620,20 +569,7 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 }
 
 // StopMinecraftServerHandler scales the deployment to 0 replicas.
-//
-// @Summary      Stop Minecraft server
-// @Description  Saves the world and stops the Minecraft server (scales to 0)
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string  true  "Server name"
-// @Success      200         {object}  map[string]string  "Server stopped"
-// @Failure      401         {object}  map[string]string  "Authentication required"
-// @Failure      403         {object}  map[string]string  "Permission denied"
-// @Failure      404         {object}  map[string]string  "Server not found"
-// @Failure      500         {object}  map[string]string  "Server error"
-// @Router       /servers/{serverName}/stop [post]
+
 func StopMinecraftServerHandler(c *gin.Context) {
 	deploymentName, _ := kubernetes.GetServerInfo(c)
 
@@ -733,20 +669,7 @@ func StopMinecraftServerHandler(c *gin.Context) {
 }
 
 // StartStoppedServerHandler scales a stopped deployment back to 1 replica.
-//
-// @Summary      Start stopped server
-// @Description  Starts a previously stopped Minecraft server (scales to 1)
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string  true  "Server name"
-// @Success      200         {object}  map[string]string  "Server starting"
-// @Failure      401         {object}  map[string]string  "Authentication required"
-// @Failure      403         {object}  map[string]string  "Permission denied"
-// @Failure      404         {object}  map[string]string  "Server not found"
-// @Failure      500         {object}  map[string]string  "Server error"
-// @Router       /servers/{serverName}/start [post]
+
 func StartStoppedServerHandler(c *gin.Context) {
 	deploymentName, _ := kubernetes.GetServerInfo(c)
 
@@ -807,19 +730,7 @@ func StartStoppedServerHandler(c *gin.Context) {
 }
 
 // DeleteMinecraftServerHandler deletes a Minecraft server.
-//
-// @Summary      Delete Minecraft server
-// @Description  Deletes a Minecraft server and all associated resources
-// @Tags         servers
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string  true  "Server name"
-// @Success      200         {object}  map[string]string  "Server deleted"
-// @Failure      401         {object}  map[string]string  "Authentication required"
-// @Failure      403         {object}  map[string]string  "Permission denied"
-// @Failure      500         {object}  map[string]string  "Server error"
-// @Router       /servers/{serverName}/delete [post]
+
 func DeleteMinecraftServerHandler(c *gin.Context) {
 	deploymentName, pvcName := kubernetes.GetServerInfo(c)
 
@@ -898,23 +809,7 @@ type ExecCommandRequest struct {
 }
 
 // ExecCommandHandler executes a Minecraft command in the server.
-//
-// @Summary      Execute Minecraft command
-// @Description  Executes a command on the Minecraft server
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Security     APIKeyAuth
-// @Param        serverName  path      string             true  "Server name"
-// @Param        request     body      ExecCommandRequest  true  "Command to execute"
-// @Success      200         {object}  map[string]string  "Command executed"
-// @Failure      400         {object}  map[string]string  "Invalid request"
-// @Failure      401         {object}  map[string]string  "Authentication required"
-// @Failure      403         {object}  map[string]string  "Permission denied"
-// @Failure      404         {object}  map[string]string  "Server not found"
-// @Failure      500         {object}  map[string]string  "Server error"
-// @Router       /servers/{serverName}/exec [post]
+
 func ExecCommandHandler(c *gin.Context) {
 	// Extract the server name from the URL parameter
 	serverName := c.Param("serverName")
