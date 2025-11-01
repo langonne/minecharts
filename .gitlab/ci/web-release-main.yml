@@ -23,21 +23,17 @@ web_release_main:
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
   script:
     - |
-      set -eo pipefail
+      set -eu
       IMAGE_REPO="${CI_REGISTRY_IMAGE:-${CI_REGISTRY}/${CI_PROJECT_PATH}}"
       IMAGE_REPO="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
       SHORT_SHA="${CI_COMMIT_SHA:0:12}"
-      TAGS=(
-        "${IMAGE_REPO}:${COMPONENT}"
-        "${IMAGE_REPO}:${COMPONENT}-latest"
-        "${IMAGE_REPO}:${COMPONENT}-${SHORT_SHA}"
-      )
-      PRIMARY_IMAGE="${TAGS[0]}"
+      PRIMARY_IMAGE="${IMAGE_REPO}:${COMPONENT}"
+      LATEST_TAG="${IMAGE_REPO}:${COMPONENT}-latest"
+      SHA_TAG="${IMAGE_REPO}:${COMPONENT}-${SHORT_SHA}"
       docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
-      for tag in "${TAGS[@]:1}"; do
-        docker tag "$PRIMARY_IMAGE" "$tag"
-      done
-      for tag in "${TAGS[@]}"; do
+      docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
+      docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
+      for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
         docker push "$tag"
       done
   after_script:
