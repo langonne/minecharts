@@ -9,12 +9,20 @@ spec:
         - name: minecharts-api
           env:
             - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
-              value: your.domain.com
+              value: "your.domain.com"
             - name: MINECHARTS_JWT_SECRET
-              value: test
+              value: "test"
             - name: MINECHARTS_LOG_LEVEL
-              value: debug
+              value: "debug"
             - name: MINECHARTS_LOG_FORMAT
-              value: text
+              value: "text"
             - name: MINECHARTS_STORAGE_CLASS
-              value: local-path
+              value: "local-path"
+            - name: MINECHARTS_FEEDBACK_ENABLED
+              value: "true"
+            - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
+              value: "<token>"
+            - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
+              value: "<owner>"
+            - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
+              value: "<repo>"
