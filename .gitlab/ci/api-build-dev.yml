@@ -30,6 +30,7 @@ api_build_dev:
       SHORT_SHA="${CI_COMMIT_SHA:0:12}"
       TAGS=(
         "${IMAGE_REPO}:${COMPONENT}-dev"
+        "${IMAGE_REPO}:${COMPONENT}-dev-latest"
         "${IMAGE_REPO}:${COMPONENT}-dev-${SHORT_SHA}"
       )
       PRIMARY_IMAGE="${TAGS[0]}"

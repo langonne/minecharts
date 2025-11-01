@@ -58,6 +58,7 @@ jobs:
 
           tags=(
             "${repo}:${COMPONENT}-dev"
+            "${repo}:${COMPONENT}-dev-latest"
             "${repo}:${COMPONENT}-dev-${short_sha}"
           )
 
