@@ -4,3 +4,5 @@ namespace: minecharts-test
 resources:
   - namespace.yaml
   - ../../bases
+patchesStrategicMerge:
+  - ingress-patch.yaml
