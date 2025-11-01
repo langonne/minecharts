@@ -18,7 +18,7 @@ spec:
       serviceAccountName: minecharts-api
       containers:
         - name: minecharts-api
-          image: ghcr.io/langonne/minecharts-api:dev-latest
+          image: ghcr.io/langonne/minecharts:api-dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
