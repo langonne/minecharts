@@ -4,6 +4,9 @@ api_build_dev:
   services:
     - name: docker:dind
       command: ["--tls=false"]
+      variables:
+        HEALTHCHECK_TCP_PORT: "2375"
+
   variables:
     COMPONENT: api
     TARGET_ENV: dev
