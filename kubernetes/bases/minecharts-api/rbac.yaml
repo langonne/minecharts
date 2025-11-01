@@ -1,9 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: minecharts
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: minecharts-api

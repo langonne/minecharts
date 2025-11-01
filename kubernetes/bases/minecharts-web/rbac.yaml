@@ -1,9 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/namespace-v1.json
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: minecharts
----
 # yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/serviceaccount-v1.json
 apiVersion: v1
 kind: ServiceAccount
