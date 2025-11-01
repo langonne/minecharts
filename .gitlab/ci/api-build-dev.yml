@@ -2,14 +2,19 @@ api_build_dev:
   stage: build
   image: docker:latest
   services:
-    - docker:dind
+    - name: docker:dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2376"
 
   variables:
     COMPONENT: api
     TARGET_ENV: dev
     BUILD_CONTEXT: api
     DOCKERFILE_PATH: api/Dockerfile
-    DOCKER_HOST: "unix:///runner/services/docker/docker.sock"
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
@@ -22,7 +27,6 @@ api_build_dev:
       when: manual
       allow_failure: false
   before_script:
-    - docker info
     - echo "Logging in to registry ${CI_REGISTRY}"
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
   script:
