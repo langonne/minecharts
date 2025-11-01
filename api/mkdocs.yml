@@ -18,7 +18,10 @@ nav:
           - Servers: api/endpoint/servers.md
           - Users: api/endpoint/users.md
 
-  - Configuration: configuration.md
+  - Configuration:
+      - Overview: configuration.md
+      - Additional Tweaks: additional-tweaks.md
+      - Local Development Overlay: local-development-overlay.md
   - Database Architecture: database.md
 
 plugins:

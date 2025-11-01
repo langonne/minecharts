@@ -63,19 +63,4 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 !!! note
     The limiter state lives in the application database. PostgreSQL handles concurrent updates efficiently; SQLite serialises writes and may emit short `database is locked` retries under load. For high-traffic deployments, prefer PostgreSQL or an external rate-limiting tier.
 
-## Additional Tweaks
-Some behaviours are currently hard-coded but easy to adapt if required:
-- `DefaultReplicas` is set to `1`, meaning each server starts with a single pod. Update `cmd/config/config.go` if you need a different default.
-- Pods run as UID/GID `1000` and add a lifecycle pre-stop hook that saves the world. Edit `cmd/kubernetes/deployement.go` to customise these values.
-- The command guard `mc-send-to-console save-all` and the wait duration before restart (`10s`) are located in `cmd/kubernetes/utils.go`.
-
-## Local development overlay
-When you deploy the `kubernetes/overlays/test` overlay, you can keep developer-specific overrides outside of Git:
-
-1. Copy `kubernetes/overlays/test/dev-env.exemple.yaml` to `dev-env.yaml`.
-2. Adjust the `env` entries in the copy (e.g. `MINECHARTS_MCROUTER_DOMAIN_SUFFIX`, `MINECHARTS_JWT_SECRET`, logging tweaks).
-3. Apply the overlay with `kubectl apply -k kubernetes/overlays/test`.
-
-The overlay directory contains a `.gitignore` that excludes `dev-env.yaml`, which ensures personal values never end up in version control while everyone shares the example template.
-
 Extend the configuration package with additional environment variables when introducing new behaviours so that operators can tune the system without recompiling.
