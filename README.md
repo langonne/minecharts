@@ -33,6 +33,6 @@ Pipelines automatically publish:
 Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
 ## Documentation
-Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight—refer to the docs for deep dives.
+Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight, refer to the docs for deep dives.
 
-The API expects a kubeconfig and access to a Kubernetes cluster. Running it locally without that context will fail—prefer the Docker images or a local cluster such as kind/minikube.
+The API expects a kubeconfig and access to a Kubernetes cluster. Running it locally without that context will fail, prefer the Docker images or a local cluster such as kind/minikube.
