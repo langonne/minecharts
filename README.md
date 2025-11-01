@@ -32,6 +32,17 @@ Pipelines automatically publish:
 
 Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
+## Kubernetes overlays
+Development-friendly values live in the `kubernetes/overlays/test` overlay. Copy the sample patch to keep your local overrides untracked:
+
+```bash
+cp kubernetes/overlays/test/dev-env.exemple.yaml kubernetes/overlays/test/dev-env.yaml
+# edit kubernetes/overlays/test/dev-env.yaml to match your environment
+kubectl apply -k kubernetes/overlays/test
+```
+
+The `.gitignore` in that directory keeps `dev-env.yaml` out of version control, so only the example lands in Git while everyone uses their own local values.
+
 ## Documentation
 Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight, refer to the docs for deep dives.
 
