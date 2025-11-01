@@ -6,3 +6,4 @@ resources:
   - ../../bases
 patchesStrategicMerge:
   - ingress-patch.yaml
+  - dev-env.yaml

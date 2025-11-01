@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecharts-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: minecharts-api
+          env:
+            - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
+              value: your.domain.com
+            - name: MINECHARTS_JWT_SECRET
+              value: test
+            - name: MINECHARTS_LOG_LEVEL
+              value: debug
+            - name: MINECHARTS_LOG_FORMAT
+              value: text
+            - name: MINECHARTS_STORAGE_CLASS
+              value: local-path
