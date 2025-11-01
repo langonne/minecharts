@@ -25,7 +25,7 @@ var (
 	DatabaseConnectionString = getEnv("MINECHARTS_DB_CONNECTION", "./app/data/minecharts.db") // File path for SQLite or connection string for Postgres
 
 	// Authentication configuration
-	JWTSecret      = getEnv("MINECHARTS_JWT_SECRET", "your-secret-key-change-me-in-production")
+	JWTSecret      = getEnv("MINECHARTS_JWT_SECRET", "")
 	JWTExpiryHours = getEnvInt("MINECHARTS_JWT_EXPIRY_HOURS", 24)
 	APIKeyPrefix   = getEnv("MINECHARTS_API_KEY_PREFIX", "mcapi")
 

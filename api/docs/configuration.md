@@ -24,7 +24,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 ## Authentication & Security
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MINECHARTS_JWT_SECRET` | `your-secret-key-change-me-in-production` | HMAC secret used to sign JWT access tokens; **must** be overridden in production. |
+| `MINECHARTS_JWT_SECRET` | *(empty)* | HMAC secret used to sign JWT access tokens; the API refuses to start if it remains empty. |
 | `MINECHARTS_JWT_EXPIRY_HOURS` | `24` | Token lifespan in hours. |
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
 
