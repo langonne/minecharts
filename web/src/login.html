@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="route:access" content="guest" />
+    <title>Minecharts - Login</title>
+    <script type="module" src="main.ts"></script>
+    <script type="module" src="login.ts"></script>
+    <style>
+        body {
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-zinc-800 rounded-xl shadow-xl overflow-hidden">
+        <div class="p-5 bg-emerald-700 text-center">
+            <h1 class="text-3xl font-bold">Minecharts</h1>
+            <p text="sm emerald-100" class="mt-1">Minecraft Server Management</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <form id="login-form" x-data="loginForm" hx-post="/api/auth/login" hx-ext="json-enc" hx-swap="none">
+                <div class="space-y-1 mb-6">
+                    <label for="username" text="sm gray-300" class="block font-medium">Username</label>
+                    <div class="relative">
+                        <input type="text" id="username" name="username" placeholder="Username" border="zinc-600"
+                            p="x-4 y-2" class="w-full bg-zinc-700 rounded-lg" required />
+                    </div>
+                </div>
+
+                <div class="space-y-1 mb-6">
+                    <label for="password" text="sm gray-300" class="block font-medium">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" placeholder="Password" border="zinc-600"
+                            p="x-4 y-2" class="w-full bg-zinc-700 rounded-lg" required />
+                    </div>
+                </div>
+
+                <div class="space-y-1 mb-6">
+                    <div style="display: none;" x-show="hasError" x-text="errorMessage" p="y-2 x-4"
+                        class="w-full bg-red-500/20 ring-2 text-red-500 rounded-lg">
+                    </div>
+                </div>
+                <button type="submit" bg="emerald-600 hover:emerald-700" p="y-2 x-4"
+                    class="w-full text-white rounded-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    Log in
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="route:access" content="private" />
+    <script type="module" src="main.ts" defer></script>
+    <style>
+        body {
+            opacity: 0;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+
+</head>
+
+<body class="bg-zinc-900">
+    <!-- Nav bar -->
+    <nav class="bg-zinc-800 w-full shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+            x-data="{
+                navActive: document.body?.dataset?.navActive || 'dashboard',
+                navTag: document.body?.dataset?.navTag || '',
+                mobileOpen: false,
+                isAdmin: localStorage.getItem('is_admin') === 'true',
+                init() {
+                    const handler = (event) => {
+                        const detail = event?.detail;
+
+                        if (detail && typeof detail === 'object' && 'isAdmin' in detail) {
+                            this.isAdmin = Boolean(detail.isAdmin);
+                            return;
+                        }
+
+                        if (detail !== undefined) {
+                            this.isAdmin = Boolean(detail);
+                            return;
+                        }
+
+                        this.isAdmin = localStorage.getItem('is_admin') === 'true';
+                    };
+
+                    document.addEventListener('auth:admin-change', handler);
+                    handler();
+                }
+            }">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Left section -->
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center">
+                        <div class="bg-emerald-700 rounded-md px-3 py-1">
+                            <span class="font-bold text-white text-xl">Minecharts</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="/dashboard.html"
+                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                            :class="navActive === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-zinc-700 hover:text-white'">
+                            Dashboard
+                        </a>
+                        <template x-if="navActive === 'servers'">
+                            <div class="flex items-center space-x-2">
+                                <a href="/dashboard.html#servers"
+                                    class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                    :class="'bg-emerald-600 text-white'">
+                                    Servers
+                                </a>
+                                <span x-show="navTag" x-transition.opacity
+                                    class="text-xs px-2 py-1 rounded-md border border-emerald-500/50 text-emerald-200 bg-emerald-500/10"
+                                    x-text="navTag"></span>
+                            </div>
+                        </template>
+                        <a href="/account.html"
+                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                            :class="navActive === 'account' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-zinc-700 hover:text-white'">
+                            Account
+                        </a>
+                        <template x-if="isAdmin">
+                            <a href="/admin.html"
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                :class="navActive === 'admin' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-zinc-700 hover:text-white'">
+                                Admin
+                            </a>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Right desktop section -->
+                <div class="hidden md:flex items-center space-x-4 text-white">
+                    <a href="/account.html"
+                        class="font-bold text-white hover:text-emerald-300 transition-colors"
+                        x-data="{ username: localStorage.getItem('username') || 'Account' }"
+                        x-text="username">
+                    </a>
+                    <div class="bg-red-500 hover:bg-red-600 text-white rounded-lg hover:ring-2 transition-all">
+                        <button class="px-4 py-2" hx-post="/api/auth/logout" hx-swap="none"
+                            hx-on::after-request="if(event.detail.successful){localStorage.removeItem('username');localStorage.removeItem('is_admin');document.dispatchEvent(new CustomEvent('auth:admin-change',{detail:{isAdmin:false}}));window.location.href='/login.html';}">
+                            Log out
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button"
+                        class="inline-flex items-center justify-center rounded-md p-2 text-gray-300 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500"
+                        @click="mobileOpen = !mobileOpen" :aria-expanded="mobileOpen" aria-controls="mobile-nav">
+                        <span class="sr-only">Open main menu</span>
+                        <svg x-show="!mobileOpen" x-cloak class="h-6 w-6" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg x-show="mobileOpen" x-cloak class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div class="md:hidden" id="mobile-nav" x-show="mobileOpen" x-cloak x-transition>
+                <div class="space-y-4 border-t border-zinc-700 py-4 text-gray-200">
+                    <div class="flex flex-col space-y-2">
+                        <a href="/dashboard.html"
+                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                            :class="navActive === 'dashboard' ? 'bg-emerald-600 text-white' : 'hover:bg-zinc-700 hover:text-white'">
+                            Dashboard
+                        </a>
+                        <template x-if="navActive === 'servers'">
+                            <a href="/dashboard.html#servers"
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                :class="'bg-emerald-600 text-white'">
+                                Servers
+                                <span x-show="navTag" x-transition.opacity
+                                    class="ml-2 text-xs px-2 py-1 rounded-md border border-emerald-500/50 text-emerald-200 bg-emerald-500/10"
+                                    x-text="navTag"></span>
+                            </a>
+                        </template>
+                        <a href="/account.html"
+                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                            :class="navActive === 'account' ? 'bg-emerald-600 text-white' : 'hover:bg-zinc-700 hover:text-white'">
+                            Account
+                        </a>
+                        <template x-if="isAdmin">
+                            <a href="/admin.html"
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                :class="navActive === 'admin' ? 'bg-emerald-600 text-white' : 'hover:bg-zinc-700 hover:text-white'">
+                                Admin
+                            </a>
+                        </template>
+                    </div>
+
+                    <div class="flex flex-col gap-3 border-t border-zinc-700 pt-4 text-white">
+                        <a href="/account.html" class="flex flex-col" x-data="{ username: localStorage.getItem('username') || 'Account' }">
+                            <p class="text-sm uppercase tracking-wide text-zinc-400">Signed in as</p>
+                            <p class="text-lg font-semibold mt-1 hover:text-emerald-300 transition-colors" x-text="username"></p>
+                        </a>
+                        <button class="w-full rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-600"
+                            hx-post="/api/auth/logout" hx-swap="none"
+                            hx-on::after-request="if(event.detail.successful) window.location.href='/login.html'">
+                            Log out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</body>
+<html>

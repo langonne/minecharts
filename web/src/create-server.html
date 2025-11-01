@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="route:access" content="private" />
+    <title>Minecharts - New Server</title>
+    <script type="module" src="main.ts"></script>
+    <script type="module" src="create-server.ts"></script>
+    <style>
+        body {
+            opacity: 0;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-zinc-900 text-gray-100 flex flex-col" data-nav-active="servers" data-nav-tag="Create">
+    <header class="w-full" hx-get="./navbar.html" hx-trigger="load" hx-swap="innerHTML"></header>
+
+    <main class="flex-1 flex justify-center p-6 overflow-auto">
+        <div class="w-full max-w-3xl bg-zinc-800 rounded-xl shadow border border-zinc-700">
+            <div class="p-6 space-y-6">
+                <header class="space-y-1">
+                    <h1 class="text-3xl font-semibold text-white">Create a server</h1>
+                    <p class="text-sm text-zinc-400">Provide the basics before we spin anything up.</p>
+                </header>
+
+                <form x-data="createServerForm" x-ref="form" hx-post="/api/servers" hx-ext="json-enc" hx-swap="none"
+                    :hx-vals="hxPayload()" class="space-y-6">
+                    <datalist id="extra-key-suggestions">
+                        <template x-for="option in knownKeys" :key="option">
+                            <option :value="option"></option>
+                        </template>
+                    </datalist>
+
+                    <div class="space-y-2">
+                        <label for="serverName" class="block text-sm font-medium text-zinc-300">Server name</label>
+                        <input id="serverName" name="serverName" type="text" x-model="serverName"
+                            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Skyblock-01" required />
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="serverType" class="block text-sm font-medium text-zinc-300">Server type</label>
+                            <select id="serverType" x-model="serverType"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <template x-for="option in serverTypes" :key="option.value">
+                                    <option :value="option.value" x-text="option.label"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="gameMode" class="block text-sm font-medium text-zinc-300">Game mode</label>
+                            <select id="gameMode" x-model="gameMode"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <template x-for="option in gameModes" :key="option.value">
+                                    <option :value="option.value" x-text="option.label"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2" x-show="serverType === 'VANILLA'" x-cloak>
+                            <label for="version" class="block text-sm font-medium text-zinc-300">Version
+                                (Vanilla)</label>
+                            <select id="version" x-model="version"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <template x-for="option in versions" :key="option.value">
+                                    <option :value="option.value" x-text="option.label"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="difficulty" class="block text-sm font-medium text-zinc-300">Difficulty</label>
+                            <select id="difficulty" x-model="difficulty"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <template x-for="option in difficulties" :key="option.value">
+                                    <option :value="option.value" x-text="option.label"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6" x-show="serverType === 'AUTO_CURSEFORGE'" x-cloak>
+                        <div class="space-y-2">
+                            <label for="cfApiKey" class="block text-sm font-medium text-zinc-300">CF_API_KEY</label>
+                            <input id="cfApiKey" type="text" x-model="cfApiKey"
+                                :required="serverType === 'AUTO_CURSEFORGE'"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder="Enter your CurseForge API key" />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="cfPageUrl" class="block text-sm font-medium text-zinc-300">CF_PAGE_URL</label>
+                            <input id="cfPageUrl" type="text" x-model="cfPageUrl"
+                                :required="serverType === 'AUTO_CURSEFORGE'"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder="https://www.curseforge.com/minecraft/modpacks/your-pack" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="maxPlayers" class="block text-sm font-medium text-zinc-300">Maximum players</label>
+                        <input id="maxPlayers" type="number" min="1" x-model.number="maxPlayers"
+                            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="10" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="motd" class="block text-sm font-medium text-zinc-300">MOTD</label>
+                        <textarea id="motd" x-model="motd" rows="2"
+                            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Welcome to our server!"></textarea>
+                        <p class="text-xs text-zinc-500">Tip: use Minecraft color codes (for example &amp;a, &amp;c).
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="ops" class="block text-sm font-medium text-zinc-300">Operators (OPS)</label>
+                        <textarea id="ops" x-model="ops" rows="2"
+                            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="PlayerOne, PlayerTwo"></textarea>
+                        <p class="text-xs text-zinc-500">Separate usernames with commas.</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <span class="text-sm font-medium text-zinc-300">Additional parameters</span>
+                            <a href="https://docker-minecraft-server.readthedocs.io/en/latest/variables/#server"
+                                target="_blank" rel="noopener"
+                                class="text-xs text-emerald-300 hover:text-emerald-100 underline underline-offset-2">
+                                View the official documentation
+                            </a>
+                        </div>
+                        <template x-for="(field, index) in customFields" :key="index">
+                            <div class="grid md:grid-cols-[1fr_auto] gap-3 items-center">
+                                <input type="text" :id="`extra-key-${index}`" x-model="customFields[index].key"
+                                    class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Key (e.g. VIEW_DISTANCE)" list="extra-key-suggestions"
+                                    @input="onFieldChange(index)" />
+                                <div class="flex items-center space-x-2 w-full md:w-auto">
+                                    <input type="text" :id="`extra-value-${index}`" x-model="customFields[index].value"
+                                        class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        placeholder="Value" @input="onFieldChange(index)" />
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- If error -->
+                    <div style="display: none;" x-show="hasError" x-text="errorMessage" p="y-2 x-4" x-transition
+                        class="w-full bg-red-500/20 ring-2 text-red-500 rounded-lg">
+                    </div>
+
+                    <div class="flex items-center justify-between pt-6 border-t border-zinc-700">
+                        <a href="/dashboard.html"
+                            class="px-4 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors">
+                            Back
+                        </a>
+                        <button type="submit"
+                            class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            :class="isSubmitting ? 'opacity-70 cursor-not-allowed' : ''" :disabled="isSubmitting">
+                            Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

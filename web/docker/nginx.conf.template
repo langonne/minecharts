@@ -1,0 +1,65 @@
+worker_processes auto;
+error_log /var/log/nginx/error.log notice;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log /var/log/nginx/access.log main;
+
+    sendfile        on;
+    tcp_nopush      on;
+    tcp_nodelay     on;
+    keepalive_timeout  65;
+    types_hash_max_size 4096;
+
+${TLS_REDIRECT_SERVER}
+
+    server {
+${PRIMARY_LISTEN_DIRECTIVES}
+        server_name _;
+
+${TLS_SSL_CONFIG}
+
+        root /usr/share/nginx/html;
+        index login.html;
+
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy no-referrer-when-downgrade;
+        add_header X-Frame-Options DENY;
+${TLS_HSTS_HEADER}
+
+        location / {
+            try_files $uri $uri/ /login.html;
+        }
+
+        location /api/ {
+            proxy_pass ${MINECHARTS_API_URL}/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location /ws {
+            proxy_pass ${MINECHARTS_API_URL}/ws;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 3600s;
+        }
+    }
+
+    include /etc/nginx/conf.d/*.conf;
+}

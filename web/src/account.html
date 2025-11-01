@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="route:access" content="private" />
+    <title>Minecharts - Account</title>
+    <script type="module" src="main.ts"></script>
+    <script type="module" src="account.ts"></script>
+    <style>
+        body {
+            opacity: 0;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-zinc-900 text-white" data-nav-active="account">
+    <header class="w-full" hx-get="./navbar.html" hx-trigger="load" hx-swap="innerHTML"></header>
+    <main class="flex-1">
+        <div class="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8" x-data="accountPage" x-cloak>
+            <template x-if="loadError">
+                <div class="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-red-200">
+                    <p class="font-semibold">We could not load your account information.</p>
+                    <p class="text-sm" x-text="loadError"></p>
+                </div>
+            </template>
+
+            <template x-if="loading">
+                <div class="rounded-lg border border-zinc-700 bg-zinc-800/60 p-6 text-center">
+                    <p class="text-sm text-zinc-300">Loading account details…</p>
+                </div>
+            </template>
+
+            <template x-if="!loading && !loadError">
+                <div class="space-y-8">
+                    <section class="rounded-lg border border-zinc-700 bg-zinc-900/60 p-6 shadow-lg">
+                        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h1 class="text-2xl font-semibold">Account settings</h1>
+                                <p class="text-sm text-zinc-400">Update your email address or change your password.</p>
+                            </div>
+                            <div class="flex flex-col gap-2 sm:items-end">
+                                <div class="rounded-md border border-zinc-700/70 bg-zinc-800/60 px-3 py-1 text-xs text-zinc-300">
+                                    <span class="uppercase tracking-wide text-zinc-500">User ID</span>
+                                    <span class="ml-2 font-mono text-sm" x-text="userId || '—'"></span>
+                                </div>
+                                <div class="rounded-md border border-zinc-700/60 bg-zinc-800/50 px-3 py-1 text-xs text-zinc-300">
+                                    <span class="uppercase tracking-wide text-zinc-500">Last login</span>
+                                    <span class="ml-2 font-medium" x-text="lastLogin"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <template x-if="successMessage">
+                            <div class="mb-4 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+                                <span x-text="successMessage"></span>
+                            </div>
+                        </template>
+
+                        <template x-if="errorMessage">
+                            <div class="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+                                <span x-text="errorMessage"></span>
+                            </div>
+                        </template>
+
+                        <form class="space-y-6" @submit.prevent="submitProfile">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium text-zinc-300">Email</span>
+                                    <input type="email" x-model.trim="form.email"
+                                        class="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                        autocomplete="email" required />
+                                </label>
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium text-zinc-300">Username</span>
+                                    <input type="text" x-model="username" readonly
+                                        class="cursor-not-allowed rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-400" />
+                                </label>
+                            </div>
+
+                            <div class="rounded-md border border-zinc-700/70 bg-zinc-900/70 p-4">
+                                <h2 class="text-lg font-semibold">Change password</h2>
+                                <p class="mb-4 text-sm text-zinc-400">Leave this section empty if you do not want to change your password.</p>
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    <label class="flex flex-col gap-2">
+                                        <span class="text-sm font-medium text-zinc-300">Current password</span>
+                                        <input type="password" x-model.trim="form.passwordCurrent" autocomplete="current-password"
+                                            class="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                                    </label>
+                                    <label class="flex flex-col gap-2">
+                                        <span class="text-sm font-medium text-zinc-300">New password</span>
+                                        <input type="password" x-model.trim="form.passwordNew" autocomplete="new-password"
+                                            class="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                            placeholder="Minimum 12 characters" />
+                                    </label>
+                                    <label class="flex flex-col gap-2">
+                                        <span class="text-sm font-medium text-zinc-300">Confirm password</span>
+                                        <input type="password" x-model.trim="form.passwordConfirm" autocomplete="new-password"
+                                            class="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                                    </label>
+                                </div>
+                                <p class="mt-3 text-xs text-zinc-500">Passwords must be at least 12 characters long and include uppercase letters, lowercase letters, numbers, and symbols.</p>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                    class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-500 hover:ring-2">Save changes</button>
+                            </div>
+                        </form>
+                    </section>
+
+                </div>
+            </template>
+        </div>
+    </main>
+</body>
+
+</html>
