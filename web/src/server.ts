@@ -559,7 +559,7 @@ Alpine.data("serverInfo", () => ({
     buildWebSocketUrl() {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
-      return `${protocol}//${host}/ws`;
+      return `${protocol}//${host}/api/ws`;
     },
 
     parseLogLine(line: string): ParsedLogLine {
