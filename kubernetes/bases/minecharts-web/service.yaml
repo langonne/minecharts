@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/service-v1.json
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecharts-web
+  namespace: minecharts
+spec:
+  selector:
+    app: minecharts
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP

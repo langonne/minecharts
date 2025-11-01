@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/deployment-apps-v1.json
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecharts-web
+  namespace: minecharts
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: minecharts
+  template:
+    metadata:
+      labels:
+        app: minecharts
+    spec:
+      serviceAccountName: minecharts
+      containers:
+        - name: minecharts-web
+          image: ghcr.io/langonne/minecharts-web:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: ENABLE_TLS
+              value: "FALSE"
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: minecharts-web-pvc

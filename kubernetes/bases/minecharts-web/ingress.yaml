@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    # traefik.ingress.kubernetes.io/router.middlewares: traefik-chain-no-auth@kubernetescrd
+  name: minecharts-web
+  namespace: minecharts
+spec:
+  rules:
+  - host: minecharts.test.nasdak.fr
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: minecharts-web
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - minecharts.test.nasdak.fr
+    # secretName: minecharts-test-nasdak-fr-tls

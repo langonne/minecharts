@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/namespace-v1.json
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minecharts
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/serviceaccount-v1.json
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: minecharts
+  namespace: minecharts
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/role-rbac-v1.json
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: minecharts-web
+  namespace: minecharts
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.33.0/rolebinding-rbac-v1.json
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: minecharts-web
+  namespace: minecharts
+subjects:
+  - kind: ServiceAccount
+    name: minecharts
+    namespace: minecharts
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: minecharts-web
