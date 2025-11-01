@@ -32,6 +32,5 @@ api_build_dev:
       set -eu
       docker image build --pull -f "api/Dockerfile" -t "registry.prod.nasdak.fr/l.angonnet/minecharts" "api"
       docker push "registry.prod.nasdak.fr/l.angonnet/minecharts"
-
   after_script:
     - docker logout "$CI_REGISTRY"
