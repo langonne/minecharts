@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 site_name: Minecharts
-site_url: https://langonne.github.io/minecharts-api/
+site_url: https://langonne.github.io/minecharts
 
-repo_url: https://github.com/langonne/minecharts-api
+repo_url: https://github.com/langonne/minecharts
 repo_name: langonne/minecharts-api
 
 nav:
