@@ -4,6 +4,7 @@ api_build_dev:
   services:
     - docker:dind
   variables:
+    DOCKER_TLS_CERTDIR: "/certs"
     COMPONENT: api
     TARGET_ENV: dev
     BUILD_CONTEXT: api
