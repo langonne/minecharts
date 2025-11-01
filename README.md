@@ -1,65 +1,37 @@
-# Minecharts API
-Minecharts API is a Go API for managing Minecraft server pods on a Kubernetes cluster using Gin and client-go. It is containerized with Docker and includes Kubernetes manifests for easy deployment.
+# Minecharts
 
-## Features
-    - Create and delete Minecraft server instances (pods)
-    - Start, stop, and restart Minecraft server instances
-    - Customize server instances with environment variables
-    - Execute commands in running Minecraft servers
-    - And more to come!
+All-in-one platform to provision, monitor, and manage Minecraft servers on Kubernetes. The repository hosts the Go API and the Bun/Vite frontend, together with Docker workflows for GitHub and GitLab.
 
-## Getting Started
-### Prerequisites
-    - A Kubernetes cluster (Minikube, Kind, or cloud provider)
+## Quick tour
+- **API (`api/`)**: Go service orchestrating Minecraft pods (Gin, client-go, multi-stage Docker builds).
+- **Web (`web/`)**: Bun/Vite interface powered by HTMX/AlpineJS to drive the orchestrator.
+- **Manifests (`kubernetes/`)**: base and overlay manifests for deploying to Kubernetes.
+- **CI/CD**: GitHub Actions (`.github/workflows/`) and GitLab (`.gitlab/ci/`) build/push two Docker images (`api` and `web`) with `-dev`, `-latest`, and commit-hash tags.
 
-### Installation
-Clone the repository:
+## Getting started
 ```bash
+# Clone the repository
 git clone https://github.com/ZenT0x/minecharts.git
-```
-
-Go into the repository:
-```bash
 cd minecharts
+
+# API: install deps and run locally
+cd api
+go mod download
+go run ./cmd
+
+# Frontend: install and start Vite dev server
+cd ../web
+bun install         # or npm/pnpm if you prefer
+bun run dev
 ```
+These commands launch the API and dashboard in development mode. Use Docker and the Kubernetes manifests to mirror a production setup or your CI pipelines for reproducible builds.
 
-Apply the Kubernetes manifests:
-```bash
-kubectl apply -f kubernetes/
-```
+## Docker images
+Pipelines automatically publish:
+- `…/minecharts:api`, `api-latest`, `api-<commit>` and `api-dev[-<commit>]`
+- `…/minecharts:web`, `web-latest`, `web-<commit>` and `web-dev[-<commit>]`
 
-### Docker Image
+Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
-Pull the Docker image:
-```bash
-docker pull ghcr.io/zent0x/minecharts:latest
-```
-
-## Minecraft Server Image
-This project uses the [itzg/docker-minecraft-server Docker](https://github.com/itzg/docker-minecraft-server) image to deploy Minecraft servers in Kubernetes. This image offers extensive customization options through environment variables, allowing you to configure various server types, versions, and plugins.
-
-# Git Workflow
-    - main: Contains stable, production-ready code.
-    - dev: Active development branch.
-    - feature/*: Branches for new features or fixes.
-    - Version branches: For maintaining published versions (e.g., 1.4).
-
-# Roadmap
-    - [x] Basic server management
-        - [x] Create/delete Minecraft server instances (pods)
-        - [x] Start/stop/restart Minecraft server instances
-    - [x] Server customization
-        - [x] Support majority of environment variables for Docker image customization
-        - [x] Execute commands in running Minecraft servers
-    - [x] Networking options
-        - [x] ClusterIP (Internal server)
-        - [x] NodePort (Expose server port directly)
-        - [x] LoadBalancer (Get Public IP for server)
-        - [x] MC Router
-    - [x] User management
-        - [x] User authentication
-        - [x] User roles and permissions
-    - [ ] Extend API endpoints for full Minecraft server management
-    - [ ] Develop a Kubernetes operator for automated resource handling
-    - [ ] Implement CI/CD pipelines for testing and deployment
-    - [ ] Build a web interface for easier management
+## Documentation
+Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight—refer to the docs for deep dives.
