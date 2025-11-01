@@ -2,19 +2,14 @@ api_build_dev:
   stage: build
   image: docker:latest
   services:
-    - name: docker:dind
-      command: ["--tls=false"]
-      variables:
-        HEALTHCHECK_TCP_PORT: "2375"
+    - docker:dind
 
   variables:
     COMPONENT: api
     TARGET_ENV: dev
     BUILD_CONTEXT: api
     DOCKERFILE_PATH: api/Dockerfile
-    DOCKER_DRIVER: overlay
-    DOCKER_HOST: tcp://127.0.0.1:2375/
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "unix:///runner/services/docker/docker.sock"
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
