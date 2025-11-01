@@ -1,0 +1,22 @@
+stages:
+  - build
+
+include:
+  - local: .gitlab/ci/api-release-main.yml
+  - local: .gitlab/ci/api-build-dev.yml
+  - local: .gitlab/ci/web-release-main.yml
+  - local: .gitlab/ci/web-build-dev.yml
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: "1"
+  IMAGE_NAME: ${CI_PROJECT_NAME}
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "api"
+    - if: $CI_PIPELINE_SOURCE == "trigger"
