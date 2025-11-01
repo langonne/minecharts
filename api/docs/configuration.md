@@ -10,7 +10,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_PVC_SUFFIX` | `-pvc` | Suffix appended to PVC names. |
 | `MINECHARTS_STORAGE_SIZE` | `10Gi` | Capacity requested for each persistent volume claim. |
 | `MINECHARTS_STORAGE_CLASS` | `rook-ceph-block` | Storage class used when creating PVCs; change to match your cluster. |
-| `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` | `test.nasdak.fr` | Domain suffix used when exposing servers through mc-router. |
+| `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` | `change-me.local` | Domain suffix used when exposing servers through mc-router. |
 | `MINECHARTS_TRUSTED_PROXIES` | `127.0.0.1` | Comma-separated list passed to Gin to mark upstream proxies as trusted. |
 | `MINECHARTS_TIMEZONE` | `UTC` | Application-wide timezone for logging and time calculations. |
 | `DATA_DIR` | `./app/data` | Local directory for SQLite data when the DB is auto-initialised. |
@@ -68,5 +68,14 @@ Some behaviours are currently hard-coded but easy to adapt if required:
 - `DefaultReplicas` is set to `1`, meaning each server starts with a single pod. Update `cmd/config/config.go` if you need a different default.
 - Pods run as UID/GID `1000` and add a lifecycle pre-stop hook that saves the world. Edit `cmd/kubernetes/deployement.go` to customise these values.
 - The command guard `mc-send-to-console save-all` and the wait duration before restart (`10s`) are located in `cmd/kubernetes/utils.go`.
+
+## Local development overlay
+When you deploy the `kubernetes/overlays/test` overlay, you can keep developer-specific overrides outside of Git:
+
+1. Copy `kubernetes/overlays/test/dev-env.exemple.yaml` to `dev-env.yaml`.
+2. Adjust the `env` entries in the copy (e.g. `MINECHARTS_MCROUTER_DOMAIN_SUFFIX`, `MINECHARTS_JWT_SECRET`, logging tweaks).
+3. Apply the overlay with `kubectl apply -k kubernetes/overlays/test`.
+
+The overlay directory contains a `.gitignore` that excludes `dev-env.yaml`, which ensures personal values never end up in version control while everyone shares the example template.
 
 Extend the configuration package with additional environment variables when introducing new behaviours so that operators can tune the system without recompiling.
