@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Build and push the Docker image for Dev.
-      # The image is tagged with both a commit-specific tag and the fixed tag "dev-latest".
+      # The image is tagged with both a commit-specific tag and the fixed tag "dev-latest"
       - name: Build and push Docker image for Dev
         uses: docker/build-push-action@v6
         with:
