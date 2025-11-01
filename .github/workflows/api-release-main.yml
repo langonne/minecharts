@@ -70,9 +70,9 @@ jobs:
           context: api
           push: true
           tags: |
-            ghcr.io/langonne/minecharts:api-${{ github.sha }}
-            ghcr.io/langonne/minecharts:api-latest
-            ghcr.io/langonne/minecharts:api
-            ${{ steps.release_version.outputs.version && format('ghcr.io/langonne/minecharts:api-{0}', steps.release_version.outputs.version) }}
+            ghcr.io/langonne/minecharts-api:${{ github.sha }}
+            ghcr.io/langonne/minecharts-api:latest
+            ghcr.io/langonne/minecharts-api
+            ${{ steps.release_version.outputs.version && format('ghcr.io/langonne/minecharts-api:{0}', steps.release_version.outputs.version) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

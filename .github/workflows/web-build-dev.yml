@@ -39,7 +39,7 @@ jobs:
           context: web
           push: true
           tags: |
-            ghcr.io/langonne/minecharts:web-dev-${{ github.sha }}
-            ghcr.io/langonne/minecharts:web-dev-latest
+            ghcr.io/langonne/minecharts-web:dev-${{ github.sha }}
+            ghcr.io/langonne/minecharts-web:dev-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
