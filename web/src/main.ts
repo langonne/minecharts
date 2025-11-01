@@ -2,6 +2,7 @@ import Alpine from 'alpinejs'
 import collapse from '@alpinejs/collapse'
 import htmx from 'htmx.org'
 import 'virtual:uno.css'
+import './feedback'
 
 declare global {
     interface Window {

@@ -96,6 +96,10 @@
                         x-data="{ username: localStorage.getItem('username') || 'Account' }"
                         x-text="username">
                     </a>
+                    <button class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-sm font-semibold transition-all"
+                        @click="$dispatch('feedback-open')">
+                        Feedback
+                    </button>
                     <div class="bg-red-500 hover:bg-red-600 text-white rounded-lg hover:ring-2 transition-all">
                         <button class="px-4 py-2" hx-post="/api/auth/logout" hx-swap="none"
                             hx-on::after-request="if(event.detail.successful){localStorage.removeItem('username');localStorage.removeItem('is_admin');document.dispatchEvent(new CustomEvent('auth:admin-change',{detail:{isAdmin:false}}));window.location.href='/login.html';}">
@@ -162,6 +166,10 @@
                             <p class="text-sm uppercase tracking-wide text-zinc-400">Signed in as</p>
                             <p class="text-lg font-semibold mt-1 hover:text-emerald-300 transition-colors" x-text="username"></p>
                         </a>
+                        <button class="w-full rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold hover:bg-emerald-600"
+                            @click="$dispatch('feedback-open')">
+                            Feedback
+                        </button>
                         <button class="w-full rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-600"
                             hx-post="/api/auth/logout" hx-swap="none"
                             hx-on::after-request="if(event.detail.successful) window.location.href='/login.html'">
@@ -172,5 +180,82 @@
             </div>
         </div>
     </nav>
+    <div x-data="feedbackModal()" @feedback-open.window="open = true" x-cloak>
+        <template x-if="open">
+            <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+                <div class="absolute inset-0 bg-black/60" @click="close"></div>
+                <div class="relative w-full max-w-lg rounded-xl bg-zinc-900 p-6 border border-zinc-700 shadow-xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-semibold text-white">Envoyer un feedback</h2>
+                            <p class="text-sm text-zinc-300 mt-1">Partage un bug ou une idée d'amélioration.</p>
+                        </div>
+                        <button class="text-zinc-400 hover:text-white" @click="close" aria-label="Fermer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form class="mt-4 space-y-4" @submit.prevent="submit">
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-300 mb-1" for="feedback-type">Type</label>
+                            <select id="feedback-type" class="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-white focus:border-emerald-500 focus:ring-emerald-500"
+                                x-model="form.type" :disabled="sending || success">
+                                <option value="bug">Bug</option>
+                                <option value="feature">Feature</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-300 mb-1" for="feedback-title">Titre</label>
+                            <input id="feedback-title" type="text" maxlength="140" class="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-white focus:border-emerald-500 focus:ring-emerald-500"
+                                x-model.trim="form.title" :disabled="sending || success" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-300 mb-1" for="feedback-description">Description</label>
+                            <textarea id="feedback-description" rows="6" maxlength="5000" class="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-white focus:border-emerald-500 focus:ring-emerald-500 resize-y"
+                                x-model.trim="form.description" :disabled="sending || success" required></textarea>
+                        </div>
+
+                        <template x-if="error">
+                            <div class="rounded-md border border-red-500 bg-red-500/10 px-3 py-2 text-sm text-red-400" x-text="error"></div>
+                        </template>
+
+                        <template x-if="success">
+                            <div class="rounded-md border border-emerald-500 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                                Merci pour ton feedback !
+                                <template x-if="success.issue_url">
+                                    <span> Suivre la demande :
+                                        <a :href="success.issue_url" target="_blank" rel="noopener" class="underline text-emerald-200">Issue #<span x-text="success.issue_number"></span></a>
+                                    </span>
+                                </template>
+                            </div>
+                        </template>
+
+                        <div class="flex items-center justify-between gap-3">
+                            <button type="button" class="px-4 py-2 rounded-md text-sm font-medium text-zinc-300 hover:text-white"
+                                @click="close" :disabled="sending">
+                                Fermer
+                            </button>
+                            <button type="submit" class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="sending || success">
+                                <span x-show="!sending">Envoyer</span>
+                                <span x-show="sending" class="flex items-center gap-2">
+                                    <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Envoi…
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+    </div>
 </body>
 <html>
