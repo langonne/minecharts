@@ -1,8 +1,8 @@
 api_build_dev:
   stage: build
-  image: docker:24.0.6
+  image: docker:dind
   services:
-    - docker:24.0.6-dind
+    - docker:dind
   variables:
     DOCKER_TLS_CERTDIR: ""
     COMPONENT: api
