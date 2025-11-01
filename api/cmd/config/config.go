@@ -14,7 +14,7 @@ var (
 	PVCSuffix            = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
 	StorageSize          = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
 	StorageClass         = getEnv("MINECHARTS_STORAGE_CLASS", "rook-ceph-block")
-	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "test.nasdak.fr")
+	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "change-me.local")
 	DefaultReplicas      = 1
 
 	//  Reverse proxy configuration
