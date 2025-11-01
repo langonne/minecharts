@@ -1,0 +1,43 @@
+web_build_dev:
+  stage: build
+  image: docker:24.0.6
+  services:
+    - docker:24.0.6-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    COMPONENT: web
+    TARGET_ENV: dev
+    BUILD_CONTEXT: web
+    DOCKERFILE_PATH: web/Dockerfile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - web/**/*
+        - .gitlab/ci/web-build-dev.yml
+        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      allow_failure: false
+  before_script:
+    - echo "Logging in to registry ${CI_REGISTRY}"
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - |
+      set -eo pipefail
+      IMAGE_REPO="${CI_REGISTRY_IMAGE:-${CI_REGISTRY}/${CI_PROJECT_PATH}}"
+      IMAGE_REPO="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
+      SHORT_SHA="${CI_COMMIT_SHA:0:12}"
+      TAGS=(
+        "${IMAGE_REPO}:${COMPONENT}-dev"
+        "${IMAGE_REPO}:${COMPONENT}-dev-${SHORT_SHA}"
+      )
+      PRIMARY_IMAGE="${TAGS[0]}"
+      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
+      for tag in "${TAGS[@]:1}"; do
+        docker tag "$PRIMARY_IMAGE" "$tag"
+      done
+      for tag in "${TAGS[@]}"; do
+        docker push "$tag"
+      done
+  after_script:
+    - docker logout "$CI_REGISTRY"
