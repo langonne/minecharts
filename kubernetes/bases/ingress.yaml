@@ -6,8 +6,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.middlewares: minecharts-api-strip@kubernetescrd
-  name: minecharts-web
-  namespace: minecharts
+  name: minecharts
 spec:
   rules:
     - host: minecharts.test.nasdak.fr
