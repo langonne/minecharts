@@ -29,6 +29,7 @@ type APIDomain struct {
 	*LogDomain
 	InvalidRequest *LogAction
 	Keys           *LogAction
+	Feedback       *LogAction
 }
 
 type DBDomain struct {

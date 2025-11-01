@@ -62,6 +62,13 @@ var (
 	UserPatchRateLimitCapacity = getEnvFloat("MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY", 5)
 	UserPatchRateLimitInterval = getEnvDuration("MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL", time.Minute)
 	MaxAPIKeysPerUser          = getEnvInt("MINECHARTS_API_KEYS_PER_USER", 5)
+
+	// Feedback integration configuration
+	FeedbackEnabled         = getEnvBool("MINECHARTS_FEEDBACK_ENABLED", false)
+	FeedbackGitHubToken     = getEnv("MINECHARTS_FEEDBACK_GITHUB_TOKEN", "")
+	FeedbackGitHubRepoOwner = getEnv("MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER", "")
+	FeedbackGitHubRepoName  = getEnv("MINECHARTS_FEEDBACK_GITHUB_REPO_NAME", "")
+	FeedbackGitHubLabels    = getEnv("MINECHARTS_FEEDBACK_DEFAULT_LABELS", "feedback")
 )
 
 func getEnv(key, fallback string) string {

@@ -63,4 +63,13 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 !!! note
     The limiter state lives in the application database. PostgreSQL handles concurrent updates efficiently; SQLite serialises writes and may emit short `database is locked` retries under load. For high-traffic deployments, prefer PostgreSQL or an external rate-limiting tier.
 
+## Feedback & Issue Reporting
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MINECHARTS_FEEDBACK_ENABLED` | `false` | Enables the authenticated `POST /feedback` endpoint that raises GitHub issues on behalf of users. |
+| `MINECHARTS_FEEDBACK_GITHUB_TOKEN` | *(empty)* | GitHub personal access token used when creating issues; required whenever feedback is enabled. |
+| `MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER` | *(empty)* | Repository owner (user or organisation) that will receive feedback issues. |
+| `MINECHARTS_FEEDBACK_GITHUB_REPO_NAME` | *(empty)* | Repository name where issues are created. |
+| `MINECHARTS_FEEDBACK_DEFAULT_LABELS` | `feedback` | Comma-separated labels automatically added to each generated issue (in addition to type-specific labels). |
+
 Extend the configuration package with additional environment variables when introducing new behaviours so that operators can tune the system without recompiling.

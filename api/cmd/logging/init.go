@@ -124,6 +124,7 @@ func InitStructuredLogging() {
 
 	API.InvalidRequest = API.LogDomain.Action("InvalidRequest")
 	API.Keys = API.LogDomain.Action("Keys")
+	API.Feedback = API.LogDomain.Action("Feedback")
 
 	// Initialize Database domain
 	DB = &DBDomain{

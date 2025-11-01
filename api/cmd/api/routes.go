@@ -38,6 +38,13 @@ func SetupRoutes(router *gin.Engine) {
 	// Ping endpoint for health checks
 	router.GET("/ping", handlers.PingHandler)
 
+	// Feedback endpoint - requires authenticated user
+	router.POST("/feedback",
+		auth.RequestTimeMiddleware(),
+		auth.JWTMiddleware(),
+		handlers.SubmitFeedbackHandler,
+	)
+
 	// Websocket endpoint for streaming Minecraft logs
 	router.GET("/ws",
 		auth.RequestTimeMiddleware(),

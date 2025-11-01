@@ -28,6 +28,21 @@ func main() {
 	if strings.TrimSpace(config.StorageClass) == "" {
 		logger.Fatal("MINECHARTS_STORAGE_CLASS is required; set it before starting the API")
 	}
+	if config.FeedbackEnabled {
+		var missing []string
+		if strings.TrimSpace(config.FeedbackGitHubToken) == "" {
+			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_TOKEN")
+		}
+		if strings.TrimSpace(config.FeedbackGitHubRepoOwner) == "" {
+			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER")
+		}
+		if strings.TrimSpace(config.FeedbackGitHubRepoName) == "" {
+			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_NAME")
+		}
+		if len(missing) > 0 {
+			logger.Fatalf("Feedback endpoint enabled but missing configuration: %s", strings.Join(missing, ", "))
+		}
+	}
 
 	// Initialize timezone
 	location, err := time.LoadLocation(config.TimeZone)
