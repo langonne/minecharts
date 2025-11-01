@@ -40,7 +40,7 @@ api_build_dev:
       PRIMARY_IMAGE="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}"
       LATEST_TAG="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}-latest"
       SHA_TAG="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}-${SHORT_SHA}"
-      docker build -t registry.prod.nasdak.fr/l.angonnet/minecharts .
+      docker build --pull -f api/Dockerfile -t registry.prod.nasdak.fr/l.angonnet/minecharts .
       docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
       docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
       for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
