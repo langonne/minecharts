@@ -13,8 +13,8 @@ var (
 	DeploymentPrefix     = getEnv("MINECHARTS_DEPLOYMENT_PREFIX", "minecraft-server-")
 	PVCSuffix            = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
 	StorageSize          = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
-	StorageClass         = getEnv("MINECHARTS_STORAGE_CLASS", "rook-ceph-block")
-	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "change-me.local")
+	StorageClass         = getEnv("MINECHARTS_STORAGE_CLASS", "")          // local-path
+	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "") // change-me.local
 	DefaultReplicas      = 1
 
 	//  Reverse proxy configuration
@@ -34,16 +34,16 @@ var (
 
 	// Authentik OAuth configuration
 	AuthentikEnabled      = getEnvBool("MINECHARTS_AUTHENTIK_ENABLED", false)
-	AuthentikIssuer       = getEnv("MINECHARTS_AUTHENTIK_ISSUER", "") // e.g., https://auth.example.com/application/o/
+	AuthentikIssuer       = getEnv("MINECHARTS_AUTHENTIK_ISSUER", "")
 	AuthentikClientID     = getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", "")
 	AuthentikClientSecret = getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", "")
-	AuthentikRedirectURL  = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "") // e.g., http://localhost:8080/api/auth/callback/authentik
+	AuthentikRedirectURL  = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
 
 	// URL Frontend configuration
 	FrontendURL = "http://localhost:3000"
 
 	// Timezone configuration
-	TimeZone = getEnv("MINECHARTS_TIMEZONE", "UTC") // Default value: UTC
+	TimeZone = getEnv("MINECHARTS_TIMEZONE", "UTC")
 
 	// Logging configuration
 	LogLevel  = getEnv("MINECHARTS_LOG_LEVEL", "info")  // Possible values: trace, debug, info, warn, error, fatal, panic
