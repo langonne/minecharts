@@ -1,10 +1,10 @@
 api_build_dev:
   stage: build
-  image: docker:24.0.6
+  image: docker:28.5.1
   tags:
     - tls-dind-kubernetes-runner
   services:
-    - name: docker:24.0.6-dind
+    - name: docker:28.5.1-dind
       variables:
         HEALTHCHECK_TCP_PORT: "2376"
 
@@ -54,7 +54,7 @@ api_build_dev:
       SHA_TAG="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}-${SHORT_SHA}"
       echo "SHA_TAG=${SHA_TAG}"
       echo "docker build --pull -f \"$DOCKERFILE_PATH\" -t \"$PRIMARY_IMAGE\" \"$BUILD_CONTEXT\""
-      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
+      docker build --pull -f "$DOCKERFILE_PATH" -t "$IMAGE_REPO" "$BUILD_CONTEXT" 
       echo "docker tag \"$PRIMARY_IMAGE\" \"$LATEST_TAG\""
       docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
       echo "docker tag \"$PRIMARY_IMAGE\" \"$SHA_TAG\""
