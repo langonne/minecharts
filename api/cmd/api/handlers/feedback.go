@@ -101,7 +101,7 @@ func SubmitFeedbackHandler(c *gin.Context) {
 	description := strings.TrimSpace(req.Description)
 
 	labels := buildFeedbackLabels(normalizedType)
-	body := buildFeedbackBody(normalizedType, description, req.Email, req.PageURL, req.ScreenshotURL, c.ClientIP(), user.ID, user.Username)
+	body := buildFeedbackBody(normalizedType, description, req.Email, req.PageURL, req.ScreenshotURL, user.ID, user.Username)
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), githubRequestTimeout)
 	defer cancel()
@@ -204,7 +204,7 @@ func buildFeedbackLabels(feedbackType string) []string {
 	return labels
 }
 
-func buildFeedbackBody(feedbackType, description, email, pageURL, screenshotURL, clientIP string, userID int64, username string) string {
+func buildFeedbackBody(feedbackType, description, email, pageURL, screenshotURL string, userID int64, username string) string {
 	var builder strings.Builder
 
 	builder.WriteString("### Feedback Type\n")
@@ -228,7 +228,6 @@ func buildFeedbackBody(feedbackType, description, email, pageURL, screenshotURL,
 	}
 	builder.WriteString(fmt.Sprintf("- Reporter ID: %d\n", userID))
 	builder.WriteString(fmt.Sprintf("- Reporter Username: %s\n", username))
-	builder.WriteString(fmt.Sprintf("- Client IP: %s\n", clientIP))
 
 	return builder.String()
 }
