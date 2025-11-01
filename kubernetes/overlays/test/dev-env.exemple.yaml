@@ -11,7 +11,7 @@ spec:
             - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
               value: "your.domain.com"
             - name: MINECHARTS_JWT_SECRET
-              value: "test"
+              value: "Test"
             - name: MINECHARTS_LOG_LEVEL
               value: "debug"
             - name: MINECHARTS_LOG_FORMAT
