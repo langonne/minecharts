@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minecharts
+  name: minecharts-api
   namespace: minecharts
 spec:
   replicas: 1
@@ -9,15 +9,15 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: minecharts
+      app: minecharts-api
   template:
     metadata:
       labels:
-        app: minecharts
+        app: minecharts-api
     spec:
-      serviceAccountName: minecharts
+      serviceAccountName: minecharts-api
       containers:
-        - name: minecharts
+        - name: minecharts-api
           image: ghcr.io/langonne/minecharts-api:dev-latest
           imagePullPolicy: Always
           ports:
@@ -52,4 +52,4 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: minecharts-data-pvc
+            claimName: minecharts-api-data-pvc

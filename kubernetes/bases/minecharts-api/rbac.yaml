@@ -6,13 +6,13 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: minecharts
+  name: minecharts-api
   namespace: minecharts
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: minecharts
+  name: minecharts-api
   namespace: minecharts
 rules:
   - apiGroups: [""]
@@ -40,13 +40,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: minecharts
+  name: minecharts-api
   namespace: minecharts
 subjects:
   - kind: ServiceAccount
-    name: minecharts
+    name: minecharts-api
     namespace: minecharts
 roleRef:
   kind: Role
-  name: minecharts
+  name: minecharts-api
   apiGroup: rbac.authorization.k8s.io

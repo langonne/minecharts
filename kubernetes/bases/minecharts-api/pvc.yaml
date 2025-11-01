@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: minecharts-data-pvc
+  name: minecharts-api-data-pvc
   namespace: minecharts
 spec:
   accessModes:
