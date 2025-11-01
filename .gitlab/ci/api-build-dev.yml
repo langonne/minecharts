@@ -1,10 +1,9 @@
 api_build_dev:
   stage: build
-  image: docker:dind
+  image: docker:latest
   services:
     - docker:dind
   variables:
-    DOCKER_TLS_CERTDIR: ""
     COMPONENT: api
     TARGET_ENV: dev
     BUILD_CONTEXT: api
