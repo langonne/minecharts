@@ -20,7 +20,7 @@ spec:
       serviceAccountName: minecharts
       containers:
         - name: minecharts-web
-          image: ghcr.io/langonne/minecharts:web-dev-latest
+          image: ghcr.io/langonne/minecharts-web:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
