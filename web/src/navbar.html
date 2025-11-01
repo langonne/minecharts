@@ -187,8 +187,8 @@
                 <div class="relative w-full max-w-lg rounded-xl bg-zinc-900 p-6 border border-zinc-700 shadow-xl">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h2 class="text-xl font-semibold text-white">Envoyer un feedback</h2>
-                            <p class="text-sm text-zinc-300 mt-1">Partage un bug ou une idée d'amélioration.</p>
+                            <h2 class="text-xl font-semibold text-white">Submit feedback</h2>
+                            <p class="text-sm text-zinc-300 mt-1">Share a bug report or improvement idea.</p>
                         </div>
                         <button class="text-zinc-400 hover:text-white" @click="close" aria-label="Fermer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -204,12 +204,12 @@
                                 x-model="form.type" :disabled="sending || success">
                                 <option value="bug">Bug</option>
                                 <option value="feature">Feature</option>
-                                <option value="other">Autre</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-zinc-300 mb-1" for="feedback-title">Titre</label>
+                            <label class="block text-sm font-medium text-zinc-300 mb-1" for="feedback-title">Title</label>
                             <input id="feedback-title" type="text" maxlength="140" class="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-white focus:border-emerald-500 focus:ring-emerald-500"
                                 x-model.trim="form.title" :disabled="sending || success" required>
                         </div>
@@ -226,9 +226,9 @@
 
                         <template x-if="success">
                             <div class="rounded-md border border-emerald-500 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
-                                Merci pour ton feedback !
+                                Thanks for the feedback!
                                 <template x-if="success.issue_url">
-                                    <span> Suivre la demande :
+                                    <span> Track this issue:
                                         <a :href="success.issue_url" target="_blank" rel="noopener" class="underline text-emerald-200">Issue #<span x-text="success.issue_number"></span></a>
                                     </span>
                                 </template>
@@ -238,11 +238,11 @@
                         <div class="flex items-center justify-between gap-3">
                             <button type="button" class="px-4 py-2 rounded-md text-sm font-medium text-zinc-300 hover:text-white"
                                 @click="close" :disabled="sending">
-                                Fermer
+                                Close
                             </button>
                             <button type="submit" class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 :disabled="sending || success">
-                                <span x-show="!sending">Envoyer</span>
+                                <span x-show="!sending">Send</span>
                                 <span x-show="sending" class="flex items-center gap-2">
                                     <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

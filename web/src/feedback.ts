@@ -43,7 +43,7 @@ export function feedbackModal() {
             const description = this.form.description.trim()
 
             if (!title || !description) {
-                this.error = 'Titre et description sont obligatoires'
+                this.error = 'Title and description are required'
                 return
             }
 
@@ -65,12 +65,12 @@ export function feedbackModal() {
                 })
 
                 if (response.status === 401) {
-                    this.error = 'Session expirée. Veuillez vous reconnecter.'
+                    this.error = 'Session expired. Please sign in again.'
                     return
                 }
 
                 if (!response.ok) {
-                    let message = "Impossible d'envoyer le feedback"
+                    let message = 'Unable to send feedback'
                     try {
                         const data = await response.json()
                         if (data?.error) {
@@ -86,7 +86,7 @@ export function feedbackModal() {
                 const data: FeedbackSuccess = await response.json()
                 this.success = data
             } catch {
-                this.error = 'Erreur réseau. Réessaie plus tard.'
+                this.error = 'Network error. Please try again later.'
             } finally {
                 this.sending = false
             }
