@@ -10,18 +10,17 @@ All-in-one platform to provision, monitor, and manage Minecraft servers on Kuber
 
 ## Getting started
 ```bash
-# Clone the repository
 git clone https://github.com/ZenT0x/minecharts.git
 cd minecharts
 
-# API: install deps and run locally
+# API: install deps (running requires a Kubernetes cluster)
 cd api
 go mod download
-go run ./cmd
+# go run .
 
 # Frontend: install and start Vite dev server
 cd ../web
-bun install         # or npm/pnpm if you prefer
+bun install         
 bun run dev
 ```
 These commands launch the API and dashboard in development mode. Use Docker and the Kubernetes manifests to mirror a production setup or your CI pipelines for reproducible builds.
@@ -35,3 +34,6 @@ Configure registry secrets/variables in CI if you target anything other than GHC
 
 ## Documentation
 Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight—refer to the docs for deep dives.
+# ⚠️ The API expects a kubeconfig and access to a Kubernetes cluster. Running it
+# locally without that context will fail—prefer the Docker images or a local
+# cluster such as kind/minikube.
