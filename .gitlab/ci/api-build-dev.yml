@@ -1,6 +1,8 @@
 api_build_dev:
   stage: build
   image: docker:latest
+  tags:
+    - tls-dind-kubernetes-runner
   services:
     - name: docker:dind
       variables:
