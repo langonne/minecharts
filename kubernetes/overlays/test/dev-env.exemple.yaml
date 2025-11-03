@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minecharts-api
+  namespace: minecharts
 spec:
   template:
     spec:
@@ -37,3 +38,15 @@ spec:
             #   value: "<token>"
             # - name: MINECHARTS_FEEDBACK_GITLAB_PROJECT
             #   value: "group/project"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minecharts
+spec:
+  rules:
+    - host: minecharts.test.nasdak.fr # replace with your ingress host
+  tls:
+    - hosts:
+        - minecharts.test.nasdak.fr
