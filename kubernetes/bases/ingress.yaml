@@ -9,7 +9,7 @@ metadata:
   name: minecharts
 spec:
   rules:
-    - host: minecharts.test.nasdak.fr
+    - host: minecharts.example.com # change to your public host
       http:
         paths:
           - pathType: Prefix
@@ -28,5 +28,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - minecharts.test.nasdak.fr
-      # secretName: minecharts-test-nasdak-fr-tls
+        - minecharts.example.com
+      # secretName: minecharts-example-com-tls

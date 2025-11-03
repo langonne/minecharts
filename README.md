@@ -43,6 +43,8 @@ kubectl apply -k kubernetes/overlays/test
 
 The `.gitignore` in that directory keeps `dev-env.yaml` out of version control, so only the example lands in Git while everyone uses their own local values.
 
+All manifests in `kubernetes/` are provided as examples; update hosts, TLS secrets, storage classes, etc. to suit your own cluster. Only the sample overlay keeps the NASDAK-specific values so downstream users can adapt the rest without editing branded defaults.
+
 ## Documentation
 Full documentation (installation, Kubernetes playbooks, CI details) will be linked here once it is available. This README stays lightweight, refer to the docs for deep dives.
 

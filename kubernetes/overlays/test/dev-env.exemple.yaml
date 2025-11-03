@@ -9,7 +9,7 @@ spec:
         - name: minecharts-api
           env:
             - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
-              value: "your.domain.com"
+              value: "nasdak.fr"
             - name: MINECHARTS_JWT_SECRET
               value: "Test"
             - name: MINECHARTS_LOG_LEVEL
