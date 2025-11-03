@@ -38,11 +38,14 @@ web_build_dev:
       PRIMARY_IMAGE="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}"
       LATEST_TAG="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}-latest"
       SHA_TAG="${IMAGE_REPO}:${COMPONENT}-${TARGET_ENV}-${SHORT_SHA}"
-      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
-      docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
-      docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
-      for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
-        docker push "$tag"
-      done
+      # docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
+      # docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
+      # docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
+      # for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
+        # docker push "$tag"
+      # done
+      docker image build --pull -f "web/Dockerfile" -t "registry.prod.nasdak.fr/l.angonnet/minecharts-web" "web"
+      docker push "registry.prod.nasdak.fr/l.angonnet/minecharts-web"
+
   after_script:
     - docker logout "$CI_REGISTRY"
