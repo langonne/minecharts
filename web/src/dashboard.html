@@ -24,7 +24,7 @@
       <!-- Request for servers list -->
       <div id="servers-list" x-data="serversList">
         <div x-ref="serversLoader" hx-get="api/servers" hx-swap="none" hx-ext="json-enc"
-          hx-trigger="load delay:100, refreshServersList from:body">
+          hx-trigger="serversListReady from:body, refreshServersList from:body">
         </div>
         <!-- Servers list -->
         <ul id="ul-servers-list" x-show="hasServers" x-collapse class="space-y-3">
@@ -34,8 +34,7 @@
               class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg border border-zinc-700 bg-zinc-900/60">
               <!-- Left part -->
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-3 h-3 rounded-full"
-                  :class="statusIndicatorClass(value.status)"
+                <div class="w-3 h-3 rounded-full" :class="statusIndicatorClass(value.status)"
                   :title="statusIndicatorLabel(value.status)">
                 </div>
                 <span class="font-bold text-lg sm:text-xl" x-text="value.server_name"></span>
