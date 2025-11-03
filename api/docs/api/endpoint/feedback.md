@@ -16,9 +16,7 @@ The backend validates submissions and forwards them to either GitHub or GitLab, 
       "type": "bug",
       "title": "Nether portal crashes the server",
       "description": "Whenever we light the portal the server stops responding after ~30s.",
-      "email": "player@example.com",
-      "page_url": "https://app.minecharts.com/servers/creative",
-      "screenshot_url": "https://example.com/portal.png"
+      "email": "player@example.com"
     }
     ```
 
@@ -34,7 +32,7 @@ The backend validates submissions and forwards them to either GitHub or GitLab, 
 ### Validation rules
 - `type` accepts `bug`, `feature`, or anything else (treated as `other`).
 - `title` and `description` are mandatory; titles are capped at 140 characters, descriptions at 5000.
-- Optional fields (`email`, `page_url`, `screenshot_url`) are trimmed and length-checked (320 characters max for email, 2048 for URLs).
+- Optional `email` is trimmed and length-checked (320 characters max).
 - Caller must be authenticated; the issue body includes the user ID and username.
 
 ### Failure responses

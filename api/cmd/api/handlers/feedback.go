@@ -30,7 +30,6 @@ const (
 	maxFeedbackTitleLength       = 140
 	maxFeedbackDescriptionLength = 5000
 	maxFeedbackEmailLength       = 320
-	maxFeedbackURLLength         = 2048
 	feedbackRequestTimeout       = 10 * time.Second
 )
 
@@ -42,12 +41,10 @@ var feedbackTypeLabels = map[string]string{
 
 // FeedbackRequest represents the payload sent by the frontend to report a bug or request a feature.
 type FeedbackRequest struct {
-	Type          string `json:"type"`
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	Email         string `json:"email"`
-	PageURL       string `json:"page_url"`
-	ScreenshotURL string `json:"screenshot_url"`
+	Type        string `json:"type"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Email       string `json:"email"`
 }
 
 type githubIssueRequest struct {
@@ -116,7 +113,7 @@ func SubmitFeedbackHandler(c *gin.Context) {
 	description := strings.TrimSpace(req.Description)
 
 	labels := buildFeedbackLabels(normalizedType)
-	body := buildFeedbackBody(normalizedType, description, req.Email, req.PageURL, req.ScreenshotURL, user.ID, user.Username)
+	body := buildFeedbackBody(normalizedType, description, req.Email, user.ID, user.Username)
 
 	provider := normalizeFeedbackProvider(config.FeedbackProvider)
 	if err := ensureFeedbackConfiguration(provider); err != nil {
@@ -203,8 +200,6 @@ func validateFeedbackRequest(req *FeedbackRequest) error {
 	req.Title = strings.TrimSpace(req.Title)
 	req.Description = strings.TrimSpace(req.Description)
 	req.Email = strings.TrimSpace(req.Email)
-	req.PageURL = strings.TrimSpace(req.PageURL)
-	req.ScreenshotURL = strings.TrimSpace(req.ScreenshotURL)
 
 	if req.Title == "" {
 		return errors.New("title is required")
@@ -222,14 +217,6 @@ func validateFeedbackRequest(req *FeedbackRequest) error {
 
 	if req.Email != "" && len(req.Email) > maxFeedbackEmailLength {
 		return fmt.Errorf("email must be shorter than %d characters", maxFeedbackEmailLength)
-	}
-
-	if req.PageURL != "" && len(req.PageURL) > maxFeedbackURLLength {
-		return fmt.Errorf("page_url must be shorter than %d characters", maxFeedbackURLLength)
-	}
-
-	if req.ScreenshotURL != "" && len(req.ScreenshotURL) > maxFeedbackURLLength {
-		return fmt.Errorf("screenshot_url must be shorter than %d characters", maxFeedbackURLLength)
 	}
 
 	return nil
@@ -250,7 +237,7 @@ func buildFeedbackLabels(feedbackType string) []string {
 	return labels
 }
 
-func buildFeedbackBody(feedbackType, description, email, pageURL, screenshotURL string, userID int64, username string) string {
+func buildFeedbackBody(feedbackType, description, email string, userID int64, username string) string {
 	var builder strings.Builder
 
 	builder.WriteString("### Feedback Type\n")
@@ -265,12 +252,6 @@ func buildFeedbackBody(feedbackType, description, email, pageURL, screenshotURL 
 		builder.WriteString(fmt.Sprintf("- Email: %s\n", email))
 	} else {
 		builder.WriteString("- Email: (not provided)\n")
-	}
-	if pageURL != "" {
-		builder.WriteString(fmt.Sprintf("- Page URL: %s\n", pageURL))
-	}
-	if screenshotURL != "" {
-		builder.WriteString(fmt.Sprintf("- Screenshot: %s\n", screenshotURL))
 	}
 	builder.WriteString(fmt.Sprintf("- Reporter ID: %d\n", userID))
 	builder.WriteString(fmt.Sprintf("- Reporter Username: %s\n", username))
