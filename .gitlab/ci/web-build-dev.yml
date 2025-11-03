@@ -1,8 +1,13 @@
 web_build_dev:
   stage: build
-  image: docker:24.0.6
+  image: docker:28.5.1
+  tags:
+    - tls-dind-kubernetes-runner
   services:
-    - docker:24.0.6-dind
+    - name: docker:28.5.1-dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2376"
+
   variables:
     DOCKER_TLS_CERTDIR: ""
     COMPONENT: web
