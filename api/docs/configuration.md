@@ -66,10 +66,16 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 ## Feedback & Issue Reporting
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MINECHARTS_FEEDBACK_ENABLED` | `false` | Enables the authenticated `POST /feedback` endpoint that raises GitHub issues on behalf of users. |
-| `MINECHARTS_FEEDBACK_GITHUB_TOKEN` | *(empty)* | GitHub personal access token used when creating issues; required whenever feedback is enabled. |
-| `MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER` | *(empty)* | Repository owner (user or organisation) that will receive feedback issues. |
-| `MINECHARTS_FEEDBACK_GITHUB_REPO_NAME` | *(empty)* | Repository name where issues are created. |
+| `MINECHARTS_FEEDBACK_ENABLED` | `false` | Enables the authenticated `POST /feedback` endpoint that raises issues on behalf of users. |
+| `MINECHARTS_FEEDBACK_PROVIDER` | *(unset)* | Required when feedback is enabled; set to `github` or `gitlab`. |
+| `MINECHARTS_FEEDBACK_GITHUB_TOKEN` | *(empty)* | GitHub personal access token used when the provider is `github`. |
+| `MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER` | *(empty)* | GitHub repository owner (user or organisation) that will receive feedback issues. |
+| `MINECHARTS_FEEDBACK_GITHUB_REPO_NAME` | *(empty)* | GitHub repository name where issues are created. |
+| `MINECHARTS_FEEDBACK_GITLAB_TOKEN` | *(empty)* | GitLab personal access token used when the provider is `gitlab`. |
+| `MINECHARTS_FEEDBACK_GITLAB_PROJECT` | *(empty)* | GitLab project path or numeric ID that receives feedback issues. |
+| `MINECHARTS_FEEDBACK_GITLAB_URL` | `https://gitlab.com` | Base URL for the GitLab instance (e.g. `https://gitlab.example.com`). |
 | `MINECHARTS_FEEDBACK_DEFAULT_LABELS` | `feedback` | Comma-separated labels automatically added to each generated issue (in addition to type-specific labels). |
+
+If feedback is enabled but the required credentials for the selected provider are missing, the API logs an error and any submission returns a `500` response.
 
 Extend the configuration package with additional environment variables when introducing new behaviours so that operators can tune the system without recompiling.

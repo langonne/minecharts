@@ -20,9 +20,20 @@ spec:
               value: "local-path"
             - name: MINECHARTS_FEEDBACK_ENABLED
               value: "true"
+            - name: MINECHARTS_FEEDBACK_PROVIDER
+              value: "github"
             - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
               value: "<token>"
             - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
               value: "<owner>"
             - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
               value: "<repo>"
+            # Uncomment to target GitLab instead of GitHub:
+            # - name: MINECHARTS_FEEDBACK_PROVIDER
+            #   value: "gitlab"
+            # - name: MINECHARTS_FEEDBACK_GITLAB_URL
+            #   value: "https://gitlab.example.com"
+            # - name: MINECHARTS_FEEDBACK_GITLAB_TOKEN
+            #   value: "<token>"
+            # - name: MINECHARTS_FEEDBACK_GITLAB_PROJECT
+            #   value: "group/project"

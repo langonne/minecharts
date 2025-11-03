@@ -4,7 +4,7 @@
 - **Purpose:** Allow signed-in users to report bugs or request features.
 - **Auth required:** JWT cookie (`MINECHARTS_FEEDBACK_ENABLED` must be `true`).
 
-The backend validates and forwards submissions to GitHub Issues using the configured repository and token.
+The backend validates submissions and forwards them to either GitHub or GitLab, depending on `MINECHARTS_FEEDBACK_PROVIDER`.
 
 === "Request"
 
@@ -26,7 +26,7 @@ The backend validates and forwards submissions to GitHub Issues using the config
 
     ```json
     {
-      "issue_url": "https://github.com/my-org/minecharts/issues/101",
+      "issue_url": "https://gitlab.example.com/my-group/minecharts/-/issues/101",
       "issue_number": 101
     }
     ```
@@ -34,11 +34,12 @@ The backend validates and forwards submissions to GitHub Issues using the config
 ### Validation rules
 - `type` accepts `bug`, `feature`, or anything else (treated as `other`).
 - `title` and `description` are mandatory; titles are capped at 140 characters, descriptions at 5000.
-- Optional fields (`email`, `page_url`, `screenshot_url`) are trimmed and length-checked.
+- Optional fields (`email`, `page_url`, `screenshot_url`) are trimmed and length-checked (320 characters max for email, 2048 for URLs).
 - Caller must be authenticated; the issue body includes the user ID and username.
 
 ### Failure responses
 - `404 Not Found` when the feedback endpoint is disabled.
 - `401 Unauthorized` if the caller is not logged in.
 - `400 Bad Request` for invalid payloads or missing required fields.
-- `502 Bad Gateway` if GitHub rejects the issue creation (temporary error).
+- `500 Internal Server Error` when feedback is enabled but misconfigured (missing token, bad provider, etc.).
+- `502 Bad Gateway` if the target forge rejects the issue creation (temporary error).

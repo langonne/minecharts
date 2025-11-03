@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -23,11 +24,14 @@ const (
 	feedbackTypeFeature = "feature"
 	feedbackTypeOther   = "other"
 
+	feedbackProviderGitHub = "github"
+	feedbackProviderGitLab = "gitlab"
+
 	maxFeedbackTitleLength       = 140
 	maxFeedbackDescriptionLength = 5000
 	maxFeedbackEmailLength       = 320
 	maxFeedbackURLLength         = 2048
-	githubRequestTimeout         = 10 * time.Second
+	feedbackRequestTimeout       = 10 * time.Second
 )
 
 var feedbackTypeLabels = map[string]string{
@@ -57,7 +61,18 @@ type githubIssueResponse struct {
 	Number  int    `json:"number"`
 }
 
-// SubmitFeedbackHandler handles incoming feedback submissions and proxies them to GitHub Issues.
+type gitlabIssueRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Labels      string `json:"labels,omitempty"`
+}
+
+type gitlabIssueResponse struct {
+	WebURL string `json:"web_url"`
+	IID    int    `json:"iid"`
+}
+
+// SubmitFeedbackHandler handles incoming feedback submissions and proxies them to the configured issue tracker.
 func SubmitFeedbackHandler(c *gin.Context) {
 	if !config.FeedbackEnabled {
 		c.JSON(http.StatusNotFound, gin.H{"error": "feedback endpoint is disabled"})
@@ -103,7 +118,21 @@ func SubmitFeedbackHandler(c *gin.Context) {
 	labels := buildFeedbackLabels(normalizedType)
 	body := buildFeedbackBody(normalizedType, description, req.Email, req.PageURL, req.ScreenshotURL, user.ID, user.Username)
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), githubRequestTimeout)
+	provider := normalizeFeedbackProvider(config.FeedbackProvider)
+	if err := ensureFeedbackConfiguration(provider); err != nil {
+		logging.API.Feedback.WithFields(
+			"type", normalizedType,
+			"remote_ip", c.ClientIP(),
+			"user_id", user.ID,
+			"username", user.Username,
+			"provider", provider,
+			"error", err.Error(),
+		).Error("Feedback submission failed: misconfiguration")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "feedback integration is misconfigured"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), feedbackRequestTimeout)
 	defer cancel()
 
 	logging.API.Feedback.WithFields(
@@ -112,15 +141,31 @@ func SubmitFeedbackHandler(c *gin.Context) {
 		"remote_ip", c.ClientIP(),
 		"user_id", user.ID,
 		"username", user.Username,
-	).Info("Forwarding feedback to GitHub issues")
+		"provider", provider,
+	).Info("Forwarding feedback to issue tracker")
 
-	issueURL, issueNumber, err := createGitHubIssue(ctx, title, body, labels)
+	var (
+		issueURL    string
+		issueNumber int
+		err         error
+	)
+
+	switch provider {
+	case feedbackProviderGitHub:
+		issueURL, issueNumber, err = createGitHubIssue(ctx, title, body, labels)
+	case feedbackProviderGitLab:
+		issueURL, issueNumber, err = createGitLabIssue(ctx, title, body, labels)
+	default:
+		err = fmt.Errorf("unsupported feedback provider %q", provider)
+	}
+
 	if err != nil {
 		logging.API.Feedback.WithFields(
 			"type", normalizedType,
 			"remote_ip", c.ClientIP(),
+			"provider", provider,
 			"error", err.Error(),
-		).Error("Failed to create GitHub issue for feedback")
+		).Error("Failed to forward feedback to issue tracker")
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to submit feedback"})
 		return
 	}
@@ -129,6 +174,7 @@ func SubmitFeedbackHandler(c *gin.Context) {
 		"type", normalizedType,
 		"issue_number", issueNumber,
 		"issue_url", issueURL,
+		"provider", provider,
 	).Info("Feedback submitted successfully")
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -190,7 +236,7 @@ func validateFeedbackRequest(req *FeedbackRequest) error {
 }
 
 func buildFeedbackLabels(feedbackType string) []string {
-	defaultLabels := splitAndCleanLabels(config.FeedbackGitHubLabels)
+	defaultLabels := splitAndCleanLabels(config.FeedbackDefaultLabels)
 
 	var labels []string
 	if len(defaultLabels) > 0 {
@@ -257,7 +303,7 @@ func createGitHubIssue(ctx context.Context, title, body string, labels []string)
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	client := &http.Client{
-		Timeout: githubRequestTimeout,
+		Timeout: feedbackRequestTimeout,
 	}
 
 	resp, err := client.Do(req)
@@ -281,6 +327,63 @@ func createGitHubIssue(ctx context.Context, title, body string, labels []string)
 	}
 
 	return issueResp.HTMLURL, issueResp.Number, nil
+}
+
+func createGitLabIssue(ctx context.Context, title, body string, labels []string) (string, int, error) {
+	issuePayload := gitlabIssueRequest{
+		Title:       title,
+		Description: body,
+	}
+
+	if len(labels) > 0 {
+		issuePayload.Labels = strings.Join(labels, ",")
+	}
+
+	payload, err := json.Marshal(issuePayload)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to marshal issue payload: %w", err)
+	}
+
+	baseURL := strings.TrimSuffix(strings.TrimSpace(config.FeedbackGitLabBaseURL), "/")
+	if baseURL == "" {
+		baseURL = "https://gitlab.com"
+	}
+	project := url.PathEscape(config.FeedbackGitLabProject)
+	endpoint := fmt.Sprintf("%s/api/v4/projects/%s/issues", baseURL, project)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to create GitLab request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("PRIVATE-TOKEN", config.FeedbackGitLabToken)
+
+	client := &http.Client{
+		Timeout: feedbackRequestTimeout,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", 0, fmt.Errorf("GitLab API request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 8192))
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to read GitLab response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return "", 0, fmt.Errorf("GitLab API returned status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var issueResp gitlabIssueResponse
+	if err := json.Unmarshal(bodyBytes, &issueResp); err != nil {
+		return "", 0, fmt.Errorf("failed to decode GitLab response: %w", err)
+	}
+
+	return issueResp.WebURL, issueResp.IID, nil
 }
 
 func splitAndCleanLabels(labels string) []string {
@@ -317,4 +420,41 @@ func humanizeFeedbackType(t string) string {
 	default:
 		return "Other"
 	}
+}
+
+func normalizeFeedbackProvider(provider string) string {
+	value := strings.ToLower(strings.TrimSpace(provider))
+	if value == "" {
+		logging.API.Feedback.Warn("feedback provider not configured; submissions will fail until MINECHARTS_FEEDBACK_PROVIDER is set")
+		return ""
+	}
+	return value
+}
+
+func ensureFeedbackConfiguration(provider string) error {
+	switch provider {
+	case feedbackProviderGitHub:
+		if strings.TrimSpace(config.FeedbackGitHubToken) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITHUB_TOKEN is not configured")
+		}
+		if strings.TrimSpace(config.FeedbackGitHubRepoOwner) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER is not configured")
+		}
+		if strings.TrimSpace(config.FeedbackGitHubRepoName) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITHUB_REPO_NAME is not configured")
+		}
+	case feedbackProviderGitLab:
+		if strings.TrimSpace(config.FeedbackGitLabToken) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITLAB_TOKEN is not configured")
+		}
+		if strings.TrimSpace(config.FeedbackGitLabProject) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITLAB_PROJECT is not configured")
+		}
+		if strings.TrimSpace(config.FeedbackGitLabBaseURL) == "" {
+			return errors.New("MINECHARTS_FEEDBACK_GITLAB_URL is not configured")
+		}
+	default:
+		return fmt.Errorf("unsupported feedback provider: %s", provider)
+	}
+	return nil
 }

@@ -29,18 +29,39 @@ func main() {
 		logger.Fatal("MINECHARTS_STORAGE_CLASS is required; set it before starting the API")
 	}
 	if config.FeedbackEnabled {
+		provider := strings.ToLower(strings.TrimSpace(config.FeedbackProvider))
+
 		var missing []string
-		if strings.TrimSpace(config.FeedbackGitHubToken) == "" {
-			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_TOKEN")
+		switch provider {
+		case "github":
+			if strings.TrimSpace(config.FeedbackGitHubToken) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_TOKEN")
+			}
+			if strings.TrimSpace(config.FeedbackGitHubRepoOwner) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER")
+			}
+			if strings.TrimSpace(config.FeedbackGitHubRepoName) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_NAME")
+			}
+		case "gitlab":
+			if strings.TrimSpace(config.FeedbackGitLabToken) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITLAB_TOKEN")
+			}
+			if strings.TrimSpace(config.FeedbackGitLabProject) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITLAB_PROJECT")
+			}
+			if strings.TrimSpace(config.FeedbackGitLabBaseURL) == "" {
+				missing = append(missing, "MINECHARTS_FEEDBACK_GITLAB_URL")
+			}
+		case "":
+			logger.Warn("Feedback endpoint enabled but MINECHARTS_FEEDBACK_PROVIDER is not set; requests will fail")
+			missing = append(missing, "MINECHARTS_FEEDBACK_PROVIDER")
+		default:
+			logger.Warnf("Unsupported feedback provider %q; feedback requests will fail", provider)
 		}
-		if strings.TrimSpace(config.FeedbackGitHubRepoOwner) == "" {
-			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER")
-		}
-		if strings.TrimSpace(config.FeedbackGitHubRepoName) == "" {
-			missing = append(missing, "MINECHARTS_FEEDBACK_GITHUB_REPO_NAME")
-		}
+
 		if len(missing) > 0 {
-			logger.Fatalf("Feedback endpoint enabled but missing configuration: %s", strings.Join(missing, ", "))
+			logger.Errorf("Feedback endpoint enabled but missing configuration: %s", strings.Join(missing, ", "))
 		}
 	}
 

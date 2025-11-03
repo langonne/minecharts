@@ -65,10 +65,14 @@ var (
 
 	// Feedback integration configuration
 	FeedbackEnabled         = getEnvBool("MINECHARTS_FEEDBACK_ENABLED", false)
+	FeedbackProvider        = getEnv("MINECHARTS_FEEDBACK_PROVIDER", "")
 	FeedbackGitHubToken     = getEnv("MINECHARTS_FEEDBACK_GITHUB_TOKEN", "")
 	FeedbackGitHubRepoOwner = getEnv("MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER", "")
 	FeedbackGitHubRepoName  = getEnv("MINECHARTS_FEEDBACK_GITHUB_REPO_NAME", "")
-	FeedbackGitHubLabels    = getEnv("MINECHARTS_FEEDBACK_DEFAULT_LABELS", "feedback")
+	FeedbackGitLabToken     = getEnv("MINECHARTS_FEEDBACK_GITLAB_TOKEN", "")
+	FeedbackGitLabProject   = getEnv("MINECHARTS_FEEDBACK_GITLAB_PROJECT", "")
+	FeedbackGitLabBaseURL   = getEnv("MINECHARTS_FEEDBACK_GITLAB_URL", "https://gitlab.com")
+	FeedbackDefaultLabels   = getEnv("MINECHARTS_FEEDBACK_DEFAULT_LABELS", "feedback")
 )
 
 func getEnv(key, fallback string) string {
