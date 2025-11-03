@@ -60,11 +60,11 @@ Alpine.data("serversList", () => ({
       },
     );
 
-    queueMicrotask(() => {
-      if (document.body) {
-        htmx.trigger(document.body, "serversListReady");
-      }
-    });
+      queueMicrotask(() => {
+        if (document.body) {
+          htmx.trigger(document.body, "serversListReady", {});
+        }
+      });
   },
 
   statusIndicatorClass(status: unknown) {
