@@ -9,7 +9,10 @@ web_build_dev:
         HEALTHCHECK_TCP_PORT: "2376"
 
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
     COMPONENT: web
     TARGET_ENV: dev
     BUILD_CONTEXT: web
