@@ -13,6 +13,10 @@ api_build_dev:
     DOCKER_TLS_CERTDIR: "/certs"
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    COMPONENT: api
+    TARGET_ENV: dev
+    BUILD_CONTEXT: api
+    DOCKERFILE_PATH: api/Dockerfile
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
@@ -30,7 +34,19 @@ api_build_dev:
   script:
     - |
       set -eu
-      docker image build --pull -f "api/Dockerfile" -t "registry.prod.nasdak.fr/l.angonnet/minecharts/api" "api"
-      docker push "registry.prod.nasdak.fr/l.angonnet/minecharts/api"
+      IMAGE_REPO="${CI_REGISTRY_IMAGE:-${CI_REGISTRY}/${CI_PROJECT_PATH}}"
+      IMAGE_REPO="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
+      COMPONENT_REPO="${IMAGE_REPO}/${COMPONENT}"
+      SHORT_SHA="${CI_COMMIT_SHA:0:12}"
+      PRIMARY_IMAGE="${COMPONENT_REPO}:${TARGET_ENV}"
+      LATEST_TAG="${COMPONENT_REPO}:${TARGET_ENV}-latest"
+      SHA_TAG="${COMPONENT_REPO}:${TARGET_ENV}-${SHORT_SHA}"
+      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
+      docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
+      docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
+      for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
+        docker push "$tag"
+      done
+
   after_script:
     - docker logout "$CI_REGISTRY"

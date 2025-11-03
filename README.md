@@ -27,8 +27,8 @@ These commands launch the API and dashboard in development mode. Use Docker and 
 
 ## Docker images
 Pipelines automatically publish:
-- `…/minecharts:api`, `api-latest`, `api-<commit>` and `api-dev[-<commit>]`
-- `…/minecharts:web`, `web-latest`, `web-<commit>` and `web-dev[-<commit>]`
+- `…/minecharts/api:main`, `…/minecharts/api:latest`, `…/minecharts/api:<commit>` and `…/minecharts/api:dev[,-latest,-<commit>]`
+- `…/minecharts/web:main`, `…/minecharts/web:latest`, `…/minecharts/web:<commit>` and `…/minecharts/web:dev[,-latest,-<commit>]`
 
 Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
