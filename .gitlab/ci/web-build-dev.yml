@@ -44,8 +44,8 @@ web_build_dev:
       # for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
         # docker push "$tag"
       # done
-      docker image build --pull -f "web/Dockerfile" -t "registry.prod.nasdak.fr/l.angonnet/minecharts-web" "web"
-      docker push "registry.prod.nasdak.fr/l.angonnet/minecharts-web"
+      docker image build --pull -f "web/Dockerfile" -t "registry.prod.nasdak.fr/l.angonnet/minecharts/web" "web"
+      docker push "registry.prod.nasdak.fr/l.angonnet/minecharts/web"
 
   after_script:
     - docker logout "$CI_REGISTRY"
