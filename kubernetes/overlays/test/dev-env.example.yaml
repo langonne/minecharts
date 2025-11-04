@@ -4,10 +4,27 @@ metadata:
   name: minecharts
 spec:
   rules:
-    - host: minecharts.example.com # replace with your ingress host
+    - host: minecharts.example.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /api
+            backend:
+              service:
+                name: minecharts-api
+                port:
+                  number: 8080
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: minecharts-web
+                port:
+                  number: 80
   tls:
     - hosts:
         - minecharts.example.com
+
 ---
 apiVersion: apps/v1
 kind: Deployment
