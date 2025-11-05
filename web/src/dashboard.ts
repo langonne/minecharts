@@ -31,6 +31,11 @@ Alpine.data("serversList", () => ({
     // Get list of servers
     const loader = this.$refs.serversLoader as HTMLElement | undefined;
 
+    if (loader) {
+      // Ensure the loader node is processed before emitting custom triggers
+      htmx.process(loader);
+    }
+
     loader?.addEventListener(
       "htmx:afterRequest",
       (event) => {
@@ -60,11 +65,11 @@ Alpine.data("serversList", () => ({
       },
     );
 
-      queueMicrotask(() => {
-        if (document.body) {
-          htmx.trigger(document.body, "serversListReady", {});
-        }
-      });
+    queueMicrotask(() => {
+      if (document.body) {
+        htmx.trigger(document.body, "serversListReady", {});
+      }
+    });
   },
 
   statusIndicatorClass(status: unknown) {
