@@ -123,6 +123,7 @@ func (s *SQLiteDB) Init() error {
         deployment_name TEXT NOT NULL,
         pvc_name TEXT NOT NULL,
         owner_id INTEGER NOT NULL,
+        max_memory_gb INTEGER NOT NULL DEFAULT 1,
         status TEXT NOT NULL,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL,
@@ -134,6 +135,16 @@ func (s *SQLiteDB) Init() error {
 			"error", err.Error(),
 		).Error("Failed to create minecraft_servers table")
 		return fmt.Errorf("failed to create minecraft_servers table: %w", err)
+	}
+
+	_, err = s.db.Exec(`ALTER TABLE minecraft_servers ADD COLUMN max_memory_gb INTEGER NOT NULL DEFAULT 1`)
+	if err != nil {
+		if !strings.Contains(strings.ToLower(err.Error()), "duplicate column name") {
+			logging.DB.WithFields(
+				"error", err.Error(),
+			).Error("Failed to add max_memory_gb column to minecraft_servers")
+			return err
+		}
 	}
 
 	// Check if we need to create an admin user
@@ -750,8 +761,8 @@ func (db *SQLiteDB) CreateServerRecord(ctx context.Context, server *MinecraftSer
 	).Info("Creating new server record")
 
 	query := `INSERT INTO minecraft_servers
-              (server_name, deployment_name, pvc_name, owner_id, status, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?)`
+              (server_name, deployment_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	now := time.Now()
 	server.CreatedAt = now
@@ -762,6 +773,7 @@ func (db *SQLiteDB) CreateServerRecord(ctx context.Context, server *MinecraftSer
 		server.DeploymentName,
 		server.PVCName,
 		server.OwnerID,
+		server.MaxMemoryGB,
 		server.Status,
 		server.CreatedAt,
 		server.UpdatedAt,
@@ -799,7 +811,7 @@ func (db *SQLiteDB) GetServerByName(ctx context.Context, serverName string) (*Mi
 	).Debug("Getting server by name")
 
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE server_name = ?`
 
 	var server MinecraftServer
@@ -809,6 +821,7 @@ func (db *SQLiteDB) GetServerByName(ctx context.Context, serverName string) (*Mi
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -844,7 +857,7 @@ func (db *SQLiteDB) GetServerForOwner(ctx context.Context, ownerID int64, server
 	).Debug("Getting server by owner and name")
 
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = ? AND server_name = ?`
 
 	var server MinecraftServer
@@ -854,6 +867,7 @@ func (db *SQLiteDB) GetServerForOwner(ctx context.Context, ownerID int64, server
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -891,7 +905,7 @@ func (db *SQLiteDB) GetServerByID(ctx context.Context, serverID int64) (*Minecra
 	).Debug("Getting server by ID")
 
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE id = ?`
 
 	var server MinecraftServer
@@ -901,6 +915,7 @@ func (db *SQLiteDB) GetServerByID(ctx context.Context, serverID int64) (*Minecra
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -936,7 +951,7 @@ func (db *SQLiteDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*M
 	).Debug("Listing servers by owner")
 
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = ?`
 
 	rows, err := db.db.QueryContext(ctx, query, ownerID)
@@ -958,6 +973,7 @@ func (db *SQLiteDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*M
 			&server.DeploymentName,
 			&server.PVCName,
 			&server.OwnerID,
+			&server.MaxMemoryGB,
 			&server.Status,
 			&server.CreatedAt,
 			&server.UpdatedAt,
@@ -984,6 +1000,27 @@ func (db *SQLiteDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*M
 		"server_count", len(servers),
 	).Debug("Servers listed successfully")
 	return servers, nil
+}
+
+// SumServerMaxMemory returns the total configured memory across all Minecraft servers.
+func (db *SQLiteDB) SumServerMaxMemory(ctx context.Context) (int64, error) {
+	logging.DB.Debug("Summing max memory across all servers")
+
+	query := `SELECT COALESCE(SUM(max_memory_gb), 0) FROM minecraft_servers`
+
+	var total sql.NullInt64
+	if err := db.db.QueryRowContext(ctx, query).Scan(&total); err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to sum max memory across servers")
+		return 0, fmt.Errorf("failed to sum max memory: %w", err)
+	}
+
+	if !total.Valid {
+		return 0, nil
+	}
+
+	return total.Int64, nil
 }
 
 // UpdateServerStatus updates the status of a server

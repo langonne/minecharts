@@ -13,6 +13,8 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` | *(empty)* | Domain suffix used when exposing servers through mc-router; required for the API to start.<br />Example: `mc.example.com` |
 | `MINECHARTS_TRUSTED_PROXIES` | `127.0.0.1` | Comma-separated list passed to Gin to mark upstream proxies as trusted. |
 | `MINECHARTS_TIMEZONE` | `UTC` | Application-wide timezone for logging and time calculations. |
+| `MINECHARTS_MEMORY_QUOTA_ENABLED` | `false` | Enables enforcement of the global Minecraft memory quota. |
+| `MINECHARTS_MEMORY_QUOTA_LIMIT` | `0` | Maximum total memory (gigabytes) the cluster may allocate to Minecraft servers when the quota is enabled. `0` or negative values are treated as unlimited. |
 | `DATA_DIR` | `./app/data` | Local directory for SQLite data when the DB is auto-initialised. |
 
 ## Database

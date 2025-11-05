@@ -16,6 +16,8 @@ var (
 	StorageClass         = getEnv("MINECHARTS_STORAGE_CLASS", "")          // local-path
 	MCRouterDomainSuffix = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "") // change-me.local
 	DefaultReplicas      = 1
+	MemoryQuotaEnabled   = getEnvBool("MINECHARTS_MEMORY_QUOTA_ENABLED", false)
+	MemoryQuotaLimit     = getEnvInt("MINECHARTS_MEMORY_QUOTA_LIMIT", 0)
 
 	//  Reverse proxy configuration
 	TrustedProxies = getEnv("MINECHARTS_TRUSTED_PROXIES", "127.0.0.1")

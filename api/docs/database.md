@@ -38,10 +38,13 @@ Deleting a key removes the row and immediately invalidates future requests using
 | `deployment_name` | TEXT | Prefixed name used for the Kubernetes deployment. |
 | `pvc_name` | TEXT | Persistent volume claim name derived from the deployment. |
 | `owner_id` | BIGINT | Foreign key to `users.id`; identifies who can manage the server. |
+| `max_memory_gb` | INTEGER | Memory cap (gigabytes) propagated to the `MAX_MEMORY` container variable. Defaults to `1` when omitted. |
 | `status` | TEXT | Cached status (`running`, `stopped`, etc.). |
 | `created_at` / `updated_at` | TIMESTAMP | Lifecycle metadata. |
 
 The API derives `deployment_name` and `pvc_name` using configuration values (`MINECHARTS_DEPLOYMENT_PREFIX`, `MINECHARTS_PVC_SUFFIX`) to keep database records and Kubernetes resources aligned.
+
+When `MINECHARTS_MEMORY_QUOTA_ENABLED` is `true`, the API sums `max_memory_gb` across all rows before creating a new server and rejects the request if it would exceed `MINECHARTS_MEMORY_QUOTA_LIMIT`.
 
 ## Relationships and Cascade Rules
 - `api_keys.user_id` and `minecraft_servers.owner_id` reference `users.id`. The implementations enforce referential integrity at the application layer; deleting a user should be preceded by reassignment or cleanup of dependent records.

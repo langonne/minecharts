@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,7 +27,10 @@ type MinecraftServerEnv struct {
 	URL         string            `json:"url,omitempty"`
 }
 
-const mcRouterAnnotation = "mc-router.itzg.me/externalServerName"
+const (
+	mcRouterAnnotation = "mc-router.itzg.me/externalServerName"
+	defaultMaxMemoryGB = int64(1)
+)
 
 func formatServerURL(domain string, port int32) string {
 	if domain == "" {
@@ -60,6 +64,38 @@ func extractMCRouterURL(service *corev1.Service) string {
 	}
 
 	return formatServerURL(domain, port)
+}
+
+func resolveMaxMemoryGB(env map[string]string) (int64, error) {
+	if env == nil {
+		return defaultMaxMemoryGB, nil
+	}
+
+	raw, ok := env["MAX_MEMORY"]
+	if !ok || strings.TrimSpace(raw) == "" {
+		return defaultMaxMemoryGB, nil
+	}
+
+	trimmed := strings.TrimSpace(raw)
+	// Allow optional trailing "G" or "g" suffix.
+	if strings.HasSuffix(trimmed, "G") || strings.HasSuffix(trimmed, "g") {
+		trimmed = strings.TrimSpace(trimmed[:len(trimmed)-1])
+	}
+
+	if trimmed == "" {
+		return 0, errors.New("MAX_MEMORY must be a positive integer representing gigabytes")
+	}
+
+	value, err := strconv.ParseInt(trimmed, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("MAX_MEMORY must be an integer representing gigabytes: %w", err)
+	}
+
+	if value <= 0 {
+		return 0, errors.New("MAX_MEMORY must be greater than zero")
+	}
+
+	return value, nil
 }
 
 // GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
@@ -342,13 +378,70 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	deploymentName := config.DeploymentPrefix + baseName
 	pvcName := deploymentName + config.PVCSuffix
 
+	maxMemoryGB, err := resolveMaxMemoryGB(req.Env)
+	if err != nil {
+		logging.API.InvalidRequest.WithFields(
+			"server_name", baseName,
+			"error", err.Error(),
+			"remote_ip", c.ClientIP(),
+		).Warn("Invalid MAX_MEMORY provided for server creation")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Env == nil {
+		req.Env = make(map[string]string)
+	}
+	req.Env["MAX_MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
+
+	db := database.GetDB()
+
 	logging.Server.WithFields(
 		"server_name", baseName,
 		"deployment", deploymentName,
 		"pvc", pvcName,
 		"user_id", userID,
 		"username", username,
+		"max_memory_gb", maxMemoryGB,
 	).Info("Creating new Minecraft server")
+
+	if config.MemoryQuotaEnabled {
+		limit := int64(config.MemoryQuotaLimit)
+		if limit > 0 {
+			totalMemory, err := db.SumServerMaxMemory(c.Request.Context())
+			if err != nil {
+				logging.Server.WithFields(
+					"server_name", baseName,
+					"user_id", userID,
+					"error", err.Error(),
+				).Error("Failed to verify memory quota before server creation")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify memory quota"})
+				return
+			}
+
+			projected := totalMemory + maxMemoryGB
+			if projected > limit {
+				remaining := limit - totalMemory
+				if remaining < 0 {
+					remaining = 0
+				}
+				logging.Server.WithFields(
+					"server_name", baseName,
+					"user_id", userID,
+					"requested_memory_gb", maxMemoryGB,
+					"allocated_memory_gb", totalMemory,
+					"memory_limit_gb", limit,
+				).Warn("Memory quota exceeded, refusing server creation")
+				c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("memory quota exceeded: %dG available, %dG requested", remaining, maxMemoryGB)})
+				return
+			}
+		} else {
+			logging.Server.WithFields(
+				"server_name", baseName,
+				"user_id", userID,
+			).Debug("Memory quota enabled but limit is non-positive; treating as unlimited")
+		}
+	}
 
 	// Creates the PVC if it doesn't already exist.
 	if err := kubernetes.EnsurePVC(config.DefaultNamespace, pvcName); err != nil {
@@ -433,12 +526,12 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		DeploymentName: deploymentName,
 		PVCName:        pvcName,
 		OwnerID:        userID,
+		MaxMemoryGB:    maxMemoryGB,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 		Status:         "running",
 	}
 
-	db := database.GetDB()
 	if err := db.CreateServerRecord(c.Request.Context(), server); err != nil {
 		// Log the error but don't fail the request since the server is already created in K8s
 		logging.DB.WithFields(

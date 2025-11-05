@@ -67,6 +67,7 @@ type MinecraftServer struct {
 	DeploymentName string    `json:"deployment_name"`
 	PVCName        string    `json:"pvc_name"`
 	OwnerID        int64     `json:"owner_id"`
+	MaxMemoryGB    int64     `json:"max_memory_gb"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 	Status         string    `json:"status"`

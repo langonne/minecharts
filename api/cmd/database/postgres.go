@@ -102,6 +102,7 @@ func (p *PostgresDB) Init() error {
         deployment_name TEXT NOT NULL,
         pvc_name TEXT NOT NULL,
         owner_id INTEGER NOT NULL REFERENCES users(id),
+        max_memory_gb INTEGER NOT NULL DEFAULT 1,
         status TEXT NOT NULL,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL
@@ -112,6 +113,14 @@ func (p *PostgresDB) Init() error {
 			"error", err.Error(),
 		).Error("Failed to create minecraft_servers table")
 		return fmt.Errorf("failed to create minecraft_servers table: %w", err)
+	}
+
+	_, err = p.db.Exec(`ALTER TABLE minecraft_servers ADD COLUMN IF NOT EXISTS max_memory_gb INTEGER NOT NULL DEFAULT 1`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to add max_memory_gb column to minecraft_servers")
+		return err
 	}
 
 	_, err = p.db.Exec(`
@@ -685,8 +694,8 @@ func (p *PostgresDB) ListAPIKeysByUser(ctx context.Context, userID int64) ([]*AP
 // CreateServerRecord creates a new Minecraft server record
 func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftServer) error {
 	query := `INSERT INTO minecraft_servers
-              (server_name, deployment_name, pvc_name, owner_id, status, created_at, updated_at)
-              VALUES ($1, $2, $3, $4, $5, $6, $7)
+              (server_name, deployment_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
               RETURNING id`
 
 	now := time.Now()
@@ -698,6 +707,7 @@ func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftSe
 		server.DeploymentName,
 		server.PVCName,
 		server.OwnerID,
+		server.MaxMemoryGB,
 		server.Status,
 		server.CreatedAt,
 		server.UpdatedAt,
@@ -721,7 +731,7 @@ func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftSe
 // GetServerByName gets a Minecraft server by its name
 func (p *PostgresDB) GetServerByName(ctx context.Context, serverName string) (*MinecraftServer, error) {
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE server_name = $1`
 
 	var server MinecraftServer
@@ -731,6 +741,7 @@ func (p *PostgresDB) GetServerByName(ctx context.Context, serverName string) (*M
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -766,7 +777,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 	).Debug("Getting server by owner and name")
 
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = $1 AND server_name = $2`
 
 	var server MinecraftServer
@@ -776,6 +787,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -809,7 +821,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 // GetServerByID retrieves a Minecraft server record by its ID.
 func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*MinecraftServer, error) {
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE id = $1`
 
 	var server MinecraftServer
@@ -819,6 +831,7 @@ func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*Minecr
 		&server.DeploymentName,
 		&server.PVCName,
 		&server.OwnerID,
+		&server.MaxMemoryGB,
 		&server.Status,
 		&server.CreatedAt,
 		&server.UpdatedAt,
@@ -850,7 +863,7 @@ func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*Minecr
 // ListServersByOwner list all Minecraft servers by owner ID
 func (p *PostgresDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*MinecraftServer, error) {
 	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
-              status, created_at, updated_at
+              max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = $1`
 
 	rows, err := p.db.QueryContext(ctx, query, ownerID)
@@ -872,6 +885,7 @@ func (p *PostgresDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*
 			&server.DeploymentName,
 			&server.PVCName,
 			&server.OwnerID,
+			&server.MaxMemoryGB,
 			&server.Status,
 			&server.CreatedAt,
 			&server.UpdatedAt,
@@ -898,6 +912,27 @@ func (p *PostgresDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*
 		"count", len(servers),
 	).Info("Servers listed successfully")
 	return servers, nil
+}
+
+// SumServerMaxMemory returns the total configured memory across all Minecraft servers.
+func (p *PostgresDB) SumServerMaxMemory(ctx context.Context) (int64, error) {
+	logging.DB.Debug("Summing max memory across all PostgreSQL servers")
+
+	query := `SELECT COALESCE(SUM(max_memory_gb), 0) FROM minecraft_servers`
+
+	var total sql.NullInt64
+	if err := p.db.QueryRowContext(ctx, query).Scan(&total); err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to sum max memory across servers")
+		return 0, fmt.Errorf("failed to sum max memory: %w", err)
+	}
+
+	if !total.Valid {
+		return 0, nil
+	}
+
+	return total.Int64, nil
 }
 
 // UpdateServerStatus updates the status of a Minecraft server
