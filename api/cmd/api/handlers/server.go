@@ -925,10 +925,25 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 	logging.Server.WithFields(
 		"server_name", serverName,
 		"deployment", deploymentName,
-		"pvc", pvcName,
 		"user_id", userID,
 		"username", username,
+		"pvc", pvcName,
 	).Info("Minecraft server deleted successfully")
+
+	// Remove the server record so quota accounting stays accurate.
+	db := database.GetDB()
+	if err := db.DeleteServerRecord(c.Request.Context(), serverName); err != nil {
+		logging.DB.WithFields(
+			"server_name", serverName,
+			"user_id", userID,
+			"error", err.Error(),
+		).Error("Failed to delete server record from database")
+	} else {
+		logging.DB.WithFields(
+			"server_name", serverName,
+			"user_id", userID,
+		).Info("Server record deleted from database")
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":        "Deployment, PVC and network resources deleted",
