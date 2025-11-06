@@ -15,6 +15,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_TIMEZONE` | `UTC` | Application-wide timezone for logging and time calculations. |
 | `MINECHARTS_MEMORY_QUOTA_ENABLED` | `false` | Enables enforcement of the global Minecraft memory quota. |
 | `MINECHARTS_MEMORY_QUOTA_LIMIT` | `0` | Maximum total memory (gigabytes) the cluster may allocate to Minecraft servers when the quota is enabled. `0` or negative values are treated as unlimited. |
+| `MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI` | `256` | Extra memory (in mebibytes) added on top of each server’s `MAX_MEMORY` when enforcing Kubernetes limits, to account for JVM/process overhead. |
 | `DATA_DIR` | `./app/data` | Local directory for SQLite data when the DB is auto-initialised. |
 
 ## Database

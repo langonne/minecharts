@@ -480,7 +480,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	}
 
 	// Creates the deployment with the existing PVC (created if necessary).
-	if err := kubernetes.CreateDeployment(config.DefaultNamespace, deploymentName, pvcName, envVars); err != nil {
+	if err := kubernetes.CreateDeployment(config.DefaultNamespace, deploymentName, pvcName, envVars, maxMemoryGB); err != nil {
 		logging.Server.WithFields(
 			"server_name", baseName,
 			"deployment", deploymentName,

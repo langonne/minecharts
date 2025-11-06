@@ -6,6 +6,7 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,9 +48,9 @@ func CheckDeploymentExists(c *gin.Context, namespace, deploymentName string) (*a
 	return deployment, true
 }
 
-// CreateDeployment creates a Minecraft deployment using the specified PVC and environment variables.
-// It configures the deployment with appropriate lifecycle hooks and volume mounts.
-func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev1.EnvVar) error {
+// CreateDeployment creates a Minecraft deployment using the specified PVC, environment variables and memory settings.
+// It configures the deployment with appropriate lifecycle hooks, volume mounts and optional resource limits.
+func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev1.EnvVar, maxMemoryGB int64) error {
 	logging.K8s.WithFields(
 		"namespace", namespace,
 		"deployment_name", deploymentName,
@@ -59,6 +61,52 @@ func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev
 	userID := int64(1000)
 	groupID := int64(1000)
 	fsGroupID := int64(1000)
+
+	container := corev1.Container{
+		Name:  "minecraft-server",
+		Image: "itzg/minecraft-server",
+		Env:   envVars,
+		Ports: []corev1.ContainerPort{
+			{
+				ContainerPort: 25565,
+				Protocol:      corev1.ProtocolTCP,
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      "minecraft-storage",
+				MountPath: "/data",
+			},
+		},
+		Lifecycle: &corev1.Lifecycle{
+			PreStop: &corev1.LifecycleHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/bin/sh", "-c",
+						"mc-send-to-console save-all stop && sleep 5",
+					},
+				},
+			},
+		},
+	}
+
+	if config.MemoryQuotaEnabled && maxMemoryGB > 0 {
+		maxMemoryMi := maxMemoryGB * 1024
+		overheadMi := int64(config.MemoryLimitOverheadMi)
+		if overheadMi < 0 {
+			overheadMi = 0
+		}
+		limitMi := maxMemoryMi + overheadMi
+
+		container.Resources = corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceMemory: resource.MustParse(fmt.Sprintf("%dMi", maxMemoryMi)),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceMemory: resource.MustParse(fmt.Sprintf("%dMi", limitMi)),
+			},
+		}
+	}
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -91,33 +139,7 @@ func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev
 						FSGroup:    &fsGroupID,
 					},
 					Containers: []corev1.Container{
-						{
-							Name:  "minecraft-server",
-							Image: "itzg/minecraft-server",
-							Env:   envVars,
-							Ports: []corev1.ContainerPort{
-								{
-									ContainerPort: 25565,
-									Protocol:      corev1.ProtocolTCP,
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "minecraft-storage",
-									MountPath: "/data",
-								},
-							},
-							Lifecycle: &corev1.Lifecycle{
-								PreStop: &corev1.LifecycleHandler{
-									Exec: &corev1.ExecAction{
-										Command: []string{
-											"/bin/sh", "-c",
-											"mc-send-to-console save-all stop && sleep 5",
-										},
-									},
-								},
-							},
-						},
+						container,
 					},
 					Volumes: []corev1.Volume{
 						{
