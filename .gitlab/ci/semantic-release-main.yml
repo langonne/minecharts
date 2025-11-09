@@ -1,9 +1,20 @@
 api_semantic_release:
   stage: release
   image: node:20
+  tags:
+    - tls-dind-kubernetes-runner
   script:
     - cd api
     - npm install
+    - |
+      if [ -z "${GITLAB_TOKEN:-}" ]; then
+        echo "GITLAB_TOKEN is not set" >&2
+        exit 1
+      fi
+      if [ -z "${GITHUB_TOKEN:-}" ]; then
+        echo "GITHUB_TOKEN is not set" >&2
+        exit 1
+      fi
     - PACKAGE=api npx semantic-release -e semantic-release-monorepo
     - |
       VERSION_TAG="$(git tag --points-at HEAD | grep '^api-v' | head -n 1 || true)"
@@ -26,11 +37,22 @@ api_semantic_release:
 web_semantic_release:
   stage: release
   image: node:20
+  tags:
+    - tls-dind-kubernetes-runner
   needs:
     - api_semantic_release
   script:
     - cd web
     - npm install
+    - |
+      if [ -z "${GITLAB_TOKEN:-}" ]; then
+        echo "GITLAB_TOKEN is not set" >&2
+        exit 1
+      fi
+      if [ -z "${GITHUB_TOKEN:-}" ]; then
+        echo "GITHUB_TOKEN is not set" >&2
+        exit 1
+      fi
     - PACKAGE=web npx semantic-release -e semantic-release-monorepo
     - |
       VERSION_TAG="$(git tag --points-at HEAD | grep '^web-v' | head -n 1 || true)"

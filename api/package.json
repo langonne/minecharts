@@ -6,7 +6,7 @@
         "semantic-release": "^19.0.0",
         "@semantic-release/commit-analyzer": "^9.0.2",
         "@semantic-release/release-notes-generator": "^10.0.3",
-        "@semantic-release/github": "^8.0.7",
+        "@semantic-release/gitlab": "^9.5.1",
         "semantic-release-monorepo": "^7.0.0"
     },
     "release": {
@@ -68,7 +68,7 @@
                 }
             ],
             "@semantic-release/release-notes-generator",
-            "@semantic-release/github"
+            "@semantic-release/gitlab"
         ]
     }
 }

@@ -1,14 +1,23 @@
 web_release_main:
   stage: build
-  image: docker:24.0.6
+  image: docker:28.5.1
+  tags:
+    - tls-dind-kubernetes-runner
   services:
-    - docker:24.0.6-dind
+    - name: docker:28.5.1-dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2376"
+
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
     COMPONENT: web
     TARGET_ENV: main
     BUILD_CONTEXT: web
     DOCKERFILE_PATH: web/Dockerfile
+
   needs:
     - job: web_semantic_release
       artifacts: true

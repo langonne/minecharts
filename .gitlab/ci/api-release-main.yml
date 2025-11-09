@@ -1,14 +1,23 @@
 api_release_main:
   stage: build
-  image: docker:24.0.6
+  image: docker:28.5.1
+  tags:
+    - tls-dind-kubernetes-runner
   services:
-    - docker:24.0.6-dind
+    - name: docker:28.5.1-dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2376"
+
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
     COMPONENT: api
     TARGET_ENV: main
     BUILD_CONTEXT: api
     DOCKERFILE_PATH: api/Dockerfile
+
   needs:
     - job: api_semantic_release
       artifacts: true
@@ -51,10 +60,14 @@ api_release_main:
 pages:
   stage: deploy
   image: python:latest
+  tags:
+    - tls-dind-kubernetes-runner
   script:
-    - pip install --upgrade pip
-    - pip install mkdocs-material
-    - mkdocs build -f api/mkdocs.yml --site-dir public
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - source "$HOME/.local/bin/env"
+    - export PATH="$HOME/.cargo/bin:$PATH"
+    - cd api
+    - uv run mkdocs build -f mkdocs.yml --site-dir ../public
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
