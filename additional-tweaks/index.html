@@ -8,11 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://langonne.github.io/minecharts/database/">
+        <link rel="canonical" href="https://langonne.github.io/minecharts/additional-tweaks/">
       
       
-        <link rel="prev" href="../local-development-overlay/">
+        <link rel="prev" href="../configuration/">
       
+      
+        <link rel="next" href="../local-development-overlay/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +22,7 @@
     
     
       
-        <title>Database Architecture - Minecharts</title>
+        <title>Additional Tweaks - Minecharts</title>
       
     
     
@@ -72,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#database-architecture" class="md-skip">
+        <a href="#additional-tweaks" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Database Architecture
+              Additional Tweaks
             
           </span>
         </div>
@@ -262,10 +264,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../configuration/" class="md-tabs__link">
           
   
@@ -282,11 +286,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../database/" class="md-tabs__link">
         
   
   
@@ -688,28 +690,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -722,7 +727,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Configuration
@@ -756,10 +761,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../additional-tweaks/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -770,6 +784,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -809,32 +824,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Database Architecture
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../database/" class="md-nav__link">
         
   
   
@@ -845,86 +838,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#core-tables" class="md-nav__link">
-    <span class="md-ellipsis">
-      Core Tables
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Tables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#users" class="md-nav__link">
-    <span class="md-ellipsis">
-      users
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api_keys" class="md-nav__link">
-    <span class="md-ellipsis">
-      api_keys
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#minecraft_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      minecraft_servers
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#relationships-and-cascade-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Relationships and Cascade Rules
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#backend-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Backend Considerations
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -949,74 +862,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#core-tables" class="md-nav__link">
-    <span class="md-ellipsis">
-      Core Tables
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Tables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#users" class="md-nav__link">
-    <span class="md-ellipsis">
-      users
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api_keys" class="md-nav__link">
-    <span class="md-ellipsis">
-      api_keys
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#minecraft_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      minecraft_servers
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#relationships-and-cascade-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Relationships and Cascade Rules
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#backend-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Backend Considerations
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1034,175 +879,14 @@
   
 
 
-<h1 id="database-architecture">Database Architecture</h1>
-<p>Minecharts API keeps a compact schema that mirrors the main concepts exposed by the service: users, their credentials, issued API keys, and Minecraft servers with their Kubernetes bindings. The database layer implements the same interface for SQLite (default) and PostgreSQL, so the schema applies to both backends.</p>
-<h2 id="core-tables">Core Tables</h2>
-<h3 id="users"><code>users</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>username</code></td>
-<td>TEXT</td>
-<td>Unique per user; used for login.</td>
-</tr>
-<tr>
-<td><code>email</code></td>
-<td>TEXT</td>
-<td>Optional contact address; must be unique.</td>
-</tr>
-<tr>
-<td><code>password_hash</code></td>
-<td>TEXT</td>
-<td>bcrypt hash created by the API.</td>
-</tr>
-<tr>
-<td><code>permissions</code></td>
-<td>BIGINT</td>
-<td>Bitmask containing permission flags (admin, create server, etc.).</td>
-</tr>
-<tr>
-<td><code>active</code></td>
-<td>BOOLEAN</td>
-<td>Controls whether the account can authenticate.</td>
-</tr>
-<tr>
-<td><code>last_login</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Updated after successful login.</td>
-</tr>
-<tr>
-<td><code>created_at</code> / <code>updated_at</code></td>
-<td>TIMESTAMP</td>
-<td>Auditing metadata.</td>
-</tr>
-</tbody>
-</table>
-<p>The permission mask is defined in <code>cmd/database/models.go</code> and shared across backends. Administrators can update it directly through the API.</p>
-<h3 id="api_keys"><code>api_keys</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>user_id</code></td>
-<td>BIGINT</td>
-<td>Foreign key to <code>users.id</code>.</td>
-</tr>
-<tr>
-<td><code>key</code></td>
-<td>TEXT</td>
-<td>Generated token (hash or plain string depending on backend). Stored in full; listings only display a masked prefix.</td>
-</tr>
-<tr>
-<td><code>description</code></td>
-<td>TEXT</td>
-<td>Optional label to distinguish automated clients.</td>
-</tr>
-<tr>
-<td><code>last_used</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Updated when the key authenticates a request.</td>
-</tr>
-<tr>
-<td><code>expires_at</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Optional expiration timestamp.</td>
-</tr>
-<tr>
-<td><code>created_at</code></td>
-<td>TIMESTAMP</td>
-<td>Creation time.</td>
-</tr>
-</tbody>
-</table>
-<p>Deleting a key removes the row and immediately invalidates future requests using the token.</p>
-<h3 id="minecraft_servers"><code>minecraft_servers</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>server_name</code></td>
-<td>TEXT</td>
-<td>Logical name provided by the user.</td>
-</tr>
-<tr>
-<td><code>deployment_name</code></td>
-<td>TEXT</td>
-<td>Prefixed name used for the Kubernetes deployment.</td>
-</tr>
-<tr>
-<td><code>pvc_name</code></td>
-<td>TEXT</td>
-<td>Persistent volume claim name derived from the deployment.</td>
-</tr>
-<tr>
-<td><code>owner_id</code></td>
-<td>BIGINT</td>
-<td>Foreign key to <code>users.id</code>; identifies who can manage the server.</td>
-</tr>
-<tr>
-<td><code>max_memory_gb</code></td>
-<td>INTEGER</td>
-<td>Memory cap (gigabytes) propagated to the <code>MAX_MEMORY</code> container variable. Defaults to <code>1</code> when omitted.</td>
-</tr>
-<tr>
-<td><code>status</code></td>
-<td>TEXT</td>
-<td>Cached status (<code>running</code>, <code>stopped</code>, etc.).</td>
-</tr>
-<tr>
-<td><code>created_at</code> / <code>updated_at</code></td>
-<td>TIMESTAMP</td>
-<td>Lifecycle metadata.</td>
-</tr>
-</tbody>
-</table>
-<p>The API derives <code>deployment_name</code> and <code>pvc_name</code> using configuration values (<code>MINECHARTS_DEPLOYMENT_PREFIX</code>, <code>MINECHARTS_PVC_SUFFIX</code>) to keep database records and Kubernetes resources aligned.</p>
-<p>When <code>MINECHARTS_MEMORY_QUOTA_ENABLED</code> is <code>true</code>, the API sums <code>max_memory_gb</code> across all rows before creating a new server and rejects the request if it would exceed <code>MINECHARTS_MEMORY_QUOTA_LIMIT</code>.</p>
-<h2 id="relationships-and-cascade-rules">Relationships and Cascade Rules</h2>
+<h1 id="additional-tweaks">Additional Tweaks</h1>
+<p>Some behaviours live outside the environment variable matrix but remain easy to tailor if your deployment model differs from the defaults.</p>
 <ul>
-<li><code>api_keys.user_id</code> and <code>minecraft_servers.owner_id</code> reference <code>users.id</code>. The implementations enforce referential integrity at the application layer; deleting a user should be preceded by reassignment or cleanup of dependent records.</li>
-<li>Server operations first consult the database to verify ownership and permissions, then apply changes to Kubernetes. After a successful cluster operation, the handler updates the corresponding row (status, timestamps) to keep the database authoritative.</li>
+<li><strong>Default replicas</strong>: The API provisions one pod per server by default (<code>DefaultReplicas = 1</code>). Adjust the value in <code>cmd/config/config.go</code> if you want newly created worlds to spawn with more replicas.</li>
+<li><strong>Container security context</strong>: Managed pods run as UID/GID <code>1000</code> and include a pre-stop hook that flushes the world save. Modify <code>cmd/kubernetes/deployement.go</code> to adapt permissions or lifecycle hooks.</li>
+<li><strong>Graceful shutdown timing</strong>: The command guard (<code>mc-send-to-console save-all</code>) and wait duration before pod restart (<code>time.Second * 10</code>) are located in <code>cmd/kubernetes/utils.go</code>. Update them to match your workload’s expectations.</li>
 </ul>
-<h2 id="backend-considerations">Backend Considerations</h2>
-<ul>
-<li><strong>SQLite</strong> is the default backend for development. The database file is created automatically under <code>./app/data/minecharts.db</code> (or <code>DATA_DIR</code>). It supports foreign keys, but ensure <code>PRAGMA foreign_keys = ON</code> if you interact with it manually.</li>
-<li><strong>PostgreSQL</strong> is recommended for production deployments. Provide the connection string through <code>MINECHARTS_DB_CONNECTION</code>. Schema migrations are executed at startup via the database implementation.</li>
-</ul>
-<p>Keeping the schema lean makes it straightforward to extend Minecharts with new concepts—add a column, adjust the interface methods, and update both SQLite and PostgreSQL implementations accordingly.</p>
+<p>Whenever you introduce new knobs, wire them through the configuration package so they can be tuned via environment variables instead of code edits.</p>
 
 
 

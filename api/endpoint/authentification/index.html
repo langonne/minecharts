@@ -8,26 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://langonne.github.io/minecharts/database/">
+        <link rel="canonical" href="https://langonne.github.io/minecharts/api/endpoint/authentification/">
       
       
-        <link rel="prev" href="../local-development-overlay/">
+        <link rel="prev" href="../../operational_notes/">
       
       
+        <link rel="next" href="../feedback/">
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
     
     
       
-        <title>Database Architecture - Minecharts</title>
+        <title>Authentification - Minecharts</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.4af4bdda.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,7 +48,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -72,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#database-architecture" class="md-skip">
+        <a href="#authentication-endpoints" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +90,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Minecharts" class="md-header__button md-logo" aria-label="Minecharts" data-md-component="logo">
+    <a href="../../.." title="Minecharts" class="md-header__button md-logo" aria-label="Minecharts" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Database Architecture
+              Authentification
             
           </span>
         </div>
@@ -225,7 +227,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -242,11 +244,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../api/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
           
   
   
@@ -266,7 +270,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../configuration/" class="md-tabs__link">
+        <a href="../../../configuration/" class="md-tabs__link">
           
   
   
@@ -282,11 +286,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../../database/" class="md-tabs__link">
         
   
   
@@ -327,7 +329,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Minecharts" class="md-nav__button md-logo" aria-label="Minecharts" data-md-component="logo">
+    <a href="../../.." title="Minecharts" class="md-nav__button md-logo" aria-label="Minecharts" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -357,7 +359,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -376,28 +378,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -410,7 +415,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             API
@@ -424,7 +429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
@@ -447,7 +452,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/authentification_model/" class="md-nav__link">
+      <a href="../../authentification_model/" class="md-nav__link">
         
   
   
@@ -470,7 +475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/request_flow/" class="md-nav__link">
+      <a href="../../request_flow/" class="md-nav__link">
         
   
   
@@ -493,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/operational_notes/" class="md-nav__link">
+      <a href="../../operational_notes/" class="md-nav__link">
         
   
   
@@ -513,28 +518,31 @@
                 
   
   
+    
   
   
+  
     
     
     
     
       
       
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
         
           
+          
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
             
   
   
@@ -547,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_5">
             <span class="md-nav__icon md-icon"></span>
             Endpoint reference
@@ -558,10 +566,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../api/endpoint/authentification/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Authentification
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -572,6 +602,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#post-authregister" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /auth/register
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-authlogin" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /auth/login
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-authlogout" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /auth/logout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get-authme" class="md-nav__link">
+    <span class="md-ellipsis">
+      GET /auth/me
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -584,7 +670,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/endpoint/feedback/" class="md-nav__link">
+      <a href="../feedback/" class="md-nav__link">
         
   
   
@@ -607,7 +693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/endpoint/api_keys/" class="md-nav__link">
+      <a href="../api_keys/" class="md-nav__link">
         
   
   
@@ -630,7 +716,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/endpoint/servers/" class="md-nav__link">
+      <a href="../servers/" class="md-nav__link">
         
   
   
@@ -653,7 +739,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/endpoint/users/" class="md-nav__link">
+      <a href="../users/" class="md-nav__link">
         
   
   
@@ -736,7 +822,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
+      <a href="../../../configuration/" class="md-nav__link">
         
   
   
@@ -759,7 +845,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../additional-tweaks/" class="md-nav__link">
+      <a href="../../../additional-tweaks/" class="md-nav__link">
         
   
   
@@ -782,7 +868,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../local-development-overlay/" class="md-nav__link">
+      <a href="../../../local-development-overlay/" class="md-nav__link">
         
   
   
@@ -809,32 +895,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Database Architecture
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../database/" class="md-nav__link">
         
   
   
@@ -845,86 +909,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#core-tables" class="md-nav__link">
-    <span class="md-ellipsis">
-      Core Tables
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Tables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#users" class="md-nav__link">
-    <span class="md-ellipsis">
-      users
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api_keys" class="md-nav__link">
-    <span class="md-ellipsis">
-      api_keys
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#minecraft_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      minecraft_servers
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#relationships-and-cascade-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Relationships and Cascade Rules
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#backend-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Backend Considerations
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -956,60 +940,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-tables" class="md-nav__link">
+  <a href="#post-authregister" class="md-nav__link">
     <span class="md-ellipsis">
-      Core Tables
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Tables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#users" class="md-nav__link">
-    <span class="md-ellipsis">
-      users
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api_keys" class="md-nav__link">
-    <span class="md-ellipsis">
-      api_keys
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#minecraft_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      minecraft_servers
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#relationships-and-cascade-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Relationships and Cascade Rules
+      POST /auth/register
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#backend-considerations" class="md-nav__link">
+  <a href="#post-authlogin" class="md-nav__link">
     <span class="md-ellipsis">
-      Backend Considerations
+      POST /auth/login
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-authlogout" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /auth/logout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get-authme" class="md-nav__link">
+    <span class="md-ellipsis">
+      GET /auth/me
     </span>
   </a>
   
@@ -1034,175 +994,116 @@
   
 
 
-<h1 id="database-architecture">Database Architecture</h1>
-<p>Minecharts API keeps a compact schema that mirrors the main concepts exposed by the service: users, their credentials, issued API keys, and Minecraft servers with their Kubernetes bindings. The database layer implements the same interface for SQLite (default) and PostgreSQL, so the schema applies to both backends.</p>
-<h2 id="core-tables">Core Tables</h2>
-<h3 id="users"><code>users</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>username</code></td>
-<td>TEXT</td>
-<td>Unique per user; used for login.</td>
-</tr>
-<tr>
-<td><code>email</code></td>
-<td>TEXT</td>
-<td>Optional contact address; must be unique.</td>
-</tr>
-<tr>
-<td><code>password_hash</code></td>
-<td>TEXT</td>
-<td>bcrypt hash created by the API.</td>
-</tr>
-<tr>
-<td><code>permissions</code></td>
-<td>BIGINT</td>
-<td>Bitmask containing permission flags (admin, create server, etc.).</td>
-</tr>
-<tr>
-<td><code>active</code></td>
-<td>BOOLEAN</td>
-<td>Controls whether the account can authenticate.</td>
-</tr>
-<tr>
-<td><code>last_login</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Updated after successful login.</td>
-</tr>
-<tr>
-<td><code>created_at</code> / <code>updated_at</code></td>
-<td>TIMESTAMP</td>
-<td>Auditing metadata.</td>
-</tr>
-</tbody>
-</table>
-<p>The permission mask is defined in <code>cmd/database/models.go</code> and shared across backends. Administrators can update it directly through the API.</p>
-<h3 id="api_keys"><code>api_keys</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>user_id</code></td>
-<td>BIGINT</td>
-<td>Foreign key to <code>users.id</code>.</td>
-</tr>
-<tr>
-<td><code>key</code></td>
-<td>TEXT</td>
-<td>Generated token (hash or plain string depending on backend). Stored in full; listings only display a masked prefix.</td>
-</tr>
-<tr>
-<td><code>description</code></td>
-<td>TEXT</td>
-<td>Optional label to distinguish automated clients.</td>
-</tr>
-<tr>
-<td><code>last_used</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Updated when the key authenticates a request.</td>
-</tr>
-<tr>
-<td><code>expires_at</code></td>
-<td>TIMESTAMP NULL</td>
-<td>Optional expiration timestamp.</td>
-</tr>
-<tr>
-<td><code>created_at</code></td>
-<td>TIMESTAMP</td>
-<td>Creation time.</td>
-</tr>
-</tbody>
-</table>
-<p>Deleting a key removes the row and immediately invalidates future requests using the token.</p>
-<h3 id="minecraft_servers"><code>minecraft_servers</code></h3>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Type</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>BIGINT</td>
-<td>Primary key.</td>
-</tr>
-<tr>
-<td><code>server_name</code></td>
-<td>TEXT</td>
-<td>Logical name provided by the user.</td>
-</tr>
-<tr>
-<td><code>deployment_name</code></td>
-<td>TEXT</td>
-<td>Prefixed name used for the Kubernetes deployment.</td>
-</tr>
-<tr>
-<td><code>pvc_name</code></td>
-<td>TEXT</td>
-<td>Persistent volume claim name derived from the deployment.</td>
-</tr>
-<tr>
-<td><code>owner_id</code></td>
-<td>BIGINT</td>
-<td>Foreign key to <code>users.id</code>; identifies who can manage the server.</td>
-</tr>
-<tr>
-<td><code>max_memory_gb</code></td>
-<td>INTEGER</td>
-<td>Memory cap (gigabytes) propagated to the <code>MAX_MEMORY</code> container variable. Defaults to <code>1</code> when omitted.</td>
-</tr>
-<tr>
-<td><code>status</code></td>
-<td>TEXT</td>
-<td>Cached status (<code>running</code>, <code>stopped</code>, etc.).</td>
-</tr>
-<tr>
-<td><code>created_at</code> / <code>updated_at</code></td>
-<td>TIMESTAMP</td>
-<td>Lifecycle metadata.</td>
-</tr>
-</tbody>
-</table>
-<p>The API derives <code>deployment_name</code> and <code>pvc_name</code> using configuration values (<code>MINECHARTS_DEPLOYMENT_PREFIX</code>, <code>MINECHARTS_PVC_SUFFIX</code>) to keep database records and Kubernetes resources aligned.</p>
-<p>When <code>MINECHARTS_MEMORY_QUOTA_ENABLED</code> is <code>true</code>, the API sums <code>max_memory_gb</code> across all rows before creating a new server and rejects the request if it would exceed <code>MINECHARTS_MEMORY_QUOTA_LIMIT</code>.</p>
-<h2 id="relationships-and-cascade-rules">Relationships and Cascade Rules</h2>
+<h1 id="authentication-endpoints">Authentication Endpoints</h1>
+<h2 id="post-authregister"><code>POST /auth/register</code></h2>
 <ul>
-<li><code>api_keys.user_id</code> and <code>minecraft_servers.owner_id</code> reference <code>users.id</code>. The implementations enforce referential integrity at the application layer; deleting a user should be preceded by reassignment or cleanup of dependent records.</li>
-<li>Server operations first consult the database to verify ownership and permissions, then apply changes to Kubernetes. After a successful cluster operation, the handler updates the corresponding row (status, timestamps) to keep the database authoritative.</li>
+<li><strong>Purpose:</strong> Create a user account and issue an authenticated session.</li>
+<li><strong>Auth required:</strong> None</li>
 </ul>
-<h2 id="backend-considerations">Backend Considerations</h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Request</label><label for="__tabbed_1_2">Response</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nf">POST</span> <span class="nn">/auth/register</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer@example.com&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sup3rStrongPassword!&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;jwt&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer@example.com&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="post-authlogin"><code>POST /auth/login</code></h2>
 <ul>
-<li><strong>SQLite</strong> is the default backend for development. The database file is created automatically under <code>./app/data/minecharts.db</code> (or <code>DATA_DIR</code>). It supports foreign keys, but ensure <code>PRAGMA foreign_keys = ON</code> if you interact with it manually.</li>
-<li><strong>PostgreSQL</strong> is recommended for production deployments. Provide the connection string through <code>MINECHARTS_DB_CONNECTION</code>. Schema migrations are executed at startup via the database implementation.</li>
+<li><strong>Purpose:</strong> Authenticate an existing user and receive the <code>auth_token</code> cookie.</li>
+<li><strong>Auth required:</strong> None</li>
 </ul>
-<p>Keeping the schema lean makes it straightforward to extend Minecharts with new concepts—add a column, adjust the interface methods, and update both SQLite and PostgreSQL implementations accordingly.</p>
+<div class="admonition warning">
+<p class="admonition-title">Rate limiting</p>
+<p>This endpoint (and user registration) is protected by a shared token-bucket rated at five login attempts per minute (two registrations every five minutes) per client IP. Successful requests refill progressively. When the bucket is empty, the API responds with HTTP 429 (<code>Retry-After</code> header in seconds). The limiter state is stored in the configured database so limits are consistent across application instances. On SQLite, heavy login traffic may lead to short lock retries; for high-volume production deployments prefer PostgreSQL or an external rate-limit tier.</p>
+</div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Request</label><label for="__tabbed_2_2">Response</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nf">POST</span> <span class="nn">/auth/login</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sup3rStrongPassword!&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer@example.com&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">255</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="post-authlogout"><code>POST /auth/logout</code></h2>
+<ul>
+<li><strong>Purpose:</strong> Invalidate the active session cookie.</li>
+<li><strong>Auth required:</strong> JWT cookie</li>
+</ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Request</label><label for="__tabbed_3_2">Response</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nf">POST</span> <span class="nn">/auth/logout</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">auth_token=&lt;jwt&gt;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Logout successful&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="get-authme"><code>GET /auth/me</code></h2>
+<ul>
+<li><strong>Purpose:</strong> Retrieve the authenticated user profile and permissions.</li>
+<li><strong>Auth required:</strong> JWT cookie</li>
+</ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Request</label><label for="__tabbed_4_2">Response</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nf">GET</span> <span class="nn">/auth/me</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">auth_token=&lt;jwt&gt;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;overseer@example.com&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">255</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;active&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;last_login&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-05-10T18:12:44Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-03-01T09:15:32Z&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
 
 
 
@@ -1264,10 +1165,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "toc.follow", "search.suggest", "content.code.copy", "content.code.select"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "toc.follow", "search.suggest", "content.code.copy", "content.code.select"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>

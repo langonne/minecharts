@@ -1,19 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://langonne.github.io/minecharts-api/</loc>
-         <lastmod>2025-10-14</lastmod>
+         <loc>https://langonne.github.io/minecharts/</loc>
+         <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://langonne.github.io/minecharts-api/api/</loc>
-         <lastmod>2025-10-14</lastmod>
+         <loc>https://langonne.github.io/minecharts/additional-tweaks/</loc>
+         <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://langonne.github.io/minecharts-api/configuration/</loc>
-         <lastmod>2025-10-14</lastmod>
+         <loc>https://langonne.github.io/minecharts/configuration/</loc>
+         <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://langonne.github.io/minecharts-api/database/</loc>
-         <lastmod>2025-10-14</lastmod>
+         <loc>https://langonne.github.io/minecharts/database/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/local-development-overlay/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/authentification_model/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/operational_notes/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/request_flow/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/endpoint/api_keys/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/endpoint/authentification/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/endpoint/feedback/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/endpoint/servers/</loc>
+         <lastmod>2025-11-09</lastmod>
+    </url>
+    <url>
+         <loc>https://langonne.github.io/minecharts/api/endpoint/users/</loc>
+         <lastmod>2025-11-09</lastmod>
     </url>
 </urlset>
