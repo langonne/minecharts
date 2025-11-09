@@ -1,5 +1,6 @@
 stages:
   - build
+  - deploy
 
 include:
   - local: .gitlab/ci/api-release-main.yml
