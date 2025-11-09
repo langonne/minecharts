@@ -1,0 +1,83 @@
+name: Semantic Releases (main)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "api/**"
+      - "web/**"
+      - ".github/workflows/semantic-release-main.yml"
+      - ".github/workflows/api-release-main.yml"
+      - ".github/workflows/web-release-main.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release_api:
+    name: Release API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('api/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install release dependencies
+        working-directory: api
+        run: npm install
+
+      - name: semantic-release (API)
+        working-directory: api
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: api
+        run: npx semantic-release -e semantic-release-monorepo
+
+  release_web:
+    name: Release Web
+    runs-on: ubuntu-latest
+    needs: release_api
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install release dependencies
+        working-directory: web
+        run: npm install
+
+      - name: semantic-release (Web)
+        working-directory: web
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: web
+        run: npx semantic-release -e semantic-release-monorepo

@@ -1,0 +1,29 @@
+api_semantic_release:
+  stage: release
+  image: node:20
+  script:
+    - cd api
+    - npm install
+    - PACKAGE=api npx semantic-release -e semantic-release-monorepo
+  cache:
+    key: api-semrel-${CI_COMMIT_REF_SLUG}
+    paths:
+      - api/node_modules/
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+web_semantic_release:
+  stage: release
+  image: node:20
+  needs:
+    - api_semantic_release
+  script:
+    - cd web
+    - npm install
+    - PACKAGE=web npx semantic-release -e semantic-release-monorepo
+  cache:
+    key: web-semrel-${CI_COMMIT_REF_SLUG}
+    paths:
+      - web/node_modules/
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

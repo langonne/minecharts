@@ -1,8 +1,10 @@
 stages:
+  - release
   - build
   - deploy
 
 include:
+  - local: .gitlab/ci/semantic-release-main.yml
   - local: .gitlab/ci/api-release-main.yml
   - local: .gitlab/ci/api-build-dev.yml
   - local: .gitlab/ci/web-release-main.yml
