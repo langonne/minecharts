@@ -1,13 +1,9 @@
-name: API Release (main)
+name: API Image Release
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "api/**"
-      - "kubernetes/**"
-      - ".github/workflows/api-release-main.yml"
+    tags:
+      - api-v*
   workflow_dispatch: {}
 
 permissions:
@@ -16,41 +12,25 @@ permissions:
 
 jobs:
   build:
-    name: Build and push API (main)
+    name: Build and push API image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('api/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install release dependencies
-        working-directory: api
-        run: npm install
-
-      - name: Run semantic-release
-        working-directory: api
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
-      - name: Read semantic-release version
-        id: release_version
-        working-directory: api
+      - name: Extract release version
+        id: release_meta
         run: |
-          version=$(node -p "require('./package.json').version")
-          echo \"version=$version\" >> \"$GITHUB_OUTPUT\"
+          if [[ "${GITHUB_REF_NAME}" != api-v* ]]; then
+            echo "Tag ${GITHUB_REF_NAME} is not an API release tag."
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#api-v}"
+          if [[ -z "$version" ]]; then
+            echo "Unable to determine release version from ${GITHUB_REF_NAME}."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -62,17 +42,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push the Docker image for the main branch.
-      # The image is tagged with a commit-specific tag as well as the stable tags.
-      - name: Build and push Docker image for main
+      - name: Build and push API Docker image
         uses: docker/build-push-action@v6
         with:
           context: api
           push: true
           tags: |
-            ghcr.io/langonne/minecharts-api:${{ github.sha }}
+            ghcr.io/langonne/minecharts-api:${{ steps.release_meta.outputs.version }}
+            ghcr.io/langonne/minecharts-api:main
             ghcr.io/langonne/minecharts-api:latest
-            ghcr.io/langonne/minecharts-api
-            ${{ steps.release_version.outputs.version && format('ghcr.io/langonne/minecharts-api:{0}', steps.release_version.outputs.version) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

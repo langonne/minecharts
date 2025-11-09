@@ -5,10 +5,21 @@ api_semantic_release:
     - cd api
     - npm install
     - PACKAGE=api npx semantic-release -e semantic-release-monorepo
+    - |
+      VERSION_TAG="$(git tag --points-at HEAD | grep '^api-v' | head -n 1 || true)"
+      VERSION_VALUE=""
+      if [ -n "$VERSION_TAG" ]; then
+        VERSION_VALUE="${VERSION_TAG#api-v}"
+      fi
+      printf "API_RELEASE_VERSION=%s\n" "$VERSION_VALUE" > "$CI_PROJECT_DIR/api_release.env"
   cache:
     key: api-semrel-${CI_COMMIT_REF_SLUG}
     paths:
       - api/node_modules/
+  artifacts:
+    reports:
+      dotenv: api_release.env
+    expire_in: 1 day
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
@@ -21,9 +32,20 @@ web_semantic_release:
     - cd web
     - npm install
     - PACKAGE=web npx semantic-release -e semantic-release-monorepo
+    - |
+      VERSION_TAG="$(git tag --points-at HEAD | grep '^web-v' | head -n 1 || true)"
+      VERSION_VALUE=""
+      if [ -n "$VERSION_TAG" ]; then
+        VERSION_VALUE="${VERSION_TAG#web-v}"
+      fi
+      printf "WEB_RELEASE_VERSION=%s\n" "$VERSION_VALUE" > "$CI_PROJECT_DIR/web_release.env"
   cache:
     key: web-semrel-${CI_COMMIT_REF_SLUG}
     paths:
       - web/node_modules/
+  artifacts:
+    reports:
+      dotenv: web_release.env
+    expire_in: 1 day
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'

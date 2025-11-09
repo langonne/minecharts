@@ -9,6 +9,9 @@ web_release_main:
     TARGET_ENV: main
     BUILD_CONTEXT: web
     DOCKERFILE_PATH: web/Dockerfile
+  needs:
+    - job: web_semantic_release
+      artifacts: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -27,14 +30,18 @@ web_release_main:
       IMAGE_REPO="${CI_REGISTRY_IMAGE:-${CI_REGISTRY}/${CI_PROJECT_PATH}}"
       IMAGE_REPO="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
       COMPONENT_REPO="${IMAGE_REPO}/${COMPONENT}"
-      SHORT_SHA="${CI_COMMIT_SHA:0:12}"
+      RELEASE_VERSION="${WEB_RELEASE_VERSION:-}"
+      if [ -z "$RELEASE_VERSION" ]; then
+        echo "No Web release version found; skipping Docker image build."
+        exit 0
+      fi
+      VERSION_TAG="${COMPONENT_REPO}:${RELEASE_VERSION}"
       PRIMARY_IMAGE="${COMPONENT_REPO}:${TARGET_ENV}"
       LATEST_TAG="${COMPONENT_REPO}:latest"
-      SHA_TAG="${COMPONENT_REPO}:${SHORT_SHA}"
-      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
-      docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
-      docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
-      for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
+      docker build --pull -f "$DOCKERFILE_PATH" -t "$VERSION_TAG" "$BUILD_CONTEXT"
+      docker tag "$VERSION_TAG" "$PRIMARY_IMAGE"
+      docker tag "$VERSION_TAG" "$LATEST_TAG"
+      for tag in "$VERSION_TAG" "$PRIMARY_IMAGE" "$LATEST_TAG"; do
         docker push "$tag"
       done
   after_script:

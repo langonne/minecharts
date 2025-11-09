@@ -1,12 +1,9 @@
-name: Web Release (main)
+name: Web Image Release
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "web/**"
-      - ".github/workflows/web-release-main.yml"
+    tags:
+      - web-v*
   workflow_dispatch: {}
 
 permissions:
@@ -15,11 +12,25 @@ permissions:
 
 jobs:
   build:
-    name: Build and push Web (main)
+    name: Build and push Web image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Extract release version
+        id: release_meta
+        run: |
+          if [[ "${GITHUB_REF_NAME}" != web-v* ]]; then
+            echo "Tag ${GITHUB_REF_NAME} is not a Web release tag."
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#web-v}"
+          if [[ -z "$version" ]]; then
+            echo "Unable to determine release version from ${GITHUB_REF_NAME}."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,16 +42,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push the Docker image for the main branch.
-      # The image is tagged with a commit-specific tag as well as the stable tags.
-      - name: Build and push Docker image for main
+      - name: Build and push Web Docker image
         uses: docker/build-push-action@v6
         with:
           context: web
           push: true
           tags: |
-            ghcr.io/langonne/minecharts-web:${{ github.sha }}
+            ghcr.io/langonne/minecharts-web:${{ steps.release_meta.outputs.version }}
+            ghcr.io/langonne/minecharts-web:main
             ghcr.io/langonne/minecharts-web:latest
-            ghcr.io/langonne/minecharts-web
           cache-from: type=gha
           cache-to: type=gha,mode=max
