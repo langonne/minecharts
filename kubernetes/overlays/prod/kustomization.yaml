@@ -1,14 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: minecharts-test
+namespace: minecharts-prod
 resources:
   - namespace.yaml
   - ../../bases
 patchesStrategicMerge:
   - ingress-patch.yaml
-  - dev-env.yaml
+  - env.yaml
 images:
   - name: registry.prod.nasdak.fr/l.angonnet/minecharts/api
-    newTag: dev-latest
+    newTag: latest
   - name: registry.prod.nasdak.fr/l.angonnet/minecharts/web
-    newTag: dev-latest
+    newTag: latest
