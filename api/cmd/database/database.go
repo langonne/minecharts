@@ -74,16 +74,10 @@ func InitDB(dbType string, connectionString string) error {
 	dbOnce.Do(func() {
 		switch dbType {
 		case SQLite:
-			logging.DB.WithFields(
-				"connection", connectionString,
-				"db_type", "sqlite",
-			).Info("Creating SQLite database connection")
+			logging.DB.WithField("db_type", "sqlite").Info("Creating SQLite database connection")
 			db, err = NewSQLiteDB(connectionString)
 		case PostgreSQL:
-			logging.DB.WithFields(
-				"connection", connectionString,
-				"db_type", "postgres",
-			).Info("Creating PostgreSQL database connection")
+			logging.DB.WithField("db_type", "postgres").Info("Creating PostgreSQL database connection")
 			db, err = NewPostgresDB(connectionString)
 		default:
 			// Default to SQLite if not specified
