@@ -25,9 +25,6 @@ func main() {
 	if strings.TrimSpace(config.MCRouterDomainSuffix) == "" {
 		logger.Fatal("MINECHARTS_MCROUTER_DOMAIN_SUFFIX is required; set it before starting the API")
 	}
-	if strings.TrimSpace(config.StorageClass) == "" {
-		logger.Fatal("MINECHARTS_STORAGE_CLASS is required; set it before starting the API")
-	}
 	if config.FeedbackEnabled {
 		provider := strings.ToLower(strings.TrimSpace(config.FeedbackProvider))
 

@@ -9,7 +9,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_DEPLOYMENT_PREFIX` | `minecraft-server-` | Prefix applied to server names to build deployment/service names. |
 | `MINECHARTS_PVC_SUFFIX` | `-pvc` | Suffix appended to PVC names. |
 | `MINECHARTS_STORAGE_SIZE` | `10Gi` | Capacity requested for each persistent volume claim. |
-| `MINECHARTS_STORAGE_CLASS` | *(empty)* | Storage class used when creating PVCs; the API refuses to start if it is missing.<br />Example: `local-path` |
+| `MINECHARTS_STORAGE_CLASS` | *(empty)* | Storage class used when creating PVCs; leave empty to let Kubernetes pick the cluster default automatically.<br />Example: `local-path` |
 | `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` | *(empty)* | Domain suffix used when exposing servers through mc-router; required for the API to start.<br />Example: `mc.example.com` |
 | `MINECHARTS_TRUSTED_PROXIES` | `127.0.0.1` | Comma-separated list passed to Gin to mark upstream proxies as trusted. |
 | `MINECHARTS_TIMEZONE` | `UTC` | Application-wide timezone for logging and time calculations. |

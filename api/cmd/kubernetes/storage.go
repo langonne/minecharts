@@ -4,6 +4,7 @@ import (
 	"context"
 	"minecharts/cmd/config"
 	"minecharts/cmd/logging"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -27,11 +28,17 @@ func EnsurePVC(namespace, pvcName string) error {
 		return nil // PVC already exists.
 	}
 
+	storageClass := strings.TrimSpace(config.StorageClass)
+	var storageClassName *string
+	if storageClass != "" {
+		storageClassName = ptr.To(storageClass)
+	}
+
 	logging.K8s.WithFields(
 		"namespace", namespace,
 		"pvc_name", pvcName,
 		"storage_size", config.StorageSize,
-		"storage_class", config.StorageClass,
+		"storage_class", storageClass,
 	).Info("Creating new PVC")
 
 	pvc := &corev1.PersistentVolumeClaim{
@@ -48,7 +55,7 @@ func EnsurePVC(namespace, pvcName string) error {
 					corev1.ResourceStorage: resource.MustParse(config.StorageSize),
 				},
 			},
-			StorageClassName: ptr.To(config.StorageClass),
+			StorageClassName: storageClassName,
 		},
 	}
 	_, err = Clientset.CoreV1().PersistentVolumeClaims(namespace).Create(context.Background(), pvc, metav1.CreateOptions{})
