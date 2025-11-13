@@ -7,6 +7,7 @@ import (
 	"minecharts/cmd/database"
 	"minecharts/cmd/kubernetes"
 	"minecharts/cmd/logging"
+	"minecharts/cmd/secrets"
 	"strings"
 	"time"
 
@@ -19,8 +20,15 @@ func main() {
 	logging.Init()
 	logger := logging.Logger
 
-	if strings.TrimSpace(config.JWTSecret) == "" {
-		logger.Fatal("MINECHARTS_JWT_SECRET is required; set it before starting the API")
+	if secret, secretPath, generated, err := secrets.LoadOrCreateJWTSecret(config.DataDir); err != nil {
+		logger.Fatalf("Failed to prepare JWT secret: %v", err)
+	} else {
+		config.JWTSecret = secret
+		if generated {
+			logger.Warnf("JWT secret not found; generated new one at %s (existing sessions invalidated)", secretPath)
+		} else {
+			logger.Infof("Loaded JWT secret from %s", secretPath)
+		}
 	}
 	if strings.TrimSpace(config.MCRouterDomainSuffix) == "" {
 		logger.Fatal("MINECHARTS_MCROUTER_DOMAIN_SUFFIX is required; set it before starting the API")

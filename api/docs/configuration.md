@@ -27,7 +27,6 @@ Minecharts API reads its configuration from environment variables at startup (`c
 ## Authentication & Security
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MINECHARTS_JWT_SECRET` | *(empty)* | HMAC secret used to sign JWT access tokens; the API refuses to start if it remains empty.<br />Example: `change-this-super-secret` |
 | `MINECHARTS_JWT_EXPIRY_HOURS` | `24` | Token lifespan in hours. |
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
 
@@ -78,6 +77,8 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_FEEDBACK_GITLAB_PROJECT` | *(empty)* | GitLab project path or numeric ID that receives feedback issues. |
 | `MINECHARTS_FEEDBACK_GITLAB_URL` | `https://gitlab.com` | Base URL for the GitLab instance (e.g. `https://gitlab.example.com`). |
 | `MINECHARTS_FEEDBACK_DEFAULT_LABELS` | `feedback` | Comma-separated labels automatically added to each generated issue (in addition to type-specific labels). |
+
+The API automatically manages the JWT signing key in `<DATA_DIR>/jwt.secret`. Delete the file to rotate the key, and keep `DATA_DIR` on persistent storage so tokens remain valid across restarts.
 
 If feedback is enabled but the required credentials for the selected provider are missing, the API logs an error and any submission returns a `500` response.
 

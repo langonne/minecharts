@@ -19,6 +19,7 @@ var (
 	MemoryQuotaEnabled    = getEnvBool("MINECHARTS_MEMORY_QUOTA_ENABLED", false)
 	MemoryQuotaLimit      = getEnvInt("MINECHARTS_MEMORY_QUOTA_LIMIT", 0)
 	MemoryLimitOverheadMi = getEnvInt("MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI", 256)
+	DataDir               = getEnv("DATA_DIR", "./app/data")
 
 	//  Reverse proxy configuration
 	TrustedProxies = getEnv("MINECHARTS_TRUSTED_PROXIES", "127.0.0.1")
@@ -28,7 +29,7 @@ var (
 	DatabaseConnectionString = getEnv("MINECHARTS_DB_CONNECTION", "./app/data/minecharts.db") // File path for SQLite or connection string for Postgres
 
 	// Authentication configuration
-	JWTSecret      = getEnv("MINECHARTS_JWT_SECRET", "")
+	JWTSecret      string
 	JWTExpiryHours = getEnvInt("MINECHARTS_JWT_EXPIRY_HOURS", 24)
 	APIKeyPrefix   = getEnv("MINECHARTS_API_KEY_PREFIX", "mcapi")
 
