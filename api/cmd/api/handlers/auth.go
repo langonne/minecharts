@@ -6,6 +6,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"minecharts/cmd/auth"
@@ -290,10 +292,11 @@ func OAuthLoginHandler(c *gin.Context) {
 	}
 
 	// Store state in a secure HTTP-only cookie for verification later
+	stateTTLSeconds := int((15 * time.Minute).Seconds())
 	c.SetCookie(
 		"oauth_state",
 		state,
-		int(time.Now().Add(15*time.Minute).Unix()), // Expires after 15 minutes
+		stateTTLSeconds,
 		"/",
 		"",
 		true, // Secure (HTTPS only)
@@ -415,6 +418,8 @@ func OAuthCallbackHandler(c *gin.Context) {
 		Info("OAuth authentication successful, redirecting to frontend")
 
 	// Redirect to frontend with token
-	frontendRedirectURL := config.FrontendURL + "/oauth-callback?token=" + jwtToken
+	frontendBase := strings.TrimRight(config.FrontendURL, "/")
+	tokenParam := url.QueryEscape(jwtToken)
+	frontendRedirectURL := frontendBase + "/oauth-callback?token=" + tokenParam
 	c.Redirect(http.StatusTemporaryRedirect, frontendRedirectURL)
 }

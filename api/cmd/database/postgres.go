@@ -55,13 +55,39 @@ func (p *PostgresDB) Init() error {
 			active BOOLEAN NOT NULL DEFAULT TRUE,
 			last_login TIMESTAMP,
 			created_at TIMESTAMP NOT NULL,
-			updated_at TIMESTAMP NOT NULL
+			updated_at TIMESTAMP NOT NULL,
+			oauth_provider TEXT,
+			oauth_subject TEXT
 		)
 	`)
 	if err != nil {
 		logging.DB.WithFields(
 			"error", err.Error(),
 		).Error("Failed to create users table")
+		return err
+	}
+
+	_, err = p.db.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider TEXT`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to add oauth_provider column to users table")
+		return err
+	}
+
+	_, err = p.db.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_subject TEXT`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to add oauth_subject column to users table")
+		return err
+	}
+
+	_, err = p.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth_provider_subject ON users(oauth_provider, oauth_subject)`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to create OAuth identity index")
 		return err
 	}
 
@@ -237,8 +263,17 @@ func (p *PostgresDB) CreateUser(ctx context.Context, user *User) error {
 
 	// Insert user
 	err = p.db.QueryRowContext(ctx,
-		"INSERT INTO users (username, email, password_hash, permissions, active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.CreatedAt, user.UpdatedAt,
+		"INSERT INTO users (username, email, password_hash, permissions, active, last_login, oauth_provider, oauth_subject, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.Permissions,
+		user.Active,
+		nullableTime(user.LastLogin),
+		nullableString(user.OAuthProvider),
+		nullableString(user.OAuthSubject),
+		user.CreatedAt,
+		user.UpdatedAt,
 	).Scan(&user.ID)
 	if err != nil {
 		logging.DB.WithFields(
@@ -264,22 +299,20 @@ func (p *PostgresDB) GetUserByID(ctx context.Context, id int64) (*User, error) {
 		"db_type", "postgres",
 	).Debug("Getting user by ID")
 
-	user := &User{}
-	err := p.db.QueryRowContext(ctx,
-		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users WHERE id = $1",
+	row := p.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE id = $1",
 		id,
-	).Scan(
-		&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-		&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
 	)
-	if err == sql.ErrNoRows {
-		logging.DB.WithFields(
-			"user_id", id,
-			"error", "user_not_found",
-		).Debug("User not found by ID")
-		return nil, ErrUserNotFound
-	}
+
+	user, err := scanUser(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"user_id", id,
+				"error", "user_not_found",
+			).Debug("User not found by ID")
+			return nil, ErrUserNotFound
+		}
 		logging.DB.WithFields(
 			"user_id", id,
 			"error", err.Error(),
@@ -301,26 +334,20 @@ func (p *PostgresDB) GetUserByUsername(ctx context.Context, username string) (*U
 		"db_type", "postgres",
 	).Debug("Getting user by username")
 
-	user := &User{}
-	query := "SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users WHERE username = $1"
-
-	logging.DB.WithFields(
-		"username", username,
-		"query", query,
-	).Debug("Executing database query")
-
-	err := p.db.QueryRowContext(ctx, query, username).Scan(
-		&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-		&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
+	row := p.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE username = $1",
+		username,
 	)
-	if err == sql.ErrNoRows {
-		logging.DB.WithFields(
-			"username", username,
-			"error", "user_not_found",
-		).Debug("User not found")
-		return nil, ErrUserNotFound
-	}
+
+	user, err := scanUser(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"username", username,
+				"error", "user_not_found",
+			).Debug("User not found")
+			return nil, ErrUserNotFound
+		}
 		logging.DB.WithFields(
 			"username", username,
 			"error", err.Error(),
@@ -335,6 +362,66 @@ func (p *PostgresDB) GetUserByUsername(ctx context.Context, username string) (*U
 	return user, nil
 }
 
+// GetUserByEmail retrieves a user by email
+func (p *PostgresDB) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	logging.DB.WithFields(
+		"email", email,
+		"db_type", "postgres",
+	).Debug("Getting user by email")
+
+	row := p.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE email = $1",
+		email,
+	)
+
+	user, err := scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"email", email,
+				"error", "user_not_found",
+			).Debug("User not found by email")
+			return nil, ErrUserNotFound
+		}
+		logging.DB.WithFields(
+			"email", email,
+			"error", err.Error(),
+		).Error("Database error when getting user by email")
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GetUserByOAuthIdentity retrieves a user from provider + subject
+func (p *PostgresDB) GetUserByOAuthIdentity(ctx context.Context, provider, subject string) (*User, error) {
+	logging.DB.WithFields(
+		"provider", provider,
+		"subject", subject,
+	).Debug("Getting user by OAuth identity (postgres)")
+
+	row := p.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE oauth_provider = $1 AND oauth_subject = $2",
+		provider,
+		subject,
+	)
+
+	user, err := scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		logging.DB.WithFields(
+			"provider", provider,
+			"subject", subject,
+			"error", err.Error(),
+		).Error("Database error when getting user by OAuth identity")
+		return nil, err
+	}
+
+	return user, nil
+}
+
 // UpdateUser updates a user's information
 func (p *PostgresDB) UpdateUser(ctx context.Context, user *User) error {
 	logging.DB.WithFields(
@@ -345,8 +432,17 @@ func (p *PostgresDB) UpdateUser(ctx context.Context, user *User) error {
 	user.UpdatedAt = time.Now()
 
 	_, err := p.db.ExecContext(ctx,
-		"UPDATE users SET username = $1, email = $2, password_hash = $3, permissions = $4, active = $5, updated_at = $6 WHERE id = $7",
-		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.UpdatedAt, user.ID,
+		"UPDATE users SET username = $1, email = $2, password_hash = $3, permissions = $4, active = $5, last_login = $6, oauth_provider = $7, oauth_subject = $8, updated_at = $9 WHERE id = $10",
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.Permissions,
+		user.Active,
+		nullableTime(user.LastLogin),
+		nullableString(user.OAuthProvider),
+		nullableString(user.OAuthSubject),
+		user.UpdatedAt,
+		user.ID,
 	)
 	if err != nil {
 		if isPostgresUniqueError(err) {
@@ -468,7 +564,7 @@ func (p *PostgresDB) ListUsers(ctx context.Context) ([]*User, error) {
 	logging.DB.Debug("Listing all users from PostgreSQL")
 
 	rows, err := p.db.QueryContext(ctx,
-		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users",
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users",
 	)
 	if err != nil {
 		logging.DB.WithFields(
@@ -480,11 +576,8 @@ func (p *PostgresDB) ListUsers(ctx context.Context) ([]*User, error) {
 
 	users := []*User{}
 	for rows.Next() {
-		user := &User{}
-		if err := rows.Scan(
-			&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-			&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
-		); err != nil {
+		user, err := scanUser(rows)
+		if err != nil {
 			logging.DB.WithFields(
 				"error", err.Error(),
 			).Error("Failed to scan user row")

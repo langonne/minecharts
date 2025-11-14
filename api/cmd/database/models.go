@@ -49,15 +49,17 @@ type APIKey struct {
 
 // User represents a user in the system with their permissions and account details.
 type User struct {
-	ID           int64      `json:"id"`
-	Username     string     `json:"username"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"-"` // Never expose in JSON
-	Permissions  int64      `json:"permissions"`
-	Active       bool       `json:"active"`
-	LastLogin    *time.Time `json:"last_login"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID            int64      `json:"id"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	PasswordHash  string     `json:"-"` // Never expose in JSON
+	Permissions   int64      `json:"permissions"`
+	Active        bool       `json:"active"`
+	LastLogin     *time.Time `json:"last_login"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	OAuthProvider *string    `json:"-"`
+	OAuthSubject  *string    `json:"-"`
 }
 
 // MinecraftServer represents a Minecraft server record

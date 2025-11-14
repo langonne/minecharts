@@ -59,13 +59,19 @@ func (s *SQLiteDB) Init() error {
 			active BOOLEAN NOT NULL DEFAULT TRUE,
 			last_login TIMESTAMP,
 			created_at TIMESTAMP NOT NULL,
-			updated_at TIMESTAMP NOT NULL
+			updated_at TIMESTAMP NOT NULL,
+			oauth_provider TEXT,
+			oauth_subject TEXT
 		)
 	`)
 	if err != nil {
 		logging.DB.WithFields(
 			"error", err.Error(),
 		).Error("Failed to create users table")
+		return err
+	}
+
+	if err := s.ensureOAuthColumns(); err != nil {
 		return err
 	}
 
@@ -247,8 +253,17 @@ func (s *SQLiteDB) CreateUser(ctx context.Context, user *User) error {
 
 	// Insert user
 	result, err := s.db.ExecContext(ctx,
-		"INSERT INTO users (username, email, password_hash, permissions, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.CreatedAt, user.UpdatedAt,
+		"INSERT INTO users (username, email, password_hash, permissions, active, last_login, oauth_provider, oauth_subject, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.Permissions,
+		user.Active,
+		nullableTime(user.LastLogin),
+		nullableString(user.OAuthProvider),
+		nullableString(user.OAuthSubject),
+		user.CreatedAt,
+		user.UpdatedAt,
 	)
 	if err != nil {
 		logging.DB.WithFields(
@@ -285,22 +300,20 @@ func (s *SQLiteDB) GetUserByID(ctx context.Context, id int64) (*User, error) {
 		"db_type", "sqlite",
 	).Debug("Getting user by ID")
 
-	user := &User{}
-	err := s.db.QueryRowContext(ctx,
-		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users WHERE id = ?",
+	row := s.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE id = ?",
 		id,
-	).Scan(
-		&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-		&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
 	)
-	if err == sql.ErrNoRows {
-		logging.DB.WithFields(
-			"user_id", id,
-			"error", "user_not_found",
-		).Debug("User not found by ID")
-		return nil, ErrUserNotFound
-	}
+
+	user, err := scanUser(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"user_id", id,
+				"error", "user_not_found",
+			).Debug("User not found by ID")
+			return nil, ErrUserNotFound
+		}
 		logging.DB.WithFields(
 			"user_id", id,
 			"error", err.Error(),
@@ -322,26 +335,20 @@ func (s *SQLiteDB) GetUserByUsername(ctx context.Context, username string) (*Use
 		"db_type", "sqlite",
 	).Debug("Getting user by username")
 
-	user := &User{}
-	query := "SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users WHERE username = ?"
-
-	logging.DB.WithFields(
-		"username", username,
-		"query", query,
-	).Debug("Executing database query")
-
-	err := s.db.QueryRowContext(ctx, query, username).Scan(
-		&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-		&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
+	row := s.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE username = ?",
+		username,
 	)
-	if err == sql.ErrNoRows {
-		logging.DB.WithFields(
-			"username", username,
-			"error", "user_not_found",
-		).Debug("User not found")
-		return nil, ErrUserNotFound
-	}
+
+	user, err := scanUser(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"username", username,
+				"error", "user_not_found",
+			).Debug("User not found")
+			return nil, ErrUserNotFound
+		}
 		logging.DB.WithFields(
 			"username", username,
 			"error", err.Error(),
@@ -356,6 +363,66 @@ func (s *SQLiteDB) GetUserByUsername(ctx context.Context, username string) (*Use
 	return user, nil
 }
 
+// GetUserByEmail retrieves a user by email
+func (s *SQLiteDB) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	logging.DB.WithFields(
+		"email", email,
+		"db_type", "sqlite",
+	).Debug("Getting user by email")
+
+	row := s.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE email = ?",
+		email,
+	)
+
+	user, err := scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.DB.WithFields(
+				"email", email,
+				"error", "user_not_found",
+			).Debug("User not found by email")
+			return nil, ErrUserNotFound
+		}
+		logging.DB.WithFields(
+			"email", email,
+			"error", err.Error(),
+		).Error("Database error when getting user by email")
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GetUserByOAuthIdentity retrieves a user by OAuth provider + subject
+func (s *SQLiteDB) GetUserByOAuthIdentity(ctx context.Context, provider, subject string) (*User, error) {
+	logging.DB.WithFields(
+		"provider", provider,
+		"subject", subject,
+	).Debug("Getting user by OAuth identity")
+
+	row := s.db.QueryRowContext(ctx,
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users WHERE oauth_provider = ? AND oauth_subject = ?",
+		provider,
+		subject,
+	)
+
+	user, err := scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		logging.DB.WithFields(
+			"provider", provider,
+			"subject", subject,
+			"error", err.Error(),
+		).Error("Database error when getting user by OAuth identity")
+		return nil, err
+	}
+
+	return user, nil
+}
+
 // UpdateUser updates a user's information
 func (s *SQLiteDB) UpdateUser(ctx context.Context, user *User) error {
 	logging.DB.WithFields(
@@ -366,8 +433,17 @@ func (s *SQLiteDB) UpdateUser(ctx context.Context, user *User) error {
 	user.UpdatedAt = time.Now()
 
 	_, err := s.db.ExecContext(ctx,
-		"UPDATE users SET username = ?, email = ?, password_hash = ?, permissions = ?, active = ?, updated_at = ? WHERE id = ?",
-		user.Username, user.Email, user.PasswordHash, user.Permissions, user.Active, user.UpdatedAt, user.ID,
+		"UPDATE users SET username = ?, email = ?, password_hash = ?, permissions = ?, active = ?, last_login = ?, oauth_provider = ?, oauth_subject = ?, updated_at = ? WHERE id = ?",
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.Permissions,
+		user.Active,
+		nullableTime(user.LastLogin),
+		nullableString(user.OAuthProvider),
+		nullableString(user.OAuthSubject),
+		user.UpdatedAt,
+		user.ID,
 	)
 	if err != nil {
 		if isSQLiteUniqueError(err) {
@@ -466,6 +542,36 @@ func (s *SQLiteDB) CleanupRateLimits(ctx context.Context, cutoff time.Time) erro
 	return err
 }
 
+func (s *SQLiteDB) ensureOAuthColumns() error {
+	statements := []string{
+		"ALTER TABLE users ADD COLUMN oauth_provider TEXT",
+		"ALTER TABLE users ADD COLUMN oauth_subject TEXT",
+	}
+
+	for _, stmt := range statements {
+		if _, err := s.db.Exec(stmt); err != nil {
+			lowerErr := strings.ToLower(err.Error())
+			if !strings.Contains(lowerErr, "duplicate column name") {
+				logging.DB.WithFields(
+					"statement", stmt,
+					"error", err.Error(),
+				).Error("Failed to update users table with OAuth columns")
+				return err
+			}
+		}
+	}
+
+	_, err := s.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth_provider_subject ON users(oauth_provider, oauth_subject)`)
+	if err != nil {
+		logging.DB.WithFields(
+			"error", err.Error(),
+		).Error("Failed to create OAuth identity index")
+		return err
+	}
+
+	return nil
+}
+
 func isSQLiteBusy(err error) bool {
 	if err == nil {
 		return false
@@ -519,7 +625,7 @@ func (s *SQLiteDB) ListUsers(ctx context.Context) ([]*User, error) {
 	logging.DB.Debug("Listing all users")
 
 	rows, err := s.db.QueryContext(ctx,
-		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at FROM users",
+		"SELECT id, username, email, password_hash, permissions, active, last_login, created_at, updated_at, oauth_provider, oauth_subject FROM users",
 	)
 	if err != nil {
 		logging.DB.WithFields(
@@ -531,11 +637,8 @@ func (s *SQLiteDB) ListUsers(ctx context.Context) ([]*User, error) {
 
 	users := []*User{}
 	for rows.Next() {
-		user := &User{}
-		if err := rows.Scan(
-			&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Permissions,
-			&user.Active, &user.LastLogin, &user.CreatedAt, &user.UpdatedAt,
-		); err != nil {
+		user, err := scanUser(rows)
+		if err != nil {
 			logging.DB.WithFields(
 				"error", err.Error(),
 			).Error("Failed to scan user row")

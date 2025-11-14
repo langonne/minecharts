@@ -45,6 +45,14 @@ type OAuthUserInfo struct {
 	Provider      string
 }
 
+func optionalString(value string) *string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
 // NewAuthentikProvider creates a new OAuth provider for Authentik
 func NewAuthentikProvider() (*OAuthProvider, error) {
 	logging.Auth.OAuth.Debug("Initializing Authentik OAuth provider")
@@ -193,11 +201,59 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 
 	db := database.GetDB()
 
-	// Check if user exists by email
-	user, err := db.GetUserByUsername(ctx, userInfo.Username)
+	var (
+		user *database.User
+		err  error
+	)
+
+	provider := strings.TrimSpace(userInfo.Provider)
+	subject := strings.TrimSpace(userInfo.ID)
+
+	if provider != "" && subject != "" {
+		user, err = db.GetUserByOAuthIdentity(ctx, provider, subject)
+		if err != nil && err != database.ErrUserNotFound {
+			logging.DB.WithFields(
+				"provider", provider,
+				"subject", subject,
+				"error", err.Error(),
+			).Error("Database error while looking up user by OAuth identity")
+			return nil, err
+		}
+		if err == database.ErrUserNotFound {
+			user = nil
+		}
+	}
+
+	if user == nil && strings.TrimSpace(userInfo.Email) != "" {
+		user, err = db.GetUserByEmail(ctx, userInfo.Email)
+		if err != nil && err != database.ErrUserNotFound {
+			logging.DB.WithFields(
+				"email", userInfo.Email,
+				"error", err.Error(),
+			).Error("Database error while looking up user by email")
+			return nil, err
+		}
+		if err == database.ErrUserNotFound {
+			user = nil
+		}
+	}
+
+	if user == nil {
+		user, err = db.GetUserByUsername(ctx, userInfo.Username)
+		if err != nil && err != database.ErrUserNotFound {
+			logging.DB.WithFields(
+				"username", userInfo.Username,
+				"error", err.Error(),
+			).Error("Database error while looking up user by username")
+			return nil, err
+		}
+		if err == database.ErrUserNotFound {
+			user = nil
+		}
+	}
 
 	// If user doesn't exist, create one
-	if err == database.ErrUserNotFound {
+	if user == nil {
 		// Generate a secure random password (user will login via OAuth)
 		randomPassword, err := GenerateRandomString(32)
 		if err != nil {
@@ -218,12 +274,14 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 		// Create new user with read-only permissions by default
 		now := time.Now()
 		newUser := &database.User{
-			Username:     userInfo.Username,
-			Email:        userInfo.Email,
-			PasswordHash: passwordHash,
-			Permissions:  int64(database.PermReadOnly), // Default to read-only permissions
-			Active:       true,
-			LastLogin:    &now,
+			Username:      userInfo.Username,
+			Email:         userInfo.Email,
+			PasswordHash:  passwordHash,
+			Permissions:   int64(database.PermReadOnly), // Default to read-only permissions
+			Active:        true,
+			LastLogin:     &now,
+			OAuthProvider: optionalString(provider),
+			OAuthSubject:  optionalString(subject),
 		}
 
 		if err := db.CreateUser(ctx, newUser); err != nil {
@@ -241,17 +299,18 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 		).Info("New user created from OAuth information")
 
 		return newUser, nil
-	} else if err != nil {
-		logging.DB.WithFields(
-			"username", userInfo.Username,
-			"error", err.Error(),
-		).Error("Database error while looking up user by username")
-		return nil, err
 	}
 
 	// Update last login time
 	now := time.Now()
 	user.LastLogin = &now
+	if provider != "" {
+		user.OAuthProvider = optionalString(provider)
+	}
+	if subject != "" {
+		user.OAuthSubject = optionalString(subject)
+	}
+
 	if err := db.UpdateUser(ctx, user); err != nil {
 		logging.DB.WithFields(
 			"user_id", user.ID,

@@ -44,7 +44,7 @@ var (
 	AuthentikRedirectURL  = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
 
 	// URL Frontend configuration
-	FrontendURL = "http://localhost:3000"
+	FrontendURL = getEnv("MINECHARTS_FRONTEND_URL", "http://localhost:3000")
 
 	// Timezone configuration
 	TimeZone = getEnv("MINECHARTS_TIMEZONE", "UTC")
