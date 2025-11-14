@@ -151,12 +151,21 @@ func (p *PostgresDB) Init() error {
 	// If no users exist, create a default admin user
 	if count == 0 {
 		logging.DB.Info("Creating default admin user")
+		hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte("admin"), config.BCryptCost)
+		if hashErr != nil {
+			logging.DB.WithFields(
+				"error", hashErr.Error(),
+				"bcrypt_cost", config.BCryptCost,
+			).Error("Failed to hash default admin password")
+			return hashErr
+		}
+
 		now := time.Now()
 		_, err = p.db.Exec(
 			"INSERT INTO users (username, email, password_hash, permissions, active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
 			"admin",
 			"admin@example.com",
-			"$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy", // password: admin
+			string(hashedPassword), // password: admin
 			PermAll,
 			true,
 			now,

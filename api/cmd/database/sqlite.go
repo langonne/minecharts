@@ -161,12 +161,21 @@ func (s *SQLiteDB) Init() error {
 	// If no users exist, create a default admin user
 	if count == 0 {
 		logging.DB.Info("Creating default admin user")
+		hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte("admin"), config.BCryptCost)
+		if hashErr != nil {
+			logging.DB.WithFields(
+				"error", hashErr.Error(),
+				"bcrypt_cost", config.BCryptCost,
+			).Error("Failed to hash default admin password")
+			return hashErr
+		}
+
 		now := time.Now()
 		_, err = s.db.Exec(
 			"INSERT INTO users (username, email, password_hash, permissions, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
 			"admin",
 			"admin@example.com",
-			"$2a$10$lCLlDMorzUH3R9pwSehyau1DISGeEdL21xpSzy7mjFwQ.CYYnydrW", // password: admin
+			string(hashedPassword), // password: admin
 			PermAll,
 			true,
 			now,
