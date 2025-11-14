@@ -25,9 +25,6 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          env:
-            - name: ENABLE_TLS
-              value: "FALSE"
           volumeMounts:
             - name: data-volume
               mountPath: /app/data

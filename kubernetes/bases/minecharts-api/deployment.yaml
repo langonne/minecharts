@@ -22,27 +22,6 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          env:
-            - name: MINECHARTS_DB_TYPE
-              value: "sqlite"
-            - name: MINECHARTS_DB_CONNECTION
-              value: "/app/data/minecharts.db"
-            - name: MINECHARTS_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: DATA_DIR
-              value: "/app/data"
-            - name: MINECHARTS_LOG_LEVEL
-              value: "debug"
-            - name: MINECHARTS_LOG_FORMAT
-              value: "text"
-            - name: MINECHARTS_TIMEZONE
-              value: "Europe/Paris"
-            - name: MINECHARTS_TRUSTED_PROXIES
-              value: "10.244.0.0/16,192.168.1.0/24"
-            - name: MINECHARTS_STORAGE_CLASS
-              value: "local-path"
           volumeMounts:
             - name: data-volume
               mountPath: /app/data
