@@ -257,27 +257,38 @@ func ensureTrailingSlash(value string) string {
 	return value + "/"
 }
 
-func syncAdminPermissionsFromGroups(user *database.User, groups []string) bool {
+func syncAdminPermissionsFromGroups(user *database.User, groups []string) (granted bool, revoked bool) {
 	if !config.AuthentikGroupSyncEnabled {
-		return false
+		return false, false
 	}
 
 	adminGroup := strings.TrimSpace(config.AuthentikAdminGroup)
-	if adminGroup == "" || len(groups) == 0 {
-		return false
+	if adminGroup == "" {
+		return false, false
 	}
 
+	hasMembership := false
 	for _, group := range groups {
 		if strings.EqualFold(strings.TrimSpace(group), adminGroup) {
-			if user.Permissions&int64(database.PermAdmin) == 0 {
-				user.Permissions |= int64(database.PermAdmin)
-				return true
-			}
-			return false
+			hasMembership = true
+			break
 		}
 	}
 
-	return false
+	if hasMembership {
+		if user.Permissions&int64(database.PermAdmin) == 0 {
+			user.Permissions |= int64(database.PermAdmin)
+			return true, false
+		}
+		return false, false
+	}
+
+	if user.Permissions&int64(database.PermAdmin) != 0 {
+		user.Permissions &^= int64(database.PermAdmin)
+		return false, true
+	}
+
+	return false, false
 }
 
 // SyncOAuthUser creates or updates a user based on OAuth information
@@ -373,11 +384,13 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 			OAuthSubject:  optionalString(subject),
 		}
 
-		if granted := syncAdminPermissionsFromGroups(newUser, userInfo.Groups); granted {
+		if granted, revoked := syncAdminPermissionsFromGroups(newUser, userInfo.Groups); granted || revoked {
 			logging.Auth.OAuth.WithFields(
 				"username", newUser.Username,
 				"group", config.AuthentikAdminGroup,
-			).Info("Granted admin permissions from Authentik group during user creation")
+				"granted", granted,
+				"revoked", revoked,
+			).Info("Synced admin permissions from Authentik group during user creation")
 		}
 
 		if err := db.CreateUser(ctx, newUser); err != nil {
@@ -407,12 +420,14 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 		user.OAuthSubject = optionalString(subject)
 	}
 
-	if granted := syncAdminPermissionsFromGroups(user, userInfo.Groups); granted {
+	if granted, revoked := syncAdminPermissionsFromGroups(user, userInfo.Groups); granted || revoked {
 		logging.Auth.OAuth.WithFields(
 			"user_id", user.ID,
 			"username", user.Username,
 			"group", config.AuthentikAdminGroup,
-		).Info("Granted admin permissions from Authentik group")
+			"granted", granted,
+			"revoked", revoked,
+		).Info("Synced admin permissions from Authentik group")
 	}
 
 	if err := db.UpdateUser(ctx, user); err != nil {
