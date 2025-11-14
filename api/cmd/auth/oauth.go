@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -28,8 +29,9 @@ var (
 
 // OAuthProvider represents an OAuth 2.0 provider
 type OAuthProvider struct {
-	Config *oauth2.Config
-	Name   string
+	Config      *oauth2.Config
+	Name        string
+	UserInfoURL string
 }
 
 // OAuthUserInfo contains user information from the OAuth provider
@@ -76,6 +78,15 @@ func NewAuthentikProvider() (*OAuthProvider, error) {
 		return nil, ErrMissingProviderConfig
 	}
 
+	authURL, tokenURL, userInfoURL, err := buildAuthentikEndpoints(config.AuthentikIssuer)
+	if err != nil {
+		logging.Auth.OAuth.WithFields(
+			"issuer", config.AuthentikIssuer,
+			"error", err.Error(),
+		).Error("Failed to derive Authentik endpoints from issuer")
+		return nil, ErrInvalidOAuthConfig
+	}
+
 	// Construct OAuth2 config
 	oauthConfig := &oauth2.Config{
 		ClientID:     config.AuthentikClientID,
@@ -83,19 +94,23 @@ func NewAuthentikProvider() (*OAuthProvider, error) {
 		RedirectURL:  config.AuthentikRedirectURL,
 		Scopes:       []string{"openid", "email", "profile"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  config.AuthentikIssuer + "/authorize",
-			TokenURL: config.AuthentikIssuer + "/token",
+			AuthURL:  authURL,
+			TokenURL: tokenURL,
 		},
 	}
 
 	logging.Auth.OAuth.WithFields(
 		"issuer", config.AuthentikIssuer,
 		"redirect_url", config.AuthentikRedirectURL,
+		"auth_url", authURL,
+		"token_url", tokenURL,
+		"userinfo_url", userInfoURL,
 	).Info("Authentik OAuth provider initialized successfully")
 
 	return &OAuthProvider{
-		Config: oauthConfig,
-		Name:   "authentik",
+		Config:      oauthConfig,
+		Name:        "authentik",
+		UserInfoURL: userInfoURL,
 	}, nil
 }
 
@@ -138,7 +153,7 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 	client := p.Config.Client(ctx, token)
 
 	// Get user info from Authentik's userinfo endpoint
-	resp, err := client.Get(config.AuthentikIssuer + "/userinfo")
+	resp, err := client.Get(p.UserInfoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +204,54 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 		EmailVerified: userInfo.EmailVerified,
 		Provider:      "authentik",
 	}, nil
+}
+
+func buildAuthentikEndpoints(rawIssuer string) (string, string, string, error) {
+	base, err := normalizeAuthentikIssuer(rawIssuer)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	authURL := ensureTrailingSlash(base + "/authorize")
+	tokenURL := ensureTrailingSlash(base + "/token")
+	userInfoURL := ensureTrailingSlash(base + "/userinfo")
+
+	return authURL, tokenURL, userInfoURL, nil
+}
+
+func normalizeAuthentikIssuer(raw string) (string, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return "", ErrInvalidOAuthConfig
+	}
+
+	parsed, err := url.Parse(trimmed)
+	if err != nil {
+		return "", err
+	}
+
+	path := strings.TrimSuffix(parsed.Path, "/")
+	if strings.HasPrefix(path, "/application/o/") || path == "/application/o" {
+		path = "/application/o"
+	}
+	parsed.Path = path
+	parsed.RawPath = ""
+	parsed.RawQuery = ""
+	parsed.Fragment = ""
+
+	base := strings.TrimRight(parsed.String(), "/")
+	if base == "" {
+		return "", ErrInvalidOAuthConfig
+	}
+
+	return base, nil
+}
+
+func ensureTrailingSlash(value string) string {
+	if strings.HasSuffix(value, "/") {
+		return value
+	}
+	return value + "/"
 }
 
 // SyncOAuthUser creates or updates a user based on OAuth information

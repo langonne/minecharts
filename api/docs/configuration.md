@@ -37,7 +37,7 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | --- | --- | --- |
 | `MINECHARTS_OAUTH_ENABLED` | `false` | Enables the OAuth endpoints under `/auth/oauth/:provider`. |
 | `MINECHARTS_AUTHENTIK_ENABLED` | `false` | Toggles the Authentik provider implementation. |
-| `MINECHARTS_AUTHENTIK_ISSUER` | *(empty)* | Authentik issuer URL, e.g. `https://auth.example.com/application/o/`. |
+| `MINECHARTS_AUTHENTIK_ISSUER` | *(empty)* | Base Authentik OAuth URL, e.g. `https://auth.example.com/application/o/minecharts/`. Minecharts automatically rewrites it to the global `/application/o` endpoints (`/authorize/`, `/token/`, `/userinfo/`) while keeping your issuer for discovery; trailing slashes are handled automatically. |
 | `MINECHARTS_AUTHENTIK_CLIENT_ID` | *(empty)* | OAuth client ID registered with Authentik. |
 | `MINECHARTS_AUTHENTIK_CLIENT_SECRET` | *(empty)* | OAuth client secret. |
 | `MINECHARTS_AUTHENTIK_REDIRECT_URL` | *(empty)* | Redirect URL registered with Authentik, e.g. `https://api.example.com/auth/callback/authentik`. |

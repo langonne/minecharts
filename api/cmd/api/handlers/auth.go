@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -417,9 +416,17 @@ func OAuthCallbackHandler(c *gin.Context) {
 	logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "user_id", user.ID, "username", user.Username).
 		Info("OAuth authentication successful, redirecting to frontend")
 
-	// Redirect to frontend with token
+	// Persist the session cookie and redirect to the frontend
 	frontendBase := strings.TrimRight(config.FrontendURL, "/")
-	tokenParam := url.QueryEscape(jwtToken)
-	frontendRedirectURL := frontendBase + "/oauth-callback?token=" + tokenParam
+	c.SetCookie(
+		"auth_token",
+		jwtToken,
+		3600*24,
+		"/",
+		"",
+		true,
+		true,
+	)
+	frontendRedirectURL := frontendBase + "/dashboard.html"
 	c.Redirect(http.StatusTemporaryRedirect, frontendRedirectURL)
 }
