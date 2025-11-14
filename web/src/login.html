@@ -49,6 +49,13 @@
                     class="w-full text-white rounded-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
                     Log in
                 </button>
+
+                <div x-show="authentikLoginEnabled" class="mt-4">
+                    <button type="button" @click="loginWithAuthentik()" border="emerald-500"
+                        class="w-full border text-emerald-200 rounded-lg py-2 transition-all hover:bg-emerald-600/10">
+                        Log in with Authentik
+                    </button>
+                </div>
             </form>
         </div>
     </div>

@@ -39,6 +39,10 @@ Set `MINECHARTS_API_URL` before running `bun run dev` or `bun run build` to poin
 MINECHARTS_API_URL="http://minecharts-api.kube.local:8080" bun run dev
 ```
 
+### Enabling the Authentik login button
+
+Expose `VITE_AUTHENTIK_LOGIN_ENABLED=true` at build/run time to show the “Log in with Authentik” button on the login screen. Leave it unset or set to `false` to hide the button.
+
 ## Backend Integration
 This frontend is designed to work exclusively with the Minecharts API (Go backend). It consumes the API endpoints to perform all server management operations. Ensure the API is properly configured and accessible before using this frontend.
 

@@ -3,6 +3,7 @@ import Alpine from 'alpinejs'
 Alpine.data('loginForm', () => ({
   hasError: false,
   errorMessage: '',
+  authentikLoginEnabled: import.meta.env.VITE_AUTHENTIK_LOGIN_ENABLED === 'true',
 
   init() {
     this.$el.addEventListener('htmx:afterRequest', (event) => {
@@ -23,5 +24,9 @@ Alpine.data('loginForm', () => ({
         }
       }
     })
+  },
+
+  loginWithAuthentik() {
+    window.location.href = '/api/auth/oauth/authentik'
   },
 }))
