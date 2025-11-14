@@ -41,6 +41,8 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_AUTHENTIK_CLIENT_ID` | *(empty)* | OAuth client ID registered with Authentik. |
 | `MINECHARTS_AUTHENTIK_CLIENT_SECRET` | *(empty)* | OAuth client secret. |
 | `MINECHARTS_AUTHENTIK_REDIRECT_URL` | *(empty)* | Redirect URL registered with Authentik, e.g. `https://api.example.com/auth/callback/authentik`. |
+| `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the Authentik `groups` claim to map users to Minecharts roles automatically. |
+| `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the Authentik group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
 
 ## Logging
 | Variable | Default | Purpose |

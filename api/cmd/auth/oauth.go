@@ -45,6 +45,7 @@ type OAuthUserInfo struct {
 	LastName      string
 	Picture       string
 	Provider      string
+	Groups        []string
 }
 
 func optionalString(value string) *string {
@@ -169,11 +170,12 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 	}
 
 	var userInfo struct {
-		Sub               string `json:"sub"`
-		Email             string `json:"email"`
-		EmailVerified     bool   `json:"email_verified"`
-		PreferredUsername string `json:"preferred_username"`
-		Name              string `json:"name"`
+		Sub               string   `json:"sub"`
+		Email             string   `json:"email"`
+		EmailVerified     bool     `json:"email_verified"`
+		PreferredUsername string   `json:"preferred_username"`
+		Name              string   `json:"name"`
+		Groups            []string `json:"groups"`
 	}
 
 	if err := json.Unmarshal(body, &userInfo); err != nil {
@@ -203,6 +205,7 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 		Name:          userInfo.Name,
 		EmailVerified: userInfo.EmailVerified,
 		Provider:      "authentik",
+		Groups:        userInfo.Groups,
 	}, nil
 }
 
@@ -252,6 +255,29 @@ func ensureTrailingSlash(value string) string {
 		return value
 	}
 	return value + "/"
+}
+
+func syncAdminPermissionsFromGroups(user *database.User, groups []string) bool {
+	if !config.AuthentikGroupSyncEnabled {
+		return false
+	}
+
+	adminGroup := strings.TrimSpace(config.AuthentikAdminGroup)
+	if adminGroup == "" || len(groups) == 0 {
+		return false
+	}
+
+	for _, group := range groups {
+		if strings.EqualFold(strings.TrimSpace(group), adminGroup) {
+			if user.Permissions&int64(database.PermAdmin) == 0 {
+				user.Permissions |= int64(database.PermAdmin)
+				return true
+			}
+			return false
+		}
+	}
+
+	return false
 }
 
 // SyncOAuthUser creates or updates a user based on OAuth information
@@ -347,6 +373,13 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 			OAuthSubject:  optionalString(subject),
 		}
 
+		if granted := syncAdminPermissionsFromGroups(newUser, userInfo.Groups); granted {
+			logging.Auth.OAuth.WithFields(
+				"username", newUser.Username,
+				"group", config.AuthentikAdminGroup,
+			).Info("Granted admin permissions from Authentik group during user creation")
+		}
+
 		if err := db.CreateUser(ctx, newUser); err != nil {
 			logging.DB.WithFields(
 				"username", userInfo.Username,
@@ -372,6 +405,14 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 	}
 	if subject != "" {
 		user.OAuthSubject = optionalString(subject)
+	}
+
+	if granted := syncAdminPermissionsFromGroups(user, userInfo.Groups); granted {
+		logging.Auth.OAuth.WithFields(
+			"user_id", user.ID,
+			"username", user.Username,
+			"group", config.AuthentikAdminGroup,
+		).Info("Granted admin permissions from Authentik group")
 	}
 
 	if err := db.UpdateUser(ctx, user); err != nil {

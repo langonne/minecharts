@@ -42,6 +42,8 @@ var (
 	AuthentikClientID     = getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", "")
 	AuthentikClientSecret = getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", "")
 	AuthentikRedirectURL  = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
+	AuthentikGroupSyncEnabled = getEnvBool("MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED", false)
+	AuthentikAdminGroup       = getEnv("MINECHARTS_AUTHENTIK_ADMIN_GROUP", "")
 
 	// URL Frontend configuration
 	FrontendURL = getEnv("MINECHARTS_FRONTEND_URL", "http://localhost:3000")
