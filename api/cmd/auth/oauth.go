@@ -83,8 +83,8 @@ func NewAuthentikProvider() (*OAuthProvider, error) {
 		RedirectURL:  config.AuthentikRedirectURL,
 		Scopes:       []string{"openid", "email", "profile"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  config.AuthentikIssuer + "/oauth2/authorize",
-			TokenURL: config.AuthentikIssuer + "/oauth2/token",
+			AuthURL:  config.AuthentikIssuer + "/authorize",
+			TokenURL: config.AuthentikIssuer + "/token",
 		},
 	}
 
@@ -138,7 +138,7 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 	client := p.Config.Client(ctx, token)
 
 	// Get user info from Authentik's userinfo endpoint
-	resp, err := client.Get(config.AuthentikIssuer + "/oauth2/userinfo")
+	resp, err := client.Get(config.AuthentikIssuer + "/userinfo")
 	if err != nil {
 		return nil, err
 	}
