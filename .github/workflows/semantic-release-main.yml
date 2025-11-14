@@ -19,8 +19,31 @@ permissions:
   packages: write
 
 jobs:
+  determine_changes:
+    name: Detect Package Changes
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'api/**'
+            web:
+              - 'web/**'
+
   release_api:
     name: Release API
+    needs: determine_changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.determine_changes.outputs.api == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -53,7 +76,10 @@ jobs:
   release_web:
     name: Release Web
     runs-on: ubuntu-latest
-    needs: release_api
+    needs:
+      - determine_changes
+      - release_api
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.determine_changes.outputs.web == 'true') && (needs.release_api.result == 'success' || needs.release_api.result == 'skipped') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

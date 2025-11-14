@@ -33,6 +33,8 @@ api_semantic_release:
     expire_in: 1 day
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - api/** # only run release if API files changed
 
 web_semantic_release:
   stage: release
@@ -71,3 +73,5 @@ web_semantic_release:
     expire_in: 1 day
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - web/** # only run release if Web files changed
