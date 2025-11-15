@@ -239,7 +239,6 @@ Alpine.data("serverInfo", () => ({
       });
 
       this.$nextTick(() => {
-        const getInfoRef = this.$refs.getServerInfo as HTMLElement | undefined;
         const commandForm = this.$refs.commandForm as HTMLElement | undefined;
         const actionButtons = this.$refs.actionButtons as HTMLElement | undefined;
 
