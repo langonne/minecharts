@@ -27,8 +27,9 @@
                 navTag: document.body?.dataset?.navTag || '',
                 mobileOpen: false,
                 isAdmin: localStorage.getItem('is_admin') === 'true',
+                username: localStorage.getItem('username') || '',
                 init() {
-                    const handler = (event) => {
+                    const adminHandler = (event) => {
                         const detail = event?.detail;
 
                         if (detail && typeof detail === 'object' && 'isAdmin' in detail) {
@@ -44,8 +45,24 @@
                         this.isAdmin = localStorage.getItem('is_admin') === 'true';
                     };
 
-                    document.addEventListener('auth:admin-change', handler);
-                    handler();
+                    const usernameHandler = (event) => {
+                        const detail = event?.detail;
+                        const candidate = detail && typeof detail === 'object' && 'username' in detail
+                            ? detail.username
+                            : undefined;
+
+                        if (typeof candidate === 'string') {
+                            this.username = candidate;
+                            return;
+                        }
+
+                        this.username = localStorage.getItem('username') || '';
+                    };
+
+                    document.addEventListener('auth:admin-change', adminHandler);
+                    document.addEventListener('auth:username-change', usernameHandler);
+                    adminHandler();
+                    usernameHandler();
                 }
             }">
             <div class="flex h-16 items-center justify-between">
@@ -93,8 +110,7 @@
                 <div class="hidden md:flex items-center space-x-4 text-white">
                     <a href="/account.html"
                         class="font-bold text-white hover:text-emerald-300 transition-colors"
-                        x-data="{ username: localStorage.getItem('username') || 'Account' }"
-                        x-text="username">
+                        x-text="username || 'Account'">
                     </a>
                     <button class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-sm font-semibold transition-all"
                         @click="$dispatch('feedback-open')">
@@ -162,9 +178,9 @@
                     </div>
 
                     <div class="flex flex-col gap-3 border-t border-zinc-700 pt-4 text-white">
-                        <a href="/account.html" class="flex flex-col" x-data="{ username: localStorage.getItem('username') || 'Account' }">
+                        <a href="/account.html" class="flex flex-col">
                             <p class="text-sm uppercase tracking-wide text-zinc-400">Signed in as</p>
-                            <p class="text-lg font-semibold mt-1 hover:text-emerald-300 transition-colors" x-text="username"></p>
+                            <p class="text-lg font-semibold mt-1 hover:text-emerald-300 transition-colors" x-text="username || 'Account'"></p>
                         </a>
                         <button class="w-full rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold hover:bg-emerald-600"
                             @click="$dispatch('feedback-open')">

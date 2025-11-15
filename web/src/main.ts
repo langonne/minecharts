@@ -27,12 +27,25 @@ type AuthCache = {
 }
 
 const MIN_ADMIN_PERMISSIONS = 128
+const USERNAME_CHANGE_EVENT = 'auth:username-change'
 
 function syncUsername(username: unknown) {
-    if (typeof username === 'string' && username.trim().length > 0) {
-        localStorage.setItem('username', username)
+    const value =
+        typeof username === 'string' ? username.trim() : ''
+    const normalized = value.length > 0 ? value : null
+
+    if (normalized) {
+        localStorage.setItem('username', normalized)
     } else {
         localStorage.removeItem('username')
+    }
+
+    if (typeof document !== 'undefined') {
+        document.dispatchEvent(
+            new CustomEvent(USERNAME_CHANGE_EVENT, {
+                detail: { username: normalized },
+            }),
+        )
     }
 }
 
