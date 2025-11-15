@@ -28,6 +28,31 @@ type AuthCache = {
 
 const MIN_ADMIN_PERMISSIONS = 128
 const USERNAME_CHANGE_EVENT = 'auth:username-change'
+const ADMIN_CHANGE_EVENT = 'auth:admin-change'
+
+function emitUsernameChange(username: string | null) {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    document.dispatchEvent(
+        new CustomEvent(USERNAME_CHANGE_EVENT, {
+            detail: { username },
+        }),
+    )
+}
+
+function emitAdminChange(isAdmin: boolean) {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    document.dispatchEvent(
+        new CustomEvent(ADMIN_CHANGE_EVENT, {
+            detail: { isAdmin },
+        }),
+    )
+}
 
 function syncUsername(username: unknown) {
     const value =
@@ -40,13 +65,7 @@ function syncUsername(username: unknown) {
         localStorage.removeItem('username')
     }
 
-    if (typeof document !== 'undefined') {
-        document.dispatchEvent(
-            new CustomEvent(USERNAME_CHANGE_EVENT, {
-                detail: { username: normalized },
-            }),
-        )
-    }
+    emitUsernameChange(normalized)
 }
 
 function syncAdminFlag(isAdmin: boolean) {
@@ -56,13 +75,7 @@ function syncAdminFlag(isAdmin: boolean) {
         localStorage.removeItem('is_admin')
     }
 
-    if (typeof document !== 'undefined') {
-        document.dispatchEvent(
-            new CustomEvent('auth:admin-change', {
-                detail: { isAdmin },
-            }),
-        )
-    }
+    emitAdminChange(isAdmin)
 }
 
 function isAdminUser(info: { permissions?: unknown } | null): boolean {
@@ -83,6 +96,31 @@ queueMicrotask(() => Alpine.start())
         // @ts-ignore
         await import('htmx.org/dist/ext/json-enc.js')
     })()
+
+function broadcastStoredAuthState() {
+    const storedUsername = localStorage.getItem('username')
+    const storedAdmin = localStorage.getItem('is_admin') === 'true'
+    emitUsernameChange(storedUsername)
+    emitAdminChange(storedAdmin)
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('htmx:afterSwap', (event) => {
+        const target = event.target as HTMLElement | null
+        if (!target) {
+            return
+        }
+
+        const hxTarget = target.getAttribute('hx-get') || target.getAttribute('data-hx-get')
+        if (!hxTarget) {
+            return
+        }
+
+        if (hxTarget.includes('navbar.html')) {
+            broadcastStoredAuthState()
+        }
+    })
+}
 
 function storeAuthResponse(data: AuthInfo | null) {
     syncUsername(data?.username ?? null)
