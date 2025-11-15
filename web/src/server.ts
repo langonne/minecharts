@@ -243,10 +243,6 @@ Alpine.data("serverInfo", () => ({
         const commandForm = this.$refs.commandForm as HTMLElement | undefined;
         const actionButtons = this.$refs.actionButtons as HTMLElement | undefined;
 
-        if (getInfoRef) {
-          htmx.process(getInfoRef);
-        }
-
         if (commandForm) {
           htmx.process(commandForm);
         }
