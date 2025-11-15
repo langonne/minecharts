@@ -195,7 +195,7 @@
                                                         </button>
                                                         <button type="button" @click="deleteUser(user)"
                                                             :disabled="user.busy || user.active"
-                                                            :title="user.active ? 'Desactivez cet utilisateur avant de le supprimer.' : 'Supprimer definitivement cet utilisateur.'"
+                                                            :title="user.active ? 'Deactivate this user before deleting it.' : 'Permanently delete this user.'"
                                                             class="rounded-md border border-red-500/60 bg-red-600 px-3 py-1 text-xs font-semibold text-white transition-all hover:bg-red-500 hover:ring-2 disabled:cursor-not-allowed disabled:bg-red-600/60">
                                                             Delete
                                                         </button>
