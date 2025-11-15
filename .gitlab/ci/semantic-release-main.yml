@@ -42,7 +42,8 @@ web_semantic_release:
   tags:
     - tls-dind-kubernetes-runner
   needs:
-    - api_semantic_release
+    - job: api_semantic_release
+      optional: true
   script:
     - cd web
     - npm install

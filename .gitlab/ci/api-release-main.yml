@@ -21,6 +21,7 @@ api_release_main:
   needs:
     - job: api_semantic_release
       artifacts: true
+      optional: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
