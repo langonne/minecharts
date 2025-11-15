@@ -1,9 +1,16 @@
 import Alpine from 'alpinejs'
 
+type OAuthProvidersPayload = {
+  providers?: Array<{ name: string }>
+}
+
+const AUTHENTIK_PROVIDER_NAME = 'authentik'
+const authentikEnvDefault = import.meta.env.VITE_AUTHENTIK_LOGIN_ENABLED === 'true'
+
 Alpine.data('loginForm', () => ({
   hasError: false,
   errorMessage: '',
-  authentikLoginEnabled: import.meta.env.VITE_AUTHENTIK_LOGIN_ENABLED === 'true',
+  authentikLoginEnabled: authentikEnvDefault,
 
   init() {
     this.$el.addEventListener('htmx:afterRequest', (event) => {
@@ -24,6 +31,30 @@ Alpine.data('loginForm', () => ({
         }
       }
     })
+
+    this.refreshOAuthProviders()
+  },
+
+  async refreshOAuthProviders() {
+    try {
+      const response = await fetch('/api/auth/providers', {
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        return
+      }
+
+      const payload = (await response.json()) as OAuthProvidersPayload
+      const providers = Array.isArray(payload.providers) ? payload.providers : []
+      this.authentikLoginEnabled = providers.some(
+        (provider) => provider.name === AUTHENTIK_PROVIDER_NAME,
+      )
+    } catch (error) {
+      console.warn('Unable to fetch OAuth providers', error)
+    }
   },
 
   loginWithAuthentik() {

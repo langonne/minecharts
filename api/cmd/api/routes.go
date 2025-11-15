@@ -59,6 +59,7 @@ func SetupRoutes(router *gin.Engine) {
 		authGroup.POST("/login", loginRateLimitMiddleware, handlers.LoginHandler)
 		authGroup.POST("/register", registerRateLimitMiddleware, handlers.RegisterHandler)
 		authGroup.POST("/logout", auth.JWTMiddleware(), handlers.LogoutJWTHandler)
+		authGroup.GET("/providers", handlers.ListOAuthProvidersHandler)
 
 		// OAuth endpoints
 		authGroup.GET("/oauth/:provider", handlers.OAuthLoginHandler)

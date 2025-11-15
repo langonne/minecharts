@@ -30,6 +30,13 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=8" example:"securepass123"`
 }
 
+// OAuthProviderInfo describes an OAuth provider exposed to the frontend.
+type OAuthProviderInfo struct {
+	Name        string `json:"name" example:"authentik"`
+	DisplayName string `json:"display_name" example:"Authentik"`
+	LoginURL    string `json:"login_url" example:"/api/auth/oauth/authentik"`
+}
+
 // LoginHandler authenticates a user with a username and password.
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
@@ -429,4 +436,33 @@ func OAuthCallbackHandler(c *gin.Context) {
 	)
 	frontendRedirectURL := frontendBase + "/dashboard.html"
 	c.Redirect(http.StatusTemporaryRedirect, frontendRedirectURL)
+}
+
+// ListOAuthProvidersHandler exposes the OAuth providers that are fully configured on the API.
+// This allows the frontend to toggle relevant login buttons without relying on build-time flags.
+func ListOAuthProvidersHandler(c *gin.Context) {
+	providers := []OAuthProviderInfo{}
+
+	if isAuthentikProviderAvailable() {
+		providers = append(providers, OAuthProviderInfo{
+			Name:        "authentik",
+			DisplayName: "Authentik",
+			LoginURL:    "/api/auth/oauth/authentik",
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"providers": providers,
+	})
+}
+
+func isAuthentikProviderAvailable() bool {
+	if !config.OAuthEnabled || !config.AuthentikEnabled {
+		return false
+	}
+
+	return config.AuthentikClientID != "" &&
+		config.AuthentikClientSecret != "" &&
+		config.AuthentikIssuer != "" &&
+		config.AuthentikRedirectURL != ""
 }
