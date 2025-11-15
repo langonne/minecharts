@@ -28,6 +28,14 @@ type AuthCache = {
 
 const MIN_ADMIN_PERMISSIONS = 128
 
+function syncUsername(username: unknown) {
+    if (typeof username === 'string' && username.trim().length > 0) {
+        localStorage.setItem('username', username)
+    } else {
+        localStorage.removeItem('username')
+    }
+}
+
 function syncAdminFlag(isAdmin: boolean) {
     if (isAdmin) {
         localStorage.setItem('is_admin', 'true')
@@ -64,6 +72,7 @@ queueMicrotask(() => Alpine.start())
     })()
 
 function storeAuthResponse(data: AuthInfo | null) {
+    syncUsername(data?.username ?? null)
     window.__authCache = {
         promise: Promise.resolve(data),
         timestamp: Date.now(),
@@ -82,13 +91,18 @@ async function fetchAuthInfo(): Promise<AuthInfo | null> {
             })
 
             if (!response.ok) {
+                syncUsername(null)
+                updateAdminFlag(null)
                 return null
             }
 
             const data = await response.json() as AuthInfo
             updateAdminFlag(data)
+            syncUsername(data.username)
             return data
         } catch {
+            syncUsername(null)
+            updateAdminFlag(null)
             return null
         }
     })()
