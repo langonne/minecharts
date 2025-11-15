@@ -106,19 +106,23 @@ function broadcastStoredAuthState() {
 
 if (typeof document !== 'undefined') {
     document.addEventListener('htmx:afterSwap', (event) => {
-        const target = event.target as HTMLElement | null
-        if (!target) {
-            return
-        }
+        const detail = (event as CustomEvent).detail ?? {}
+        const path =
+            typeof detail.requestConfig?.path === 'string'
+                ? detail.requestConfig.path
+                : typeof detail.xhr?.responseURL === 'string'
+                    ? detail.xhr.responseURL
+                    : ''
 
-        const hxTarget = target.getAttribute('hx-get') || target.getAttribute('data-hx-get')
-        if (!hxTarget) {
-            return
-        }
-
-        if (hxTarget.includes('navbar.html')) {
+        if (path.includes('navbar.html')) {
             broadcastStoredAuthState()
         }
+    })
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', () => {
+        broadcastStoredAuthState()
     })
 }
 
