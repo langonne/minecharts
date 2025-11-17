@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "minecharts.web.fullname" . }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+    app: {{ include "minecharts.web.appLabel" . }}
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  strategy:
+    type: {{ .Values.web.strategy }}
+  selector:
+    matchLabels:
+      app: {{ include "minecharts.web.appLabel" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "minecharts.labels" . | nindent 8 }}
+        app: {{ include "minecharts.web.appLabel" . }}
+    spec:
+      serviceAccountName: {{ default (include "minecharts.web.fullname" .) .Values.web.serviceAccount.name }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: minecharts-web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.web.service.targetPort }}
+          {{- if .Values.web.env }}
+          env:
+            {{- toYaml .Values.web.env | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.web.persistence.enabled }}
+            - name: data-volume
+              mountPath: {{ .Values.web.persistence.mountPath }}
+            {{- end }}
+            {{- if .Values.web.extraVolumeMounts }}
+            {{- toYaml .Values.web.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+      {{- if or .Values.web.persistence.enabled .Values.web.extraVolumes }}
+      volumes:
+        {{- if .Values.web.persistence.enabled }}
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ if .Values.web.persistence.existingClaim }}{{ .Values.web.persistence.existingClaim }}{{ else }}{{ .Values.web.persistence.claimName }}{{ end }}
+        {{- end }}
+        {{- if .Values.web.extraVolumes }}
+        {{- toYaml .Values.web.extraVolumes | nindent 8 }}
+        {{- end }}
+      {{- end }}

@@ -1,0 +1,46 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default (include "minecharts.fullname" .) .Values.ingress.nameOverride | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- if and .Values.middleware.enabled .Values.ingress.middlewareAnnotation }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ include "minecharts.middlewareRef" . | quote }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /api
+            backend:
+              service:
+                name: {{ include "minecharts.api.serviceName" . }}
+                port:
+                  number: {{ .Values.api.service.port }}
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "minecharts.web.serviceName" . }}
+                port:
+                  number: {{ .Values.web.service.port }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      {{- if .Values.ingress.tls.secretName }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+      {{- end }}
+  {{- end }}
+{{- end }}

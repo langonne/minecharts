@@ -1,0 +1,7 @@
+apiVersion: v2
+name: minecharts
+description: Helm chart for Minecharts API and Web
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+

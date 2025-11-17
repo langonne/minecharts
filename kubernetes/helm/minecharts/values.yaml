@@ -1,0 +1,106 @@
+namespace:
+  create: true
+  name: minecharts
+
+imagePullSecrets: []
+
+api:
+  fullnameOverride: minecharts-api
+  appLabel: minecharts-api
+  replicaCount: 1
+  strategy: Recreate
+  image:
+    repository: registry.prod.nasdak.fr/l.angonnet/minecharts/api
+    tag: latest
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+    name: minecharts-api
+  rbac:
+    create: true
+  service:
+    type: NodePort
+    port: 8080
+    targetPort: 8080
+    nodePort: 30080
+  persistence:
+    enabled: true
+    existingClaim: ""
+    claimName: minecharts-api-data-pvc
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    mountPath: /app/data
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
+      value: "minecharts.example.com"
+  extraVolumeMounts: []
+  extraVolumes: []
+
+web:
+  fullnameOverride: minecharts-web
+  appLabel: minecharts
+  replicaCount: 1
+  strategy: Recreate
+  image:
+    repository: registry.prod.nasdak.fr/l.angonnet/minecharts/web
+    tag: latest
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+    name: minecharts
+  rbac:
+    create: true
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  persistence:
+    enabled: true
+    existingClaim: ""
+    claimName: minecharts-web-pvc
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    mountPath: /app/data
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    - name: ENABLE_TLS
+      value: "FALSE"
+  extraVolumeMounts: []
+  extraVolumes: []
+
+middleware:
+  enabled: true
+  name: minecharts-api-strip
+  prefixes:
+    - /api
+
+ingress:
+  enabled: true
+  nameOverride: minecharts
+  className: ""
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  middlewareAnnotation: true
+  host: minecharts.example.com
+  tls:
+    enabled: true
+    secretName: ""

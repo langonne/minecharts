@@ -1,0 +1,15 @@
+{{- if .Values.middleware.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "minecharts.middlewareName" . }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+    {{- range .Values.middleware.prefixes }}
+      - {{ . | quote }}
+    {{- end }}
+{{- end }}

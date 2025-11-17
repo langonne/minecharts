@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minecharts.web.serviceName" . }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+    app: {{ include "minecharts.web.appLabel" . }}
+spec:
+  type: {{ .Values.web.service.type }}
+  selector:
+    app: {{ include "minecharts.web.appLabel" . }}
+  ports:
+    - port: {{ .Values.web.service.port }}
+      targetPort: {{ .Values.web.service.targetPort }}

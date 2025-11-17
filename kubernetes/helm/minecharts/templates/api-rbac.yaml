@@ -1,0 +1,55 @@
+{{- if .Values.api.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ default (include "minecharts.api.fullname" .) .Values.api.serviceAccount.name }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "minecharts.api.fullname" . }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["create", "get", "list", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: ["traefik.io", "traefik.containo.us"]
+    resources: ["ingressroutetcps", "ingressroutes"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "minecharts.api.fullname" . }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ default (include "minecharts.api.fullname" .) .Values.api.serviceAccount.name }}
+    namespace: {{ include "minecharts.namespace" . }}
+roleRef:
+  kind: Role
+  name: {{ include "minecharts.api.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

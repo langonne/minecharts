@@ -1,0 +1,18 @@
+{{- if and .Values.api.persistence.enabled (not .Values.api.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.api.persistence.claimName }}
+  namespace: {{ include "minecharts.namespace" . }}
+  labels:
+    {{- include "minecharts.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.api.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.api.persistence.size }}
+  {{- if .Values.api.persistence.storageClass }}
+  storageClassName: {{ .Values.api.persistence.storageClass }}
+  {{- end }}
+{{- end }}
