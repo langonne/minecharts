@@ -1,0 +1,25 @@
+helm_chart_release:
+  stage: release
+  image:
+    name: alpine/helm:3.14.0
+    entrypoint: [""]
+  tags:
+    - tls-dind-kubernetes-runner
+  variables:
+    HELM_EXPERIMENTAL_OCI: "1"
+    CHART_DIR: kubernetes/helm/minecharts
+    CHART_DEST: dist
+    OCI_REPO: ${CI_REGISTRY_IMAGE}/helm
+  script:
+    - helm version
+    - mkdir -p "${CHART_DEST}"
+    - helm dependency update "${CHART_DIR}"
+    - helm package "${CHART_DIR}" -d "${CHART_DEST}"
+    - helm registry login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
+    - helm push ${CHART_DEST}/minecharts-*.tgz oci://${OCI_REPO}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - kubernetes/helm/**/*
+        - .gitlab/ci/helm-release-main.yml
+        - .gitlab-ci.yml

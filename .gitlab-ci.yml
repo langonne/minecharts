@@ -9,6 +9,7 @@ include:
   - local: .gitlab/ci/api-build-dev.yml
   - local: .gitlab/ci/web-release-main.yml
   - local: .gitlab/ci/web-build-dev.yml
+  - local: .gitlab/ci/helm-release-main.yml
 
 variables:
   DOCKER_DRIVER: overlay2
