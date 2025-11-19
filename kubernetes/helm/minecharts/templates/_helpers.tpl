@@ -11,7 +11,7 @@
 {{- end -}}
 
 {{- define "minecharts.namespace" -}}
-{{- if .Values.namespace.name -}}
+{{- if and .Values.namespace .Values.namespace.name -}}
 {{- .Values.namespace.name -}}
 {{- else -}}
 {{- .Release.Namespace -}}
