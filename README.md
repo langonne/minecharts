@@ -33,13 +33,13 @@ Pipelines automatically publish:
 Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
 ## Kubernetes (Helm prod, Kustomize dev)
-- **Prod (Helm)**: chart in `kubernetes/helm/minecharts`.
+- **Prod (Helm)**: chart is published to the GitLab Helm registry.
   ```bash
-  # production deploy (creates namespace if missing)
-  helm upgrade --install minecharts kubernetes/helm/minecharts \
+  helm repo add minecharts https://gitlab.prod.nasdak.fr/api/v4/projects/37/packages/helm/stable
+  helm install -f values.yaml minecharts minecharts/minecharts \
     -n minecharts --create-namespace
   ```
-  The API requires `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` (no fallback). Set it—and any other env overrides—directly in `kubernetes/helm/minecharts/values.yaml` (or your own values file under version control).
+  Prepare your own `values.yaml` (or reuse `kubernetes/helm/minecharts/values.yaml`) and make sure `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` is set—there is no default for it.
 
 - **Dev (Kustomize)**: keep the `kubernetes/overlays/test` overlay. Copy the example locally (untracked):
 
