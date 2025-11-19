@@ -39,7 +39,10 @@ Configure registry secrets/variables in CI if you target anything other than GHC
   helm install -f values.yaml minecharts minecharts/minecharts \
     -n minecharts --create-namespace
   ```
-  Prepare your own `values.yaml` (or reuse `kubernetes/helm/minecharts/values.yaml`) and make sure `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` is set—there is no default for it.
+  A custom `values.yaml` is mandatory (the chart ships without production defaults). Start from `kubernetes/helm/minecharts/values.yaml`, adapt every section to your cluster, and at minimum set:
+  - `MINECHARTS_MCROUTER_DOMAIN_SUFFIX`
+  - `ingress.host` (URL that fronts the dashboard/API)
+  Check the documentation for the complete list of environment variables and Helm-configurable options.
 
 - **Dev (Kustomize)**: keep the `kubernetes/overlays/test` overlay. Copy the example locally (untracked):
 
