@@ -34,7 +34,7 @@
 - **Auth required:** None
 
 !!! warning "Rate limiting"
-    This endpoint (and user registration) is protected by a shared token-bucket rated at five login attempts per minute (two registrations every five minutes) per client IP. Successful requests refill progressively. When the bucket is empty, the API responds with HTTP 429 (`Retry-After` header in seconds). The limiter state is stored in the configured database so limits are consistent across application instances. On SQLite, heavy login traffic may lead to short lock retries; for high-volume production deployments prefer PostgreSQL or an external rate-limit tier.
+    This endpoint (and user registration) is protected by a shared token-bucket rated at ten login attempts per minute (four registrations every five minutes) per client IP. Successful requests refill progressively. When the bucket is empty, the API responds with HTTP 429 (`Retry-After` header in seconds). The limiter state is stored in the configured database so limits are consistent across application instances. On SQLite, heavy login traffic may lead to short lock retries; for high-volume production deployments prefer PostgreSQL or an external rate-limit tier.
 
 === "Request"
 

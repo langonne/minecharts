@@ -61,11 +61,11 @@ var (
 	// Rate limiting configuration
 	RateLimitCleanupEvery      = getEnvInt("MINECHARTS_RATE_LIMIT_CLEANUP_EVERY", 100)
 	RateLimitRetention         = getEnvDuration("MINECHARTS_RATE_LIMIT_RETENTION", 30*time.Minute)
-	LoginRateLimitCapacity     = getEnvFloat("MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY", 5)
+	LoginRateLimitCapacity     = getEnvFloat("MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY", 10)
 	LoginRateLimitInterval     = getEnvDuration("MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL", time.Minute)
-	RegisterRateLimitCapacity  = getEnvFloat("MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY", 2)
+	RegisterRateLimitCapacity  = getEnvFloat("MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY", 4)
 	RegisterRateLimitInterval  = getEnvDuration("MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL", 5*time.Minute)
-	UserPatchRateLimitCapacity = getEnvFloat("MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY", 5)
+	UserPatchRateLimitCapacity = getEnvFloat("MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY", 10)
 	UserPatchRateLimitInterval = getEnvDuration("MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL", time.Minute)
 	MaxAPIKeysPerUser          = getEnvInt("MINECHARTS_API_KEYS_PER_USER", 5)
 

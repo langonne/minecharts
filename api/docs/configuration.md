@@ -54,11 +54,11 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 ## Rate Limiting
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY` | `5` | Maximum bursts allowed for `POST /auth/login` per IP. |
+| `MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY` | `10` | Maximum bursts allowed for `POST /auth/login` per IP. |
 | `MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL` | `1m` | Refill interval (Go duration format) for login tokens. |
-| `MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY` | `2` | Maximum bursts allowed for `POST /auth/register` per IP. |
+| `MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY` | `4` | Maximum bursts allowed for `POST /auth/register` per IP. |
 | `MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL` | `5m` | Refill interval for registration tokens. |
-| `MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY` | `5` | Maximum bursts allowed for `PATCH /users/:id` per IP. |
+| `MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY` | `10` | Maximum bursts allowed for `PATCH /users/:id` per IP. |
 | `MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL` | `1m` | Refill interval for user patch tokens. |
 | `MINECHARTS_RATE_LIMIT_CLEANUP_EVERY` | `100` | Cleanup frequency (in requests) for purging stale rate-limit rows. |
 | `MINECHARTS_RATE_LIMIT_RETENTION` | `30m` | How long to retain inactive rate-limit rows before cleanup. |
