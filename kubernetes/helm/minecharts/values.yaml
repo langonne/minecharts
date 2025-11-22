@@ -47,6 +47,85 @@ api:
   env:
     - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
       value: "minecharts.example.com"
+    # - name: MINECHARTS_DB_TYPE
+    #   value: "postgres" # or "sqlite"
+    # - name: MINECHARTS_DB_CONNECTION
+    #   value: "postgres://user:pass@host:5432/minecharts?sslmode=disable"
+    # - name: MINECHARTS_TRUSTED_PROXIES
+    #   value: "127.0.0.1,10.0.0.0/8"
+    # - name: MINECHARTS_TIMEZONE
+    #   value: "UTC"
+    # - name: MINECHARTS_LOG_LEVEL
+    #   value: "info" # trace|debug|info|warn|error|fatal|panic
+    # - name: MINECHARTS_LOG_FORMAT
+    #   value: "json" # json|text
+    # - name: MINECHARTS_JWT_EXPIRY_HOURS
+    #   value: "24"
+    # - name: MINECHARTS_API_KEY_PREFIX
+    #   value: "mcapi"
+    # - name: MINECHARTS_ALLOW_SELF_REGISTRATION
+    #   value: "false"
+    # - name: MINECHARTS_MEMORY_QUOTA_ENABLED
+    #   value: "false"
+    # - name: MINECHARTS_MEMORY_QUOTA_LIMIT
+    #   value: "0" # gigabytes; 0 disables the cap
+    # - name: MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI
+    #   value: "256"
+    # - name: MINECHARTS_API_KEYS_PER_USER
+    #   value: "5"
+    # - name: MINECHARTS_OAUTH_ENABLED
+    #   value: "false"
+    # - name: MINECHARTS_AUTHENTIK_ENABLED
+    #   value: "false"
+    # - name: MINECHARTS_AUTHENTIK_ISSUER
+    #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_CLIENT_ID
+    #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_CLIENT_SECRET
+    #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_REDIRECT_URL
+    #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED
+    #   value: "false"
+    # - name: MINECHARTS_AUTHENTIK_ADMIN_GROUP
+    #   value: ""
+    # - name: MINECHARTS_FEEDBACK_ENABLED
+    #   value: "false"
+    # - name: MINECHARTS_FEEDBACK_PROVIDER
+    #   value: "github" # or gitlab
+    # - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: minecharts-api-secrets
+    #       key: github-token
+    # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
+    #   value: ""
+    # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
+    #   value: ""
+    # - name: MINECHARTS_FEEDBACK_GITLAB_TOKEN
+    #   value: ""
+    # - name: MINECHARTS_FEEDBACK_GITLAB_PROJECT
+    #   value: ""
+    # - name: MINECHARTS_FEEDBACK_GITLAB_URL
+    #   value: "https://gitlab.com"
+    # - name: MINECHARTS_FEEDBACK_DEFAULT_LABELS
+    #   value: "feedback"
+    # - name: MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY
+    #   value: "10"
+    # - name: MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL
+    #   value: "1m"
+    # - name: MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY
+    #   value: "4"
+    # - name: MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL
+    #   value: "5m"
+    # - name: MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY
+    #   value: "10"
+    # - name: MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL
+    #   value: "1m"
+    # - name: MINECHARTS_RATE_LIMIT_CLEANUP_EVERY
+    #   value: "100"
+    # - name: MINECHARTS_RATE_LIMIT_RETENTION
+    #   value: "30m"
   secretEnv: []
   envFromSecrets: []
 
