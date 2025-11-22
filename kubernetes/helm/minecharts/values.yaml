@@ -94,10 +94,7 @@ api:
     # - name: MINECHARTS_FEEDBACK_PROVIDER
     #   value: "github" # or gitlab
     # - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
-    #   valueFrom:
-    #     secretKeyRef:
-    #       name: minecharts-api-secrets
-    #       key: github-token
+    #   value: ""
     # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
     #   value: ""
     # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
