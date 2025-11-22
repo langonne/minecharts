@@ -2,7 +2,10 @@
 
 ## `POST /auth/register`
 - **Purpose:** Create a user account and issue an authenticated session.
-- **Auth required:** None
+- **Auth required:** None when `MINECHARTS_ALLOW_SELF_REGISTRATION=true`; otherwise admin JWT (default).
+
+!!! info "Self-registration toggle"
+    By default (`MINECHARTS_ALLOW_SELF_REGISTRATION=false`), this endpoint is locked behind admin authentication and is intended to be used from the admin panel. Set `MINECHARTS_ALLOW_SELF_REGISTRATION=true` to open public signups (still subject to rate limiting). OAuth/OIDC flows remain unchanged by this toggle.
 
 === "Request"
 

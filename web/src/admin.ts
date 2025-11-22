@@ -1,5 +1,5 @@
 import Alpine from "alpinejs";
-import { fetchAuthInfo, syncAdminFlag } from "./main";
+import { fetchAuthInfo, isAdminUser, syncAdminFlag } from "./main";
 
 type RawUser = Record<string, unknown>;
 
@@ -381,7 +381,7 @@ function createAdminPanelState() {
       const id = this.asString(raw["id"] ?? raw["user_id"] ?? "");
       const username = this.asString(raw["username"]);
       const permissions = Number(raw["permissions"] ?? 0) || 0;
-      const isAdmin = permissions >= 128;
+      const isAdmin = isAdminUser({ permissions });
 
       return {
         id,

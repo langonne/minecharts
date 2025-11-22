@@ -29,6 +29,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | --- | --- | --- |
 | `MINECHARTS_JWT_EXPIRY_HOURS` | `24` | Token lifespan in hours. |
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
+| `MINECHARTS_ALLOW_SELF_REGISTRATION` | `false` | When `false`, `/auth/register` is restricted to authenticated admins; when `true`, anyone can create an account (rate-limited). |
 
 ## OAuth & Authentik
 OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`.

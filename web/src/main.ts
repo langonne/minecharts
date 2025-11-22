@@ -26,7 +26,7 @@ type AuthCache = {
     timestamp: number
 }
 
-const MIN_ADMIN_PERMISSIONS = 128
+const PERM_ADMIN_FLAG = 1 << 0 // aligns with backend PermAdmin bit
 const USERNAME_CHANGE_EVENT = 'auth:username-change'
 const ADMIN_CHANGE_EVENT = 'auth:admin-change'
 
@@ -80,7 +80,10 @@ function syncAdminFlag(isAdmin: boolean) {
 
 function isAdminUser(info: { permissions?: unknown } | null): boolean {
     const permissions = Number(info?.permissions ?? 0)
-    return Number.isFinite(permissions) && permissions >= MIN_ADMIN_PERMISSIONS
+    if (!Number.isFinite(permissions)) {
+        return false
+    }
+    return (permissions & PERM_ADMIN_FLAG) === PERM_ADMIN_FLAG
 }
 
 function updateAdminFlag(info: AuthInfo | null) {

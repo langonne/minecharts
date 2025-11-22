@@ -188,7 +188,7 @@
                         </button>
                         <button class="w-full rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-600"
                             hx-post="/api/auth/logout" hx-swap="none"
-                            hx-on::after-request="if(event.detail.successful) window.location.href='/login.html'">
+                            hx-on::after-request="if(event.detail.successful){localStorage.removeItem('username');localStorage.removeItem('is_admin');document.dispatchEvent(new CustomEvent('auth:admin-change',{detail:{isAdmin:false}}));window.location.href='/login.html';}">
                             Log out
                         </button>
                     </div>

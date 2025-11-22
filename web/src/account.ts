@@ -1,5 +1,5 @@
 import Alpine from "alpinejs";
-import { fetchAuthInfo, syncAdminFlag } from "./main";
+import { fetchAuthInfo, isAdminUser, syncAdminFlag } from "./main";
 
 type PasswordPayload = {
   current: string;
@@ -219,7 +219,7 @@ function createAccountPageState() {
         ? permissionsValue
         : 0;
 
-      const isAdminFlag = permissions >= 128;
+      const isAdminFlag = isAdminUser({ permissions });
 
       const lastLogin = this.asString(data["last_login"] ?? data["lastLogin"]);
 

@@ -57,7 +57,16 @@ func SetupRoutes(router *gin.Engine) {
 	authGroup := router.Group("/auth")
 	{
 		authGroup.POST("/login", loginRateLimitMiddleware, handlers.LoginHandler)
-		authGroup.POST("/register", registerRateLimitMiddleware, handlers.RegisterHandler)
+		if config.AllowSelfRegistration {
+			authGroup.POST("/register", registerRateLimitMiddleware, handlers.RegisterHandler)
+		} else {
+			authGroup.POST("/register",
+				registerRateLimitMiddleware,
+				auth.JWTMiddleware(),
+				auth.RequirePermission(database.PermAdmin),
+				handlers.RegisterHandler,
+			)
+		}
 		authGroup.POST("/logout", auth.JWTMiddleware(), handlers.LogoutJWTHandler)
 		authGroup.GET("/providers", handlers.ListOAuthProvidersHandler)
 

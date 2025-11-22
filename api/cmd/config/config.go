@@ -29,19 +29,20 @@ var (
 	DatabaseConnectionString = getEnv("MINECHARTS_DB_CONNECTION", "./app/data/minecharts.db") // File path for SQLite or connection string for Postgres
 
 	// Authentication configuration
-	JWTSecret      string
-	JWTExpiryHours = getEnvInt("MINECHARTS_JWT_EXPIRY_HOURS", 24)
-	APIKeyPrefix   = getEnv("MINECHARTS_API_KEY_PREFIX", "mcapi")
+	JWTSecret             string
+	JWTExpiryHours        = getEnvInt("MINECHARTS_JWT_EXPIRY_HOURS", 24)
+	APIKeyPrefix          = getEnv("MINECHARTS_API_KEY_PREFIX", "mcapi")
+	AllowSelfRegistration = getEnvBool("MINECHARTS_ALLOW_SELF_REGISTRATION", false)
 
 	// OAuth configuration
 	OAuthEnabled = getEnvBool("MINECHARTS_OAUTH_ENABLED", false)
 
 	// Authentik OAuth configuration
-	AuthentikEnabled      = getEnvBool("MINECHARTS_AUTHENTIK_ENABLED", false)
-	AuthentikIssuer       = getEnv("MINECHARTS_AUTHENTIK_ISSUER", "")
-	AuthentikClientID     = getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", "")
-	AuthentikClientSecret = getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", "")
-	AuthentikRedirectURL  = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
+	AuthentikEnabled          = getEnvBool("MINECHARTS_AUTHENTIK_ENABLED", false)
+	AuthentikIssuer           = getEnv("MINECHARTS_AUTHENTIK_ISSUER", "")
+	AuthentikClientID         = getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", "")
+	AuthentikClientSecret     = getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", "")
+	AuthentikRedirectURL      = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
 	AuthentikGroupSyncEnabled = getEnvBool("MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED", false)
 	AuthentikAdminGroup       = getEnv("MINECHARTS_AUTHENTIK_ADMIN_GROUP", "")
 
