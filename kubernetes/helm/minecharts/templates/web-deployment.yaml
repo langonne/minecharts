@@ -30,28 +30,33 @@ spec:
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.web.service.targetPort }}
-          {{- if .Values.web.env }}
+          {{- if or .Values.web.env .Values.web.secretEnv }}
           env:
+            {{- if .Values.web.env }}
             {{- toYaml .Values.web.env | nindent 12 }}
+            {{- end }}
+            {{- range .Values.web.secretEnv }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
           {{- end }}
+          {{- if .Values.web.envFromSecrets }}
+          envFrom:
+            {{- range .Values.web.envFromSecrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.web.extraVolumeMounts }}
           volumeMounts:
-            {{- if .Values.web.persistence.enabled }}
-            - name: data-volume
-              mountPath: {{ .Values.web.persistence.mountPath }}
-            {{- end }}
-            {{- if .Values.web.extraVolumeMounts }}
             {{- toYaml .Values.web.extraVolumeMounts | nindent 12 }}
-            {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
-      {{- if or .Values.web.persistence.enabled .Values.web.extraVolumes }}
+      {{- if .Values.web.extraVolumes }}
       volumes:
-        {{- if .Values.web.persistence.enabled }}
-        - name: data-volume
-          persistentVolumeClaim:
-            claimName: {{ if .Values.web.persistence.existingClaim }}{{ .Values.web.persistence.existingClaim }}{{ else }}{{ .Values.web.persistence.claimName }}{{ end }}
-        {{- end }}
-        {{- if .Values.web.extraVolumes }}
         {{- toYaml .Values.web.extraVolumes | nindent 8 }}
-        {{- end }}
       {{- end }}

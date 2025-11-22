@@ -23,6 +23,7 @@ nav:
       - Overview: configuration.md
       - Additional Tweaks: additional-tweaks.md
       - Local Development Overlay: local-development-overlay.md
+      - Helm Chart: helm-chart.md
   - Database Architecture: database.md
 
 plugins:

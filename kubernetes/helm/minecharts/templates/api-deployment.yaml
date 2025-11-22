@@ -38,6 +38,21 @@ spec:
             {{- if .Values.api.env }}
             {{- toYaml .Values.api.env | nindent 12 }}
             {{- end }}
+            {{- range .Values.api.secretEnv }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- if .Values.api.envFromSecrets }}
+          envFrom:
+            {{- range .Values.api.envFromSecrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.api.persistence.enabled .Values.api.extraVolumeMounts }}
           volumeMounts:
             {{- if .Values.api.persistence.enabled }}
             - name: data-volume
@@ -46,6 +61,7 @@ spec:
             {{- if .Values.api.extraVolumeMounts }}
             {{- toYaml .Values.api.extraVolumeMounts | nindent 12 }}
             {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
       {{- if or .Values.api.persistence.enabled .Values.api.extraVolumes }}

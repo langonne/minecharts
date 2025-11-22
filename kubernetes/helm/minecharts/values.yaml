@@ -19,18 +19,23 @@ api:
   rbac:
     create: true
   service:
-    type: NodePort
+    # Default to ClusterIP; use NodePort/LoadBalancer only if you need direct access without ingress.
+    type: ClusterIP
     port: 8080
     targetPort: 8080
-    nodePort: 30080
+    nodePort: null
   persistence:
+    # Keeps JWT secret and optional SQLite DB on disk. Disable only if you use Postgres
+    # and can tolerate regenerating the JWT secret on every restart.
     enabled: true
     existingClaim: ""
     claimName: minecharts-api-data-pvc
     storageClass: ""
     accessModes:
       - ReadWriteOnce
-    size: 1Gi
+    # JWT alone is a few bytes; if your storage class allows it, 1Mi is enough.
+    # Default kept higher for compatibility; bump to ~1Gi if you keep SQLite on disk.
+    size: 32Mi
     mountPath: /app/data
   resources:
     requests:
@@ -42,8 +47,8 @@ api:
   env:
     - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
       value: "minecharts.example.com"
-  extraVolumeMounts: []
-  extraVolumes: []
+  secretEnv: []
+  envFromSecrets: []
 
 web:
   fullnameOverride: minecharts-web
@@ -63,15 +68,6 @@ web:
     type: ClusterIP
     port: 80
     targetPort: 80
-  persistence:
-    enabled: true
-    existingClaim: ""
-    claimName: minecharts-web-pvc
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 1Gi
-    mountPath: /app/data
   resources:
     requests:
       memory: "64Mi"
@@ -82,8 +78,8 @@ web:
   env:
     - name: ENABLE_TLS
       value: "FALSE"
-  extraVolumeMounts: []
-  extraVolumes: []
+  secretEnv: []
+  envFromSecrets: []
 
 middleware:
   enabled: true
