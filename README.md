@@ -41,7 +41,7 @@ Configure registry secrets/variables in CI if you target anything other than GHC
   ```
   The API requires `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` (no fallback). Set it—and any other env overrides—directly in `kubernetes/helm/minecharts/values.yaml` (or your own values file under version control).
 
-  **Storage & secrets**: the API claims a small PVC by default to persist the JWT signing key (and optionally SQLite if you use it). Disable it with `api.persistence.enabled=false` when you run Postgres and can tolerate regenerating the JWT on restart; keep it and raise `api.persistence.size` (JWT alone fits in ~1Mi, SQLite closer to ~1Gi) if you store SQLite on disk. The web pod is stateless and does not request storage. Deployments can read Kubernetes `Secret` objects without putting the sensitive values in your `values.yaml`. Une documentation dédiée au chart Helm est présente dans le dépôt.
+  **Storage & secrets**: the API claims a small PVC by default to persist the JWT signing key (and optionally SQLite if you use it). Disable it with `api.persistence.enabled=false` when you run Postgres and can tolerate regenerating the JWT on restart; keep it and raise `api.persistence.size` (JWT alone fits in ~1Mi, SQLite closer to ~1Gi) if you store SQLite on disk. The web pod is stateless and does not request storage. Deployments can read Kubernetes `Secret` objects without putting the sensitive values in your `values.yaml`. Ingress annotations (cert-manager, Traefik entrypoints/TLS, etc.) must be aligned with your cluster setup. Une documentation dédiée au chart Helm est présente dans le dépôt.
   ```yaml
   # values.prod.yaml
   api:
