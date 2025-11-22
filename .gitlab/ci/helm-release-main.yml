@@ -9,14 +9,19 @@ helm_chart_release:
     HELM_EXPERIMENTAL_OCI: "1"
     CHART_DIR: kubernetes/helm/minecharts
     CHART_DEST: dist
-    OCI_REPO: ${CI_REGISTRY_IMAGE}/helm
+    HELM_CHANNEL: stable
   script:
     - helm version
+    - apk add curl
     - mkdir -p "${CHART_DEST}"
     - helm dependency update "${CHART_DIR}"
     - helm package "${CHART_DIR}" -d "${CHART_DEST}"
-    - helm registry login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
-    - helm push ${CHART_DEST}/minecharts-*.tgz oci://${OCI_REPO}
+    - CHART_PACKAGE="$(ls ${CHART_DEST}/minecharts-*.tgz | head -n1)"
+    - |
+      curl --fail-with-body --request POST \
+        --user gitlab-ci-token:${CI_JOB_TOKEN} \
+        --form "chart=@${CHART_PACKAGE}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/${HELM_CHANNEL}/charts"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:

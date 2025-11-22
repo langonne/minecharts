@@ -33,13 +33,16 @@ Pipelines automatically publish:
 Configure registry secrets/variables in CI if you target anything other than GHCR or the GitLab Container Registry.
 
 ## Kubernetes (Helm prod, Kustomize dev)
-- **Prod (Helm)**: chart in `kubernetes/helm/minecharts`.
+- **Prod (Helm)**: chart is published to the GitLab Helm registry.
   ```bash
-  # production deploy (creates namespace if missing)
-  helm upgrade --install minecharts kubernetes/helm/minecharts \
+  helm repo add minecharts https://gitlab.prod.nasdak.fr/api/v4/projects/37/packages/helm/stable
+  helm install -f values.yaml minecharts minecharts/minecharts \
     -n minecharts --create-namespace
   ```
-  The API requires `MINECHARTS_MCROUTER_DOMAIN_SUFFIX` (no fallback). Set it—and any other env overrides—directly in `kubernetes/helm/minecharts/values.yaml` (or your own values file under version control).
+  A custom `values.yaml` is mandatory (the chart ships without production defaults). Start from `kubernetes/helm/minecharts/values.yaml`, adapt every section to your cluster, and at minimum set:
+  - `MINECHARTS_MCROUTER_DOMAIN_SUFFIX`
+  - `ingress.host` (URL that fronts the dashboard/API)
+  Check the documentation for the complete list of environment variables and Helm-configurable options.
 
   **Storage & secrets**: the API claims a small PVC by default to persist the JWT signing key (and optionally SQLite if you use it). Disable it with `api.persistence.enabled=false` when you run Postgres and can tolerate regenerating the JWT on restart; keep it and raise `api.persistence.size` (JWT alone fits in ~1Mi, SQLite closer to ~1Gi) if you store SQLite on disk. The web pod is stateless and does not request storage. Deployments can read Kubernetes `Secret` objects without putting the sensitive values in your `values.yaml`. Ingress annotations (cert-manager, Traefik entrypoints/TLS, etc.) must be aligned with your cluster setup. Une documentation dédiée au chart Helm est présente dans le dépôt.
   ```yaml
