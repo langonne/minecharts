@@ -148,6 +148,7 @@ web:
       memory: "512Mi"
       cpu: "500m"
   env:
+    # Set to false if it's behind a reverse proxy that provide it certificate, set to true and bring yours
     - name: ENABLE_TLS
       value: "FALSE"
   secretEnv: []
@@ -164,6 +165,7 @@ ingress:
   nameOverride: minecharts
   className: ""
   annotations:
+    # Specific to your cluster
     cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
