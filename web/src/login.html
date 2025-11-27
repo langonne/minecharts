@@ -50,11 +50,13 @@
                     Log in
                 </button>
 
-                <div x-show="authentikLoginEnabled" class="mt-4">
-                    <button type="button" @click="loginWithAuthentik()" border="emerald-500"
-                        class="w-full border text-emerald-200 rounded-lg py-2 transition-all hover:bg-emerald-600/10">
-                        Log in with Authentik
-                    </button>
+                <div x-show="oauthProviders.length" class="mt-4 space-y-2">
+                    <template x-for="provider in oauthProviders" :key="provider.name">
+                        <button type="button" @click="loginWithProvider(provider)" border="emerald-500"
+                            class="w-full border text-emerald-200 rounded-lg py-2 transition-all hover:bg-emerald-600/10">
+                            <span x-text="`Log in with ${provider.displayName}`"></span>
+                        </button>
+                    </template>
                 </div>
             </form>
         </div>

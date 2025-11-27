@@ -1,16 +1,19 @@
 import Alpine from 'alpinejs'
 
 type OAuthProvidersPayload = {
-  providers?: Array<{ name: string }>
+  providers?: Array<{ name: string; display_name?: string; login_url?: string }>
 }
 
-const AUTHENTIK_PROVIDER_NAME = 'authentik'
-const authentikEnvDefault = import.meta.env.VITE_AUTHENTIK_LOGIN_ENABLED === 'true'
+type OAuthProvider = {
+  name: string
+  displayName: string
+  loginUrl: string
+}
 
 Alpine.data('loginForm', () => ({
   hasError: false,
   errorMessage: '',
-  authentikLoginEnabled: authentikEnvDefault,
+  oauthProviders: [] as OAuthProvider[],
 
   init() {
     this.$el.addEventListener('htmx:afterRequest', (event) => {
@@ -49,15 +52,21 @@ Alpine.data('loginForm', () => ({
 
       const payload = (await response.json()) as OAuthProvidersPayload
       const providers = Array.isArray(payload.providers) ? payload.providers : []
-      this.authentikLoginEnabled = providers.some(
-        (provider) => provider.name === AUTHENTIK_PROVIDER_NAME,
-      )
+      this.oauthProviders = providers
+        .filter((provider) => Boolean(provider?.name))
+        .map((provider) => ({
+          name: provider.name,
+          displayName: provider.display_name || provider.name,
+          loginUrl: provider.login_url || `/api/auth/oauth/${provider.name}`,
+        }))
     } catch (error) {
       console.warn('Unable to fetch OAuth providers', error)
     }
   },
 
-  loginWithAuthentik() {
-    window.location.href = '/api/auth/oauth/authentik'
+  loginWithProvider(provider?: OAuthProvider) {
+    const selected = provider ?? this.oauthProviders[0]
+    if (!selected) return
+    window.location.href = selected.loginUrl
   },
 }))
