@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -56,62 +55,76 @@ func optionalString(value string) *string {
 	return &value
 }
 
-// NewAuthentikProvider creates a new OAuth provider for Authentik
-func NewAuthentikProvider() (*OAuthProvider, error) {
-	logging.Auth.OAuth.Debug("Initializing Authentik OAuth provider")
+type oidcDiscovery struct {
+	AuthURL     string
+	TokenURL    string
+	UserInfoURL string
+}
 
-	if !config.OAuthEnabled || !config.AuthentikEnabled {
-		logging.Auth.OAuth.WithFields(
-			"oauth_enabled", config.OAuthEnabled,
-			"authentik_enabled", config.AuthentikEnabled,
-		).Warn("Authentik OAuth is not enabled")
-		return nil, ErrOAuthNotEnabled
-	}
-
-	if config.AuthentikClientID == "" || config.AuthentikClientSecret == "" ||
-		config.AuthentikIssuer == "" || config.AuthentikRedirectURL == "" {
-		logging.Auth.OAuth.WithFields(
-			"client_id_set", config.AuthentikClientID != "",
-			"client_secret_set", config.AuthentikClientSecret != "",
-			"issuer_set", config.AuthentikIssuer != "",
-			"redirect_url_set", config.AuthentikRedirectURL != "",
-		).Error("Authentik OAuth configuration is incomplete")
+// NewOIDCProvider creates a single configured OAuth/OIDC provider using discovery.
+func NewOIDCProvider() (*OAuthProvider, error) {
+	providerName := strings.TrimSpace(config.OAuthProviderName)
+	if providerName == "" {
+		logging.Auth.OAuth.Error("OIDC provider name is not configured")
 		return nil, ErrMissingProviderConfig
 	}
 
-	authURL, tokenURL, userInfoURL, err := buildAuthentikEndpoints(config.AuthentikIssuer)
+	logging.Auth.OAuth.WithFields("provider", providerName).Debug("Initializing OIDC provider")
+
+	if !config.OAuthEnabled {
+		logging.Auth.OAuth.WithFields(
+			"provider", providerName,
+		).Warn("OIDC provider is not enabled")
+		return nil, ErrOAuthNotEnabled
+	}
+
+	if config.OIDCClientID == "" || config.OIDCClientSecret == "" ||
+		config.OIDCIssuer == "" || config.OIDCRedirectURL == "" {
+		logging.Auth.OAuth.WithFields(
+			"provider", providerName,
+			"client_id_set", config.OIDCClientID != "",
+			"client_secret_set", config.OIDCClientSecret != "",
+			"issuer_set", config.OIDCIssuer != "",
+			"redirect_url_set", config.OIDCRedirectURL != "",
+		).Error("OIDC provider configuration is incomplete")
+		return nil, ErrMissingProviderConfig
+	}
+
+	endpoints, err := discoverOIDCEndpoints(config.OIDCIssuer)
 	if err != nil {
 		logging.Auth.OAuth.WithFields(
-			"issuer", config.AuthentikIssuer,
+			"provider", providerName,
+			"issuer", config.OIDCIssuer,
 			"error", err.Error(),
-		).Error("Failed to derive Authentik endpoints from issuer")
+		).Error("Failed to discover OIDC endpoints from issuer")
 		return nil, ErrInvalidOAuthConfig
 	}
 
 	// Construct OAuth2 config
 	oauthConfig := &oauth2.Config{
-		ClientID:     config.AuthentikClientID,
-		ClientSecret: config.AuthentikClientSecret,
-		RedirectURL:  config.AuthentikRedirectURL,
+		ClientID:     config.OIDCClientID,
+		ClientSecret: config.OIDCClientSecret,
+		RedirectURL:  config.OIDCRedirectURL,
 		Scopes:       []string{"openid", "email", "profile"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  authURL,
-			TokenURL: tokenURL,
+			AuthURL:  endpoints.AuthURL,
+			TokenURL: endpoints.TokenURL,
 		},
 	}
 
 	logging.Auth.OAuth.WithFields(
-		"issuer", config.AuthentikIssuer,
-		"redirect_url", config.AuthentikRedirectURL,
-		"auth_url", authURL,
-		"token_url", tokenURL,
-		"userinfo_url", userInfoURL,
-	).Info("Authentik OAuth provider initialized successfully")
+		"provider", providerName,
+		"issuer", config.OIDCIssuer,
+		"redirect_url", config.OIDCRedirectURL,
+		"auth_url", endpoints.AuthURL,
+		"token_url", endpoints.TokenURL,
+		"userinfo_url", endpoints.UserInfoURL,
+	).Info("OIDC provider initialized successfully")
 
 	return &OAuthProvider{
 		Config:      oauthConfig,
-		Name:        "authentik",
-		UserInfoURL: userInfoURL,
+		Name:        providerName,
+		UserInfoURL: endpoints.UserInfoURL,
 	}, nil
 }
 
@@ -122,7 +135,8 @@ func (p *OAuthProvider) GetAuthURL(state string) string {
 	logging.Auth.OAuth.WithFields(
 		"url", url,
 		"state", state,
-	).Debug("Generated Authentik OAuth authorization URL")
+		"provider", p.Name,
+	).Debug("Generated OAuth authorization URL")
 
 	return url
 }
@@ -149,11 +163,11 @@ func (p *OAuthProvider) Exchange(ctx context.Context, code string) (*oauth2.Toke
 
 // GetUserInfo retrieves user information from the OAuth provider
 func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*OAuthUserInfo, error) {
-	logging.Auth.OAuth.Debug("Fetching user info from Authentik")
+	logging.Auth.OAuth.WithFields("provider", p.Name).Debug("Fetching user info from OAuth provider")
 
 	client := p.Config.Client(ctx, token)
 
-	// Get user info from Authentik's userinfo endpoint
+	// Get user info from the provider's userinfo endpoint
 	resp, err := client.Get(p.UserInfoURL)
 	if err != nil {
 		return nil, err
@@ -194,9 +208,9 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 	}
 
 	logging.Auth.OAuth.WithFields(
-		"provider", "authentik",
+		"provider", p.Name,
 		"username", username,
-	).Debug("Successfully retrieved user info from Authentik")
+	).Debug("Successfully retrieved user info from OAuth provider")
 
 	return &OAuthUserInfo{
 		ID:            userInfo.Sub,
@@ -204,57 +218,55 @@ func (p *OAuthProvider) GetUserInfo(ctx context.Context, token *oauth2.Token) (*
 		Username:      username,
 		Name:          userInfo.Name,
 		EmailVerified: userInfo.EmailVerified,
-		Provider:      "authentik",
+		Provider:      p.Name,
 		Groups:        userInfo.Groups,
 	}, nil
 }
 
-func buildAuthentikEndpoints(rawIssuer string) (string, string, string, error) {
-	base, err := normalizeAuthentikIssuer(rawIssuer)
-	if err != nil {
-		return "", "", "", err
-	}
-
-	authURL := ensureTrailingSlash(base + "/authorize")
-	tokenURL := ensureTrailingSlash(base + "/token")
-	userInfoURL := ensureTrailingSlash(base + "/userinfo")
-
-	return authURL, tokenURL, userInfoURL, nil
-}
-
-func normalizeAuthentikIssuer(raw string) (string, error) {
-	trimmed := strings.TrimSpace(raw)
+func discoverOIDCEndpoints(rawIssuer string) (*oidcDiscovery, error) {
+	trimmed := strings.TrimSpace(rawIssuer)
 	if trimmed == "" {
-		return "", ErrInvalidOAuthConfig
+		return nil, ErrInvalidOAuthConfig
 	}
 
-	parsed, err := url.Parse(trimmed)
+	base := strings.TrimRight(trimmed, "/")
+	wellKnown := base + "/.well-known/openid-configuration"
+
+	client := http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(wellKnown)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, ErrInvalidOAuthConfig
 	}
 
-	path := strings.TrimSuffix(parsed.Path, "/")
-	if strings.HasPrefix(path, "/application/o/") || path == "/application/o" {
-		path = "/application/o"
-	}
-	parsed.Path = path
-	parsed.RawPath = ""
-	parsed.RawQuery = ""
-	parsed.Fragment = ""
-
-	base := strings.TrimRight(parsed.String(), "/")
-	if base == "" {
-		return "", ErrInvalidOAuthConfig
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	return base, nil
-}
-
-func ensureTrailingSlash(value string) string {
-	if strings.HasSuffix(value, "/") {
-		return value
+	var metadata struct {
+		AuthorizationEndpoint string `json:"authorization_endpoint"`
+		TokenEndpoint         string `json:"token_endpoint"`
+		UserInfoEndpoint      string `json:"userinfo_endpoint"`
 	}
-	return value + "/"
+
+	if err := json.Unmarshal(body, &metadata); err != nil {
+		return nil, err
+	}
+
+	if metadata.AuthorizationEndpoint == "" || metadata.TokenEndpoint == "" || metadata.UserInfoEndpoint == "" {
+		return nil, ErrInvalidOAuthConfig
+	}
+
+	return &oidcDiscovery{
+		AuthURL:     strings.TrimSpace(metadata.AuthorizationEndpoint),
+		TokenURL:    strings.TrimSpace(metadata.TokenEndpoint),
+		UserInfoURL: strings.TrimSpace(metadata.UserInfoEndpoint),
+	}, nil
 }
 
 func syncAdminPermissionsFromGroups(user *database.User, groups []string) (granted bool, revoked bool) {
@@ -390,7 +402,7 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 				"group", config.AuthentikAdminGroup,
 				"granted", granted,
 				"revoked", revoked,
-			).Info("Synced admin permissions from Authentik group during user creation")
+			).Info("Synced admin permissions from configured group during user creation")
 		}
 
 		if err := db.CreateUser(ctx, newUser); err != nil {
@@ -427,7 +439,7 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 			"group", config.AuthentikAdminGroup,
 			"granted", granted,
 			"revoked", revoked,
-		).Info("Synced admin permissions from Authentik group")
+		).Info("Synced admin permissions from configured group")
 	}
 
 	if err := db.UpdateUser(ctx, user); err != nil {

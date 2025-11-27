@@ -31,19 +31,23 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
 | `MINECHARTS_ALLOW_SELF_REGISTRATION` | `false` | When `false`, `/auth/register` is restricted to authenticated admins; when `true`, anyone can create an account (rate-limited). |
 
-## OAuth & Authentik
-OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`.
+## OAuth & OIDC (single provider)
+OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`. A single OIDC provider is configured via environment variables; the legacy `MINECHARTS_AUTHENTIK_*` variables are still accepted as fallbacks for issuer/client credentials. There is no secondary enable toggle: OAuth is considered active only when the required OIDC settings are populated.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `MINECHARTS_OAUTH_ENABLED` | `false` | Enables the OAuth endpoints under `/auth/oauth/:provider`. |
-| `MINECHARTS_AUTHENTIK_ENABLED` | `false` | Toggles the Authentik provider implementation. |
-| `MINECHARTS_AUTHENTIK_ISSUER` | *(empty)* | Base Authentik OAuth URL, e.g. `https://auth.example.com/application/o/minecharts/`. Minecharts automatically rewrites it to the global `/application/o` endpoints (`/authorize/`, `/token/`, `/userinfo/`) while keeping your issuer for discovery; trailing slashes are handled automatically. |
-| `MINECHARTS_AUTHENTIK_CLIENT_ID` | *(empty)* | OAuth client ID registered with Authentik. |
-| `MINECHARTS_AUTHENTIK_CLIENT_SECRET` | *(empty)* | OAuth client secret. |
-| `MINECHARTS_AUTHENTIK_REDIRECT_URL` | *(empty)* | Redirect URL registered with Authentik, e.g. `https://api.example.com/auth/callback/authentik`. |
-| `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the Authentik `groups` claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership. |
-| `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the Authentik group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
+| `MINECHARTS_OAUTH_PROVIDER_NAME` | *(empty)* | Required. Slug used in routes `/auth/oauth/{name}` and the callback path; no spaces. Exposed to the frontend. |
+| `MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME` | *(empty)* | Human-friendly name exposed to the frontend; defaults to `MINECHARTS_OAUTH_PROVIDER_NAME` when empty. |
+| `MINECHARTS_OIDC_ISSUER` | *(empty)* | OIDC issuer URL used for discovery via `/.well-known/openid-configuration` (falls back to `MINECHARTS_AUTHENTIK_ISSUER`). |
+| `MINECHARTS_OIDC_CLIENT_ID` | *(empty)* | Client ID registered with the OIDC provider (falls back to `MINECHARTS_AUTHENTIK_CLIENT_ID`). |
+| `MINECHARTS_OIDC_CLIENT_SECRET` | *(empty)* | Client secret registered with the OIDC provider (falls back to `MINECHARTS_AUTHENTIK_CLIENT_SECRET`). |
+| `MINECHARTS_OIDC_REDIRECT_URL` | *(empty)* | Redirect URL registered with the OIDC provider (falls back to `MINECHARTS_AUTHENTIK_REDIRECT_URL`). |
+| `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the `groups` claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership. |
+| `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
+
+!!! note
+    The issuer must expose a valid OIDC discovery document at `/.well-known/openid-configuration`. Pure OAuth2 providers without OIDC discovery (e.g. GitHub/Discord OAuth) are not supported by this generic flow; you need an OIDC-compliant provider.
 
 ## Logging
 | Variable | Default | Purpose |

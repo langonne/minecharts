@@ -268,9 +268,16 @@ func OAuthLoginHandler(c *gin.Context) {
 	}
 
 	// Get provider from URL parameter
-	provider := c.Param("provider")
-	if provider != "authentik" {
-		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "reason", "unsupported_provider").
+	provider := strings.TrimSpace(c.Param("provider"))
+	configuredProvider := strings.TrimSpace(config.OAuthProviderName)
+	if configuredProvider == "" {
+		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "reason", "provider_not_configured").
+			Error("OAuth login failed: no provider configured")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "OAuth provider not configured"})
+		return
+	}
+	if provider != configuredProvider {
+		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "expected", configuredProvider, "reason", "unsupported_provider").
 			Warn("OAuth login failed: unsupported provider")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported OAuth provider"})
 		return
@@ -280,7 +287,7 @@ func OAuthLoginHandler(c *gin.Context) {
 		Info("OAuth login flow initiated")
 
 	// Initialize OAuth provider
-	oauthProvider, err := auth.NewAuthentikProvider()
+	oauthProvider, err := auth.NewOIDCProvider()
 	if err != nil {
 		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "error", err.Error()).
 			Error("Failed to initialize OAuth provider")
@@ -332,9 +339,16 @@ func OAuthCallbackHandler(c *gin.Context) {
 	}
 
 	// Get provider from URL parameter
-	provider := c.Param("provider")
-	if provider != "authentik" {
-		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "reason", "unsupported_provider").
+	provider := strings.TrimSpace(c.Param("provider"))
+	configuredProvider := strings.TrimSpace(config.OAuthProviderName)
+	if configuredProvider == "" {
+		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "reason", "provider_not_configured").
+			Error("OAuth callback failed: no provider configured")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "OAuth provider not configured"})
+		return
+	}
+	if provider != configuredProvider {
+		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "expected", configuredProvider, "reason", "unsupported_provider").
 			Warn("OAuth callback failed: unsupported provider")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported OAuth provider"})
 		return
@@ -371,7 +385,7 @@ func OAuthCallbackHandler(c *gin.Context) {
 	c.SetCookie("oauth_state", "", -1, "/", "", true, true)
 
 	// Initialize OAuth provider
-	oauthProvider, err := auth.NewAuthentikProvider()
+	oauthProvider, err := auth.NewOIDCProvider()
 	if err != nil {
 		logging.Auth.OAuth.WithFields("remote_ip", c.ClientIP(), "provider", provider, "error", err.Error()).
 			Error("Failed to initialize OAuth provider during callback")
@@ -443,11 +457,17 @@ func OAuthCallbackHandler(c *gin.Context) {
 func ListOAuthProvidersHandler(c *gin.Context) {
 	providers := []OAuthProviderInfo{}
 
-	if isAuthentikProviderAvailable() {
+	if isOIDCProviderAvailable() {
+		name := strings.TrimSpace(config.OAuthProviderName)
+		displayName := strings.TrimSpace(config.OAuthProviderDisplayName)
+		if displayName == "" {
+			displayName = name
+		}
+
 		providers = append(providers, OAuthProviderInfo{
-			Name:        "authentik",
-			DisplayName: "Authentik",
-			LoginURL:    "/api/auth/oauth/authentik",
+			Name:        name,
+			DisplayName: displayName,
+			LoginURL:    "/api/auth/oauth/" + name,
 		})
 	}
 
@@ -456,13 +476,18 @@ func ListOAuthProvidersHandler(c *gin.Context) {
 	})
 }
 
-func isAuthentikProviderAvailable() bool {
-	if !config.OAuthEnabled || !config.AuthentikEnabled {
+func isOIDCProviderAvailable() bool {
+	if !config.OAuthEnabled {
 		return false
 	}
 
-	return config.AuthentikClientID != "" &&
-		config.AuthentikClientSecret != "" &&
-		config.AuthentikIssuer != "" &&
-		config.AuthentikRedirectURL != ""
+	providerName := strings.TrimSpace(config.OAuthProviderName)
+	if providerName == "" {
+		return false
+	}
+
+	return config.OIDCClientID != "" &&
+		config.OIDCClientSecret != "" &&
+		config.OIDCIssuer != "" &&
+		config.OIDCRedirectURL != ""
 }

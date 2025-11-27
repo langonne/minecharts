@@ -71,16 +71,18 @@ api:
     #   value: "5"
     # - name: MINECHARTS_OAUTH_ENABLED
     #   value: "false"
-    # - name: MINECHARTS_AUTHENTIK_ENABLED
-    #   value: "false"
-    # - name: MINECHARTS_AUTHENTIK_ISSUER
+    # - name: MINECHARTS_OAUTH_PROVIDER_NAME
+    #   value: "myprovider"
+    # - name: MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME
+    #   value: "My Provider"
+    # - name: MINECHARTS_OIDC_ISSUER
+    #   value: "https://authentik.example.com/application/o/minecharts/"
+    # - name: MINECHARTS_OIDC_CLIENT_ID
     #   value: ""
-    # - name: MINECHARTS_AUTHENTIK_CLIENT_ID
+    # - name: MINECHARTS_OIDC_CLIENT_SECRET
     #   value: ""
-    # - name: MINECHARTS_AUTHENTIK_CLIENT_SECRET
-    #   value: ""
-    # - name: MINECHARTS_AUTHENTIK_REDIRECT_URL
-    #   value: ""
+    # - name: MINECHARTS_OIDC_REDIRECT_URL
+    #   value: "https://minecharts.example.com/api/auth/callback/authentik"
     # - name: MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED
     #   value: "false"
     # - name: MINECHARTS_AUTHENTIK_ADMIN_GROUP

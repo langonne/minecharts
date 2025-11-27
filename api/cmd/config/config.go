@@ -37,12 +37,15 @@ var (
 	// OAuth configuration
 	OAuthEnabled = getEnvBool("MINECHARTS_OAUTH_ENABLED", false)
 
-	// Authentik OAuth configuration
-	AuthentikEnabled          = getEnvBool("MINECHARTS_AUTHENTIK_ENABLED", false)
-	AuthentikIssuer           = getEnv("MINECHARTS_AUTHENTIK_ISSUER", "")
-	AuthentikClientID         = getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", "")
-	AuthentikClientSecret     = getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", "")
-	AuthentikRedirectURL      = getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", "")
+	// Generic OIDC provider configuration
+	OAuthProviderName        = getEnv("MINECHARTS_OAUTH_PROVIDER_NAME", "")
+	OAuthProviderDisplayName = getEnv("MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME", "")
+	OIDCIssuer               = getEnv("MINECHARTS_OIDC_ISSUER", getEnv("MINECHARTS_AUTHENTIK_ISSUER", ""))
+	OIDCClientID             = getEnv("MINECHARTS_OIDC_CLIENT_ID", getEnv("MINECHARTS_AUTHENTIK_CLIENT_ID", ""))
+	OIDCClientSecret         = getEnv("MINECHARTS_OIDC_CLIENT_SECRET", getEnv("MINECHARTS_AUTHENTIK_CLIENT_SECRET", ""))
+	OIDCRedirectURL          = getEnv("MINECHARTS_OIDC_REDIRECT_URL", getEnv("MINECHARTS_AUTHENTIK_REDIRECT_URL", ""))
+
+	// Authentik-specific group sync (optional)
 	AuthentikGroupSyncEnabled = getEnvBool("MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED", false)
 	AuthentikAdminGroup       = getEnv("MINECHARTS_AUTHENTIK_ADMIN_GROUP", "")
 
