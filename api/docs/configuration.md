@@ -31,6 +31,7 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
 | `MINECHARTS_ALLOW_SELF_REGISTRATION` | `false` | When `false`, `/auth/register` is restricted to authenticated admins; when `true`, anyone can create an account (rate-limited). |
 | `MINECHARTS_DEFAULT_USER_PERMISSIONS` | `operator` | Default permissions for newly created users (self-registration and OAuth); accepts aliases (`none`, `readonly`, `operator`, `all`) or a numeric bitmask. The admin bit is always stripped. |
+| `MINECHARTS_FRONTEND_URL` | `http://localhost:3000` | Frontend base URL used for OAuth callbacks/redirects after login. |
 
 !!! tip "Handy defaults"
     `operator` grants every permission except admin (`PermOperator`), making it a safe default for non-privileged accounts. Aliases also accept numeric bitmasks if you want direct control.
@@ -55,19 +56,29 @@ Common combinations:
 !!! warning "Admin bit is stripped"
     `MINECHARTS_DEFAULT_USER_PERMISSIONS` and `MINECHARTS_AUTHENTIK_USER_PERMISSIONS` always drop the admin bit, even if you provide `all` or `255`, to avoid accidental escalation. Reserve admin for the dedicated group (`MINECHARTS_AUTHENTIK_ADMIN_GROUP`) or manual assignment.
 
-## OAuth & Authentik
-OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`.
+## OAuth & OIDC (single provider)
+OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`. A single OIDC provider is configured via environment variables.
 
+### OIDC provider settings
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `MINECHARTS_OAUTH_ENABLED` | `false` | Enables the OAuth endpoints under `/auth/oauth/:provider`. |
-| `MINECHARTS_AUTHENTIK_ENABLED` | `false` | Toggles the Authentik provider implementation. |
-| `MINECHARTS_AUTHENTIK_ISSUER` | *(empty)* | Base Authentik OAuth URL, e.g. `https://auth.example.com/application/o/minecharts/`. Minecharts automatically rewrites it to the global `/application/o` endpoints (`/authorize/`, `/token/`, `/userinfo/`) while keeping your issuer for discovery; trailing slashes are handled automatically. |
-| `MINECHARTS_AUTHENTIK_CLIENT_ID` | *(empty)* | OAuth client ID registered with Authentik. |
-| `MINECHARTS_AUTHENTIK_CLIENT_SECRET` | *(empty)* | OAuth client secret. |
-| `MINECHARTS_AUTHENTIK_REDIRECT_URL` | *(empty)* | Redirect URL registered with Authentik, e.g. `https://api.example.com/auth/callback/authentik`. |
-| `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the Authentik `groups` claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership. |
-| `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the Authentik group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
+| `MINECHARTS_OAUTH_PROVIDER_NAME` | *(empty)* | Required. Slug used in routes `/auth/oauth/{name}` and the callback path; no spaces. Exposed to the frontend. |
+| `MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME` | *(empty)* | Human-friendly name exposed to the frontend; defaults to `MINECHARTS_OAUTH_PROVIDER_NAME` when empty. |
+| `MINECHARTS_OIDC_ISSUER` | *(empty)* | OIDC issuer URL used for discovery via `/.well-known/openid-configuration`. |
+| `MINECHARTS_OIDC_CLIENT_ID` | *(empty)* | Client ID registered with the OIDC provider. |
+| `MINECHARTS_OIDC_CLIENT_SECRET` | *(empty)* | Client secret registered with the OIDC provider. |
+| `MINECHARTS_OIDC_REDIRECT_URL` | *(empty)* | Redirect URL registered with the OIDC provider. |
+
+!!! note
+    The issuer must expose a valid OIDC discovery document at `/.well-known/openid-configuration`. Pure OAuth2 providers without OIDC discovery (e.g. GitHub/Discord OAuth) are not supported by this generic flow; you need an OIDC-compliant provider.
+    There is no dedicated Authentik enable toggle; use the OIDC variables above.
+
+### Authentik (compat and group sync)
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the `groups` claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership. |
+| `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
 | `MINECHARTS_AUTHENTIK_USER_GROUP` | *(empty)* | Optional non-admin Authentik group to sync. When present, members receive `MINECHARTS_AUTHENTIK_USER_PERMISSIONS`; others fall back to `MINECHARTS_DEFAULT_USER_PERMISSIONS`. |
 | `MINECHARTS_AUTHENTIK_USER_PERMISSIONS` | *(empty)* | Permissions to grant to members of `MINECHARTS_AUTHENTIK_USER_GROUP`. Accepts the same aliases/bitmask as `MINECHARTS_DEFAULT_USER_PERMISSIONS`. Defaults to the configured default user permissions. The admin bit is always stripped. |
 
@@ -111,7 +122,7 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER` | *(empty)* | GitHub repository owner (user or organisation) that will receive feedback issues. |
 | `MINECHARTS_FEEDBACK_GITHUB_REPO_NAME` | *(empty)* | GitHub repository name where issues are created. |
 | `MINECHARTS_FEEDBACK_GITLAB_TOKEN` | *(empty)* | GitLab personal access token used when the provider is `gitlab`. |
-| `MINECHARTS_FEEDBACK_GITLAB_PROJECT` | *(empty)* | GitLab project path or numeric ID that receives feedback issues. |
+| `MINECHARTS_FEEDBACK_GITLAB_PROJECT` | *(empty)* | GitLab project path or numeric ID that receives feedback issues.<br />Examples: `group/subgroup/minecharts` or `37`. |
 | `MINECHARTS_FEEDBACK_GITLAB_URL` | `https://gitlab.com` | Base URL for the GitLab instance (e.g. `https://gitlab.example.com`). |
 | `MINECHARTS_FEEDBACK_DEFAULT_LABELS` | `feedback` | Comma-separated labels automatically added to each generated issue (in addition to type-specific labels). |
 
