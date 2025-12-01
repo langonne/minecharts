@@ -183,7 +183,7 @@ func RegisterHandler(c *gin.Context) {
 		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: passwordHash,
-		Permissions:  int64(database.PermReadOnly), // Default to read-only permissions
+		Permissions:  auth.DefaultUserPermissions(),
 		Active:       true,
 	}
 

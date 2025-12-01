@@ -377,7 +377,7 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 			Username:      userInfo.Username,
 			Email:         userInfo.Email,
 			PasswordHash:  passwordHash,
-			Permissions:   int64(database.PermReadOnly), // Default to read-only permissions
+			Permissions:   DefaultUserPermissions(),
 			Active:        true,
 			LastLogin:     &now,
 			OAuthProvider: optionalString(provider),
@@ -392,6 +392,8 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 				"revoked", revoked,
 			).Info("Synced admin permissions from Authentik group during user creation")
 		}
+
+		syncUserPermissionsFromGroups(newUser, userInfo.Groups)
 
 		if err := db.CreateUser(ctx, newUser); err != nil {
 			logging.DB.WithFields(
@@ -429,6 +431,8 @@ func SyncOAuthUser(ctx context.Context, userInfo *OAuthUserInfo) (*database.User
 			"revoked", revoked,
 		).Info("Synced admin permissions from Authentik group")
 	}
+
+	syncUserPermissionsFromGroups(user, userInfo.Groups)
 
 	if err := db.UpdateUser(ctx, user); err != nil {
 		logging.DB.WithFields(
