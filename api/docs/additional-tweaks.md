@@ -6,5 +6,5 @@ Some behaviours live outside the environment variable matrix but remain easy to 
 - **Container security context**: Managed pods run as UID/GID `1000` and include a pre-stop hook that flushes the world save. Modify `cmd/kubernetes/deployement.go` to adapt permissions or lifecycle hooks.
 - **Graceful shutdown timing**: The command guard (`mc-send-to-console save-all`) and wait duration before pod restart (`time.Second * 10`) are located in `cmd/kubernetes/utils.go`. Update them to match your workload’s expectations.
 
-Whenever you introduce new knobs, wire them through the configuration package so they can be tuned via environment variables instead of code edits.
-
+!!! tip "Expose new knobs"
+    Whenever you add a setting, route it through `cmd/config/config.go` so it’s configurable via environment variables instead of code changes.

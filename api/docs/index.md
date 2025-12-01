@@ -12,4 +12,5 @@ Minecharts API automates the lifecycle of Minecraft servers inside a Kubernetes 
 - Configure runtime behaviour and storage: [Configuration](configuration.md)
 - Explore the persistence model and relationships: [Database Architecture](database.md)
 
-> Tip: keep a terminal with `kubectl` open when experimenting. Watching deployments, pods, and PVCs appear alongside API responses is the fastest way to build intuition.
+!!! tip "Fast feedback loop"
+    Keep a terminal with `kubectl` open when experimenting. Watching deployments, pods, and PVCs appear alongside API responses is the fastest way to build intuition.

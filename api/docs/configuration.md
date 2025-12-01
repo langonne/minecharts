@@ -30,6 +30,30 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_JWT_EXPIRY_HOURS` | `24` | Token lifespan in hours. |
 | `MINECHARTS_API_KEY_PREFIX` | `mcapi` | Prefix applied to generated API keys. |
 | `MINECHARTS_ALLOW_SELF_REGISTRATION` | `false` | When `false`, `/auth/register` is restricted to authenticated admins; when `true`, anyone can create an account (rate-limited). |
+| `MINECHARTS_DEFAULT_USER_PERMISSIONS` | `operator` | Default permissions for newly created users (self-registration and OAuth); accepts aliases (`none`, `readonly`, `operator`, `all`) or a numeric bitmask. The admin bit is always stripped. |
+
+!!! tip "Handy defaults"
+    `operator` grants every permission except admin (`PermOperator`), making it a safe default for non-privileged accounts. Aliases also accept numeric bitmasks if you want direct control.
+
+### Permission flags and common masks
+| Name | Value | Grants |
+| --- | --- | --- |
+| `PermAdmin` | `1` | Full administrator access. |
+| `PermCreateServer` | `2` | Create new servers. |
+| `PermDeleteServer` | `4` | Delete servers. |
+| `PermStartServer` | `8` | Start servers. |
+| `PermStopServer` | `16` | Stop servers. |
+| `PermRestartServer` | `32` | Restart servers. |
+| `PermExecCommand` | `64` | Execute commands on servers. |
+| `PermViewServer` | `128` | View server details. |
+
+Common combinations:
+- `PermReadOnly` = `128`
+- `PermOperator` = `254` (all above except admin)
+- `PermAll` = `255` (admin + all other flags)
+
+!!! warning "Admin bit is stripped"
+    `MINECHARTS_DEFAULT_USER_PERMISSIONS` and `MINECHARTS_AUTHENTIK_USER_PERMISSIONS` always drop the admin bit, even if you provide `all` or `255`, to avoid accidental escalation. Reserve admin for the dedicated group (`MINECHARTS_AUTHENTIK_ADMIN_GROUP`) or manual assignment.
 
 ## OAuth & Authentik
 OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` to `true`.
@@ -44,6 +68,16 @@ OAuth integration is optional. Enable it by setting `MINECHARTS_OAUTH_ENABLED` t
 | `MINECHARTS_AUTHENTIK_REDIRECT_URL` | *(empty)* | Redirect URL registered with Authentik, e.g. `https://api.example.com/auth/callback/authentik`. |
 | `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED` | `false` | When `true`, Minecharts inspects the Authentik `groups` claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership. |
 | `MINECHARTS_AUTHENTIK_ADMIN_GROUP` | *(empty)* | Name of the Authentik group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled. |
+| `MINECHARTS_AUTHENTIK_USER_GROUP` | *(empty)* | Optional non-admin Authentik group to sync. When present, members receive `MINECHARTS_AUTHENTIK_USER_PERMISSIONS`; others fall back to `MINECHARTS_DEFAULT_USER_PERMISSIONS`. |
+| `MINECHARTS_AUTHENTIK_USER_PERMISSIONS` | *(empty)* | Permissions to grant to members of `MINECHARTS_AUTHENTIK_USER_GROUP`. Accepts the same aliases/bitmask as `MINECHARTS_DEFAULT_USER_PERMISSIONS`. Defaults to the configured default user permissions. The admin bit is always stripped. |
+
+!!! example "Authentik sync scenario"
+    - `MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED=true`
+    - `MINECHARTS_AUTHENTIK_ADMIN_GROUP=minecharts-admins`
+    - `MINECHARTS_AUTHENTIK_USER_GROUP=minecharts-operators`
+    - `MINECHARTS_AUTHENTIK_USER_PERMISSIONS=operator`
+
+    Outcome: `minecharts-admins` members get admin; `minecharts-operators` members get all permissions except admin; everyone else falls back to `MINECHARTS_DEFAULT_USER_PERMISSIONS` (default `operator`).
 
 ## Logging
 | Variable | Default | Purpose |

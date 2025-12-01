@@ -4,3 +4,9 @@
 - API key responses only reveal the raw token during creation. Store it immediately; subsequent listings return masked values.
 - The `/servers/{serverName}/expose` endpoint deletes any existing service for the deployment before creating a new one, preventing stale exposure modes from lingering.
 - Server creation forwards the `env` map directly to the `itzg/minecraft-server` container. Use the upstream variable reference (<https://docker-minecraft-server.readthedocs.io/en/latest/variables/>) when choosing flags and options.
+
+!!! warning "Slow network volumes (Ceph, etc.)"
+    After a `save-all`, allow a short buffer on slow network storage: writes can land late despite the forced save. Avoid chaining restart/stop/start too quickly in these environments.
+
+!!! tip "One-shot API keys"
+    The full token is shown only at creation time. Copy it immediately or automate capture in CI/secrets—subsequent calls only return a masked prefix.

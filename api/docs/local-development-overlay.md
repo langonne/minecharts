@@ -4,7 +4,7 @@ The `kubernetes/overlays/test` overlay ships with a patch template that keeps de
 
 1. Copy the sample file:
    ```bash
-   cp kubernetes/overlays/test/dev-env.exemple.yaml kubernetes/overlays/test/dev-env.yaml
+   cp kubernetes/overlays/test/dev-env.example.yaml kubernetes/overlays/test/dev-env.yaml
    ```
 2. Update `dev-env.yaml` with your own values (e.g. `MINECHARTS_MCROUTER_DOMAIN_SUFFIX`, logging verbosity).
 3. Apply the overlay:
@@ -12,4 +12,5 @@ The `kubernetes/overlays/test` overlay ships with a patch template that keeps de
    kubectl apply -k kubernetes/overlays/test
    ```
 
-The directory contains a `.gitignore` entry that excludes `dev-env.yaml`, ensuring personal overrides never leak into commits. Only the `.exemple` file is tracked, which keeps teammates aligned on the expected structure.
+!!! tip "Keep local secrets out of Git"
+    `dev-env.yaml` is ignored by Git so your local values (domains, tokens, etc.) never get committed. Only the example file stays tracked to show the expected structure.
