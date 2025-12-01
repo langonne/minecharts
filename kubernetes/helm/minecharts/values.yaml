@@ -61,6 +61,10 @@ api:
     #   value: "mcapi"
     # - name: MINECHARTS_ALLOW_SELF_REGISTRATION
     #   value: "false"
+    # - name: MINECHARTS_DEFAULT_USER_PERMISSIONS
+    #   value: "operator" # aliases: none|readonly|operator|all or numeric bitmask (admin bit stripped)
+    # - name: MINECHARTS_FRONTEND_URL
+    #   value: "http://localhost:3000"
     # - name: MINECHARTS_MEMORY_QUOTA_ENABLED
     #   value: "false"
     # - name: MINECHARTS_MEMORY_QUOTA_LIMIT
@@ -87,6 +91,10 @@ api:
     #   value: "false"
     # - name: MINECHARTS_AUTHENTIK_ADMIN_GROUP
     #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_USER_GROUP
+    #   value: ""
+    # - name: MINECHARTS_AUTHENTIK_USER_PERMISSIONS
+    #   value: "operator"
     # - name: MINECHARTS_FEEDBACK_ENABLED
     #   value: "false"
     # - name: MINECHARTS_FEEDBACK_PROVIDER
