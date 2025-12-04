@@ -202,6 +202,12 @@ func (s *SQLiteDB) Init() error {
 		logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill empty statefulset_name values using prefix")
 	}
 
+	if hasDeployment, depErr := s.columnExists("minecraft_servers", "deployment_name"); depErr == nil && hasDeployment {
+		if _, err := s.db.Exec(`ALTER TABLE minecraft_servers DROP COLUMN deployment_name`); err != nil {
+			logging.DB.WithFields("error", err.Error()).Warn("Failed to drop legacy deployment_name column")
+		}
+	}
+
 	// Check if we need to create an admin user
 	logging.DB.Debug("Checking if admin user needs to be created")
 	var count int

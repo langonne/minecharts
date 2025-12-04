@@ -185,6 +185,12 @@ func (p *PostgresDB) Init() error {
 		logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill empty statefulset_name values using prefix")
 	}
 
+	if hasDeployment, depErr := p.columnExists("minecraft_servers", "deployment_name"); depErr == nil && hasDeployment {
+		if _, err := p.db.Exec(`ALTER TABLE minecraft_servers DROP COLUMN IF EXISTS deployment_name`); err != nil {
+			logging.DB.WithFields("error", err.Error()).Warn("Failed to drop legacy deployment_name column")
+		}
+	}
+
 	_, err = p.db.Exec(`
 		CREATE TABLE IF NOT EXISTS rate_limits (
 			key TEXT PRIMARY KEY,

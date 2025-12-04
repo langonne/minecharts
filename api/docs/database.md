@@ -42,7 +42,7 @@ Deleting a key removes the row and immediately invalidates future requests using
 | `status` | TEXT | Cached status (`running`, `stopped`, etc.). |
 | `created_at` / `updated_at` | TIMESTAMP | Lifecycle metadata. |
 
-The API derives `statefulset_name` and `pvc_name` using configuration values (`MINECHARTS_STATEFULSET_PREFIX` with a fallback to `MINECHARTS_DEPLOYMENT_PREFIX`, and `MINECHARTS_PVC_SUFFIX`) to keep database records and Kubernetes resources aligned.
+The API derives `statefulset_name` and `pvc_name` using configuration values (`MINECHARTS_STATEFULSET_PREFIX` and `MINECHARTS_PVC_SUFFIX`) to keep database records and Kubernetes resources aligned.
 
 When `MINECHARTS_MEMORY_QUOTA_ENABLED` is `true`, the API sums `max_memory_gb` across all rows before creating a new server and rejects the request if it would exceed `MINECHARTS_MEMORY_QUOTA_LIMIT`.
 
