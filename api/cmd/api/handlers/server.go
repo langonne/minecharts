@@ -534,12 +534,17 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	}
 
 	if err := db.CreateServerRecord(c.Request.Context(), server); err != nil {
-		// Log the error but don't fail the request since the server is already created in K8s
 		logging.DB.WithFields(
 			"server_name", baseName,
 			"user_id", userID,
 			"error", err.Error(),
-		).Error("Failed to record server in database")
+		).Error("Failed to record server in database; Kubernetes resources created but not tracked")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":           "Server created in Kubernetes but database persistence failed; please retry or contact an admin",
+			"statefulSetName": statefulSetName,
+			"pvcName":         pvcName,
+		})
+		return
 	}
 
 	logging.Server.WithFields(
