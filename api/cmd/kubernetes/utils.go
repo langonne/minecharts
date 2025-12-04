@@ -9,18 +9,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// getServerInfo returns the deployment and PVC names from a Gin context.
-func GetServerInfo(c *gin.Context) (deploymentName, pvcName string) {
+// getServerInfo returns the workload (StatefulSet) and PVC names from a Gin context.
+func GetServerInfo(c *gin.Context) (statefulSetName, pvcName string) {
 	// Extract the server name from the URL parameter
 	serverName := c.Param("serverName")
 
-	// Build the full deployment and PVC names
-	deploymentName = config.DeploymentPrefix + serverName
-	pvcName = deploymentName + config.PVCSuffix
+	// Build the full StatefulSet (workload) and PVC names
+	statefulSetName = config.StatefulSetPrefix + serverName
+	pvcName = statefulSetName + config.PVCSuffix
 
 	logging.K8s.WithFields(
 		logging.F("server_name", serverName),
-		logging.F("deployment_name", deploymentName),
+		logging.F("statefulset_name", statefulSetName),
 		logging.F("pvc_name", pvcName),
 		logging.F("remote_ip", c.ClientIP()),
 	).Debug("Extracted server information")

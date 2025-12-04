@@ -32,13 +32,13 @@ else
 fi`, script, script, script, script)
 }
 
-// getMinecraftPod gets the first pod associated with a deployment
-func GetMinecraftPod(namespace, deploymentName string) (*corev1.Pod, error) {
-	labelSelector := "app=" + deploymentName
+// getMinecraftPod gets the first pod associated with a StatefulSet
+func GetMinecraftPod(namespace, statefulSetName string) (*corev1.Pod, error) {
+	labelSelector := "app=" + statefulSetName
 
 	logging.K8s.WithFields(
 		"namespace", namespace,
-		"deployment_name", deploymentName,
+		"statefulset_name", statefulSetName,
 		"label_selector", labelSelector,
 	).Debug("Looking for Minecraft pod with label selector")
 
@@ -49,7 +49,7 @@ func GetMinecraftPod(namespace, deploymentName string) (*corev1.Pod, error) {
 	if err != nil {
 		logging.K8s.WithFields(
 			"namespace", namespace,
-			"deployment_name", deploymentName,
+			"statefulset_name", statefulSetName,
 			"error", err.Error(),
 		).Error("Failed to list pods")
 		return nil, err
@@ -58,15 +58,15 @@ func GetMinecraftPod(namespace, deploymentName string) (*corev1.Pod, error) {
 	if len(podList.Items) == 0 {
 		logging.K8s.WithFields(
 			"namespace", namespace,
-			"deployment_name", deploymentName,
-		).Warn("No pods found for deployment")
+			"statefulset_name", statefulSetName,
+		).Warn("No pods found for StatefulSet")
 		return nil, nil // No pods found
 	}
 
 	pod := &podList.Items[0]
 	logging.K8s.WithFields(
 		"namespace", namespace,
-		"deployment_name", deploymentName,
+		"statefulset_name", statefulSetName,
 		"pod_name", pod.Name,
 		"pod_status", pod.Status.Phase,
 	).Debug("Found Minecraft pod")

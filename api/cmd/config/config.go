@@ -10,7 +10,7 @@ import (
 var (
 	// Server configuration
 	DefaultNamespace      = getEnv("MINECHARTS_NAMESPACE", "minecharts")
-	DeploymentPrefix      = getEnv("MINECHARTS_DEPLOYMENT_PREFIX", "minecraft-server-")
+	StatefulSetPrefix     = getEnv("MINECHARTS_STATEFULSET_PREFIX", getEnv("MINECHARTS_DEPLOYMENT_PREFIX", "minecraft-server-"))
 	PVCSuffix             = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
 	StorageSize           = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
 	StorageClass          = getEnv("MINECHARTS_STORAGE_CLASS", "")          // local-path

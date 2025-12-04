@@ -1,7 +1,7 @@
 # Server Endpoints
 
 ## `POST /servers`
-- **Purpose:** Provision a server (PVC + Deployment + Service) for the caller.
+- **Purpose:** Provision a server (PVC + StatefulSet + Service) for the caller.
 - **Auth required:** JWT cookie or API key + `PermCreateServer`
 
 === "Request"
@@ -28,13 +28,16 @@
     ```json
     {
       "message": "Minecraft server started",
-      "deploymentName": "minecraft-server-survival",
+      "statefulSetName": "minecraft-server-survival",
       "pvcName": "minecraft-server-survival-pvc",
       "domain": "survival.test.nasdak.fr",
       "serviceName": "minecraft-server-survival-svc",
       "url": "survival.test.nasdak.fr"
     }
     ```
+
+!!! info "Workload naming"
+    The `statefulSetName` fields returned by the API mirror the Kubernetes StatefulSet names backing each server.
 
 !!! note "Environment variables"
     Every key/value under `env` is passed directly to the underlying `itzg/minecraft-server` container. Refer to the image documentation for the exhaustive list of supported options: <https://docker-minecraft-server.readthedocs.io/en/latest/variables/>.
@@ -60,7 +63,7 @@
       {
         "id": 12,
         "server_name": "survival",
-        "deployment_name": "minecraft-server-survival",
+        "statefulset_name": "minecraft-server-survival",
         "pvc_name": "minecraft-server-survival-pvc",
         "owner_id": 1,
         "status": "running",
@@ -99,7 +102,7 @@
     {
       "id": 12,
       "server_name": "survival",
-      "deployment_name": "minecraft-server-survival",
+      "statefulset_name": "minecraft-server-survival",
       "pvc_name": "minecraft-server-survival-pvc",
       "owner_id": 1,
       "status": "running",
@@ -119,7 +122,7 @@
     The per-server `url` appears only when the Kubernetes service uses the mc-router annotation.
 
 ## `POST /servers/{serverName}/restart`
-- **Purpose:** Save the world, update the deployment template, and trigger a rollout.
+- **Purpose:** Save the world, update the StatefulSet template, and trigger a rollout.
 - **Auth required:** JWT cookie or API key + owner or `PermRestartServer`
 
 === "Request"
@@ -134,14 +137,14 @@
     ```json
     {
       "message": "Server restart triggered",
-      "deploymentName": "minecraft-server-survival",
+      "statefulSetName": "minecraft-server-survival",
       "stdout": "[Server thread/INFO]: Saved the game",
       "stderr": ""
     }
     ```
 
 ## `POST /servers/{serverName}/stop`
-- **Purpose:** Scale the deployment to zero replicas.
+- **Purpose:** Scale the StatefulSet to zero replicas.
 - **Auth required:** JWT cookie or API key + owner or `PermStopServer`
 
 === "Request"
@@ -156,12 +159,12 @@
     ```json
     {
       "message": "Server stopping (replicas scaled to 0)",
-      "deploymentName": "minecraft-server-survival"
+      "statefulSetName": "minecraft-server-survival"
     }
     ```
 
 ## `POST /servers/{serverName}/start`
-- **Purpose:** Scale the deployment back to one replica.
+- **Purpose:** Scale the StatefulSet back to one replica.
 - **Auth required:** JWT cookie or API key + owner or `PermStartServer`
 
 === "Request"
@@ -175,13 +178,13 @@
 
     ```json
     {
-      "message": "Server starting (deployment scaled to 1)",
-      "deploymentName": "minecraft-server-survival"
+      "message": "Server starting (StatefulSet scaled to 1)",
+      "statefulSetName": "minecraft-server-survival"
     }
     ```
 
 ## `POST /servers/{serverName}/delete`
-- **Purpose:** Delete the deployment, service, PVC, and database record.
+- **Purpose:** Delete the StatefulSet, service, PVC, and database record.
 - **Auth required:** JWT cookie or API key + owner or `PermDeleteServer`
 
 === "Request"
@@ -195,8 +198,8 @@
 
     ```json
     {
-      "message": "Deployment, PVC and network resources deleted",
-      "deploymentName": "minecraft-server-survival",
+      "message": "StatefulSet, PVC and network resources deleted",
+      "statefulSetName": "minecraft-server-survival",
       "pvcName": "minecraft-server-survival-pvc"
     }
     ```

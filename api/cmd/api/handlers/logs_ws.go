@@ -192,12 +192,12 @@ func handleLogStreamConnection(conn *websocket.Conn, user *database.User) {
 		return
 	}
 
-	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, server.DeploymentName)
+	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, server.StatefulSetName)
 	if err != nil {
 		logging.WithFields(
 			mergeFields(
 				logging.F("server_id", server.ID),
-				logging.F("deployment", server.DeploymentName),
+				logging.F("statefulset", server.StatefulSetName),
 				logging.F("error", err.Error()),
 			)...,
 		).Error("Failed to locate server pod")
@@ -209,7 +209,7 @@ func handleLogStreamConnection(conn *websocket.Conn, user *database.User) {
 		logging.WithFields(
 			mergeFields(
 				logging.F("server_id", server.ID),
-				logging.F("deployment", server.DeploymentName),
+				logging.F("statefulset", server.StatefulSetName),
 			)...,
 		).Warn("No pod available for server")
 		safeWriter.writeJSON(logStreamResponse{Type: "error", Message: "server pod not available"})
@@ -219,7 +219,7 @@ func handleLogStreamConnection(conn *websocket.Conn, user *database.User) {
 	logging.WithFields(
 		mergeFields(
 			logging.F("server_id", server.ID),
-			logging.F("deployment", server.DeploymentName),
+			logging.F("statefulset", server.StatefulSetName),
 			logging.F("pod_name", pod.Name),
 		)...,
 	).Info("Starting log streaming")
@@ -249,7 +249,7 @@ func handleLogStreamConnection(conn *websocket.Conn, user *database.User) {
 		logging.WithFields(
 			mergeFields(
 				logging.F("server_id", server.ID),
-				logging.F("deployment", server.DeploymentName),
+				logging.F("statefulset", server.StatefulSetName),
 				logging.F("pod_name", pod.Name),
 				logging.F("error", streamErr.Error()),
 			)...,
@@ -259,7 +259,7 @@ func handleLogStreamConnection(conn *websocket.Conn, user *database.User) {
 		logging.WithFields(
 			mergeFields(
 				logging.F("server_id", server.ID),
-				logging.F("deployment", server.DeploymentName),
+				logging.F("statefulset", server.StatefulSetName),
 				logging.F("pod_name", pod.Name),
 			)...,
 		).Info("Log streaming finished")

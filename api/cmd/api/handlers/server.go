@@ -98,7 +98,7 @@ func resolveMaxMemoryGB(env map[string]string) (int64, error) {
 	return value, nil
 }
 
-// GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
+// GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing StatefulSet.
 
 func GetMinecraftServerHandler(c *gin.Context) {
 	// Require authenticated user
@@ -192,19 +192,19 @@ func GetMinecraftServerHandler(c *gin.Context) {
 		return
 	}
 
-	// Must have an existing deployment
-	deployment, err := kubernetes.Clientset.AppsV1().Deployments(config.DefaultNamespace).Get(
+	// Must have an existing StatefulSet
+	statefulSet, err := kubernetes.Clientset.AppsV1().StatefulSets(config.DefaultNamespace).Get(
 		c.Request.Context(),
-		srv.DeploymentName,
+		srv.StatefulSetName,
 		metav1.GetOptions{},
 	)
 	if err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", srv.DeploymentName,
+			"statefulset", srv.StatefulSetName,
 			"error", err.Error(),
-		).Warn("Deployment not found for server")
-		c.JSON(http.StatusNotFound, gin.H{"error": "Server deployment not found"})
+		).Warn("StatefulSet not found for server")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server StatefulSet not found"})
 		return
 	}
 
@@ -214,7 +214,7 @@ func GetMinecraftServerHandler(c *gin.Context) {
 		Environment:     make(map[string]string),
 	}
 
-	serviceName := srv.DeploymentName + "-svc"
+	serviceName := srv.StatefulSetName + "-svc"
 	if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
@@ -227,13 +227,13 @@ func GetMinecraftServerHandler(c *gin.Context) {
 		}
 	}
 
-	if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas == 0 {
+	if statefulSet.Spec.Replicas != nil && *statefulSet.Spec.Replicas == 0 {
 		enriched.Status = "stopped"
 	} else {
 		enriched.Status = "running"
 	}
 
-	for _, container := range deployment.Spec.Template.Spec.Containers {
+	for _, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == "minecraft-server" {
 			for _, env := range container.Env {
 				enriched.Environment[env.Name] = env.Value
@@ -279,23 +279,23 @@ func ListMinecraftServersHandler(c *gin.Context) {
 		return
 	}
 
-	// Enrich servers with environment variables - only include servers with existing deployments
+	// Enrich servers with environment variables - only include servers with existing StatefulSets
 	enrichedServers := make([]MinecraftServerEnv, 0, len(servers))
 	for _, server := range servers {
-		// Get deployment to extract environment variables
-		deployment, err := kubernetes.Clientset.AppsV1().Deployments(config.DefaultNamespace).Get(
+		// Get StatefulSet to extract environment variables
+		statefulSet, err := kubernetes.Clientset.AppsV1().StatefulSets(config.DefaultNamespace).Get(
 			c.Request.Context(),
-			server.DeploymentName,
+			server.StatefulSetName,
 			metav1.GetOptions{},
 		)
 
-		// Skip servers without existing deployments
+		// Skip servers without existing StatefulSets
 		if err != nil {
 			logging.Server.WithFields(
 				"server_name", server.ServerName,
-				"deployment", server.DeploymentName,
+				"statefulset", server.StatefulSetName,
 				"error", err.Error(),
-			).Debug("Skipping server without deployment")
+			).Debug("Skipping server without StatefulSet")
 			continue
 		}
 
@@ -304,7 +304,7 @@ func ListMinecraftServersHandler(c *gin.Context) {
 			Environment:     make(map[string]string),
 		}
 
-		serviceName := server.DeploymentName + "-svc"
+		serviceName := server.StatefulSetName + "-svc"
 		if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
 			logging.Server.WithFields(
 				"server_name", server.ServerName,
@@ -317,15 +317,15 @@ func ListMinecraftServersHandler(c *gin.Context) {
 			}
 		}
 
-		// Update status based on deployment replicas
-		if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas == 0 {
+		// Update status based on StatefulSet replicas
+		if statefulSet.Spec.Replicas != nil && *statefulSet.Spec.Replicas == 0 {
 			enriched.Status = "stopped"
 		} else {
 			enriched.Status = "running"
 		}
 
 		// Find the minecraft-server container and extract its environment variables
-		for _, container := range deployment.Spec.Template.Spec.Containers {
+		for _, container := range statefulSet.Spec.Template.Spec.Containers {
 			if container.Name == "minecraft-server" {
 				for _, env := range container.Env {
 					enriched.Environment[env.Name] = env.Value
@@ -352,7 +352,7 @@ type StartMinecraftServerRequest struct {
 	Env        map[string]string `json:"env" example:"{\"DIFFICULTY\":\"normal\",\"MODE\":\"survival\",\"MEMORY\":\"4G\"}"`
 }
 
-// StartMinecraftServerHandler creates the PVC and starts the Minecraft deployment.
+// StartMinecraftServerHandler creates the PVC and starts the Minecraft StatefulSet.
 
 func StartMinecraftServerHandler(c *gin.Context) {
 	var req StartMinecraftServerRequest
@@ -375,8 +375,8 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	}
 
 	baseName := req.ServerName
-	deploymentName := config.DeploymentPrefix + baseName
-	pvcName := deploymentName + config.PVCSuffix
+	statefulSetName := config.StatefulSetPrefix + baseName
+	pvcName := statefulSetName + config.PVCSuffix
 
 	maxMemoryGB, err := resolveMaxMemoryGB(req.Env)
 	if err != nil {
@@ -398,7 +398,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", baseName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"pvc", pvcName,
 		"user_id", userID,
 		"username", username,
@@ -479,30 +479,17 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		})
 	}
 
-	// Creates the deployment with the existing PVC (created if necessary).
-	if err := kubernetes.CreateDeployment(config.DefaultNamespace, deploymentName, pvcName, envVars, maxMemoryGB); err != nil {
-		logging.Server.WithFields(
-			"server_name", baseName,
-			"deployment", deploymentName,
-			"pvc", pvcName,
-			"user_id", userID,
-			"error", err.Error(),
-		).Error("Failed to create deployment")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create deployment: " + err.Error()})
-		return
-	}
-
 	domain := fmt.Sprintf("%s.%s", baseName, config.MCRouterDomainSuffix)
-	serviceName := deploymentName + "-svc"
+	serviceName := statefulSetName + "-svc"
 	mcRouterAnnotations := map[string]string{
 		"mc-router.itzg.me/externalServerName": domain,
 	}
 
-	service, err := kubernetes.CreateService(config.DefaultNamespace, deploymentName, corev1.ServiceTypeClusterIP, 25565, mcRouterAnnotations)
+	service, err := kubernetes.CreateService(config.DefaultNamespace, statefulSetName, corev1.ServiceTypeClusterIP, 25565, mcRouterAnnotations)
 	if err != nil {
 		logging.Server.WithFields(
 			"server_name", baseName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"service", serviceName,
 			"domain", domain,
 			"user_id", userID,
@@ -512,24 +499,38 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		return
 	}
 
+	// Creates the StatefulSet with the existing PVC (created if necessary).
+	if err := kubernetes.CreateStatefulSet(config.DefaultNamespace, statefulSetName, serviceName, pvcName, envVars, maxMemoryGB); err != nil {
+		_ = kubernetes.DeleteService(config.DefaultNamespace, serviceName)
+		logging.Server.WithFields(
+			"server_name", baseName,
+			"statefulset", statefulSetName,
+			"pvc", pvcName,
+			"user_id", userID,
+			"error", err.Error(),
+		).Error("Failed to create StatefulSet")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create StatefulSet: " + err.Error()})
+		return
+	}
+
 	logging.Server.WithFields(
 		"server_name", baseName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"service", serviceName,
 		"domain", domain,
 		"user_id", userID,
 	).Info("Minecraft server exposed through mc-router")
 
-	// After successful deployment creation, record the server in database
+	// After successful StatefulSet creation, record the server in database
 	server := &database.MinecraftServer{
-		ServerName:     baseName,
-		DeploymentName: deploymentName,
-		PVCName:        pvcName,
-		OwnerID:        userID,
-		MaxMemoryGB:    maxMemoryGB,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
-		Status:         "running",
+		ServerName:      baseName,
+		StatefulSetName: statefulSetName,
+		PVCName:         pvcName,
+		OwnerID:         userID,
+		MaxMemoryGB:     maxMemoryGB,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		Status:          "running",
 	}
 
 	if err := db.CreateServerRecord(c.Request.Context(), server); err != nil {
@@ -543,18 +544,18 @@ func StartMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", baseName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"pvc", pvcName,
 		"user_id", userID,
 		"username", username,
 	).Info("Minecraft server created successfully")
 
 	response := gin.H{
-		"message":        "Minecraft server started",
-		"deploymentName": deploymentName,
-		"pvcName":        pvcName,
-		"domain":         domain,
-		"serviceName":    service.Name,
+		"message":         "Minecraft server started",
+		"statefulSetName": statefulSetName,
+		"pvcName":         pvcName,
+		"domain":          domain,
+		"serviceName":     service.Name,
 	}
 
 	if url := extractMCRouterURL(service); url != "" {
@@ -564,10 +565,10 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// RestartMinecraftServerHandler saves the world and then restarts the deployment.
+// RestartMinecraftServerHandler saves the world and then restarts the StatefulSet.
 
 func RestartMinecraftServerHandler(c *gin.Context) {
-	deploymentName, _ := kubernetes.GetServerInfo(c)
+	statefulSetName, _ := kubernetes.GetServerInfo(c)
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -582,63 +583,63 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Restarting Minecraft server")
 
-	// Check if the deployment exists
-	deployment, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	// Check if the StatefulSet exists
+	statefulSet, ok := kubernetes.CheckStatefulSetExists(c, config.DefaultNamespace, statefulSetName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
-		).Warn("Deployment not found for restart")
+			"statefulset", statefulSetName,
+		).Warn("StatefulSet not found for restart")
 		return
 	}
 
-	// Get the pod associated with this deployment to run the save command
-	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, deploymentName)
+	// Get the pod associated with this StatefulSet to run the save command
+	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, statefulSetName)
 	if err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err,
-		).Error("Failed to find pod for deployment")
+		).Error("Failed to find pod for StatefulSet")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to find pod for deployment: " + deploymentName,
+			"error": "Failed to find pod for StatefulSet: " + statefulSetName,
 		})
 		return
 	}
 
 	if pod == nil {
 		replicas := int32(0)
-		if deployment.Spec.Replicas != nil {
-			replicas = *deployment.Spec.Replicas
+		if statefulSet.Spec.Replicas != nil {
+			replicas = *statefulSet.Spec.Replicas
 		}
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"desired_replicas", replicas,
-		).Info("No running pod found for restart; scaling deployment to 1")
+		).Info("No running pod found for restart; scaling StatefulSet to 1")
 
-		if err := kubernetes.SetDeploymentReplicas(config.DefaultNamespace, deploymentName, 1); err != nil {
+		if err := kubernetes.SetStatefulSetReplicas(config.DefaultNamespace, statefulSetName, 1); err != nil {
 			logging.Server.WithFields(
 				"server_name", serverName,
-				"deployment", deploymentName,
+				"statefulset", statefulSetName,
 				"error", err.Error(),
-			).Error("Failed to scale deployment while handling restart without pod")
+			).Error("Failed to scale StatefulSet while handling restart without pod")
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":          "Failed to scale deployment: " + err.Error(),
-				"deploymentName": deploymentName,
+				"error":           "Failed to scale StatefulSet: " + err.Error(),
+				"statefulSetName": statefulSetName,
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":        "No running pod was found; deployment scaled to 1 instead of restart",
-			"deploymentName": deploymentName,
+			"message":         "No running pod was found; StatefulSet scaled to 1 instead of restart",
+			"statefulSetName": statefulSetName,
 		})
 		return
 	}
@@ -657,8 +658,8 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 			"error", err.Error(),
 		).Error("Failed to save world before restart")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":          "Failed to save world: " + err.Error(),
-			"deploymentName": deploymentName,
+			"error":           "Failed to save world: " + err.Error(),
+			"statefulSetName": statefulSetName,
 		})
 		return
 	}
@@ -668,30 +669,30 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 		"pod", pod.Name,
 	).Debug("World saved successfully before restart")
 
-	// Restart the deployment
-	if err := kubernetes.RestartDeployment(config.DefaultNamespace, deploymentName); err != nil {
+	// Restart the StatefulSet
+	if err := kubernetes.RestartStatefulSet(config.DefaultNamespace, statefulSetName); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err.Error(),
-		).Error("Failed to restart deployment")
+		).Error("Failed to restart StatefulSet")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":          "Failed to restart deployment: " + err.Error(),
-			"deploymentName": deploymentName,
+			"error":           "Failed to restart StatefulSet: " + err.Error(),
+			"statefulSetName": statefulSetName,
 		})
 		return
 	}
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 	).Info("Minecraft server restarted successfully")
 
 	response := gin.H{
-		"message":        "Minecraft server restarting",
-		"deploymentName": deploymentName,
+		"message":         "Minecraft server restarting",
+		"statefulSetName": statefulSetName,
 	}
 
 	if stdout != "" || stderr != "" {
@@ -702,10 +703,10 @@ func RestartMinecraftServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// StopMinecraftServerHandler scales the deployment to 0 replicas.
+// StopMinecraftServerHandler scales the StatefulSet to 0 replicas.
 
 func StopMinecraftServerHandler(c *gin.Context) {
-	deploymentName, _ := kubernetes.GetServerInfo(c)
+	statefulSetName, _ := kubernetes.GetServerInfo(c)
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -720,32 +721,32 @@ func StopMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Stopping Minecraft server")
 
-	// Check if the deployment exists
-	_, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	// Check if the StatefulSet exists
+	_, ok := kubernetes.CheckStatefulSetExists(c, config.DefaultNamespace, statefulSetName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
-		).Warn("Deployment not found for stop operation")
+			"statefulset", statefulSetName,
+		).Warn("StatefulSet not found for stop operation")
 		return
 	}
 
-	// Get the pod associated with this deployment to run the save command
-	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, deploymentName)
+	// Get the pod associated with this StatefulSet to run the save command
+	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, statefulSetName)
 	if err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err.Error(),
-		).Error("Failed to find pod for deployment")
+		).Error("Failed to find pod for StatefulSet")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to find pod for deployment: " + deploymentName,
+			"error": "Failed to find pod for StatefulSet: " + statefulSetName,
 		})
 		return
 	}
@@ -764,8 +765,8 @@ func StopMinecraftServerHandler(c *gin.Context) {
 				"error", err.Error(),
 			).Error("Failed to save world before stopping")
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":          "Failed to save world: " + err.Error(),
-				"deploymentName": deploymentName,
+				"error":           "Failed to save world: " + err.Error(),
+				"statefulSetName": statefulSetName,
 			})
 			return
 		}
@@ -775,37 +776,37 @@ func StopMinecraftServerHandler(c *gin.Context) {
 		).Debug("World saved successfully before stopping")
 	}
 
-	// Scale deployment to 0
-	if err := kubernetes.SetDeploymentReplicas(config.DefaultNamespace, deploymentName, 0); err != nil {
+	// Scale StatefulSet to 0
+	if err := kubernetes.SetStatefulSetReplicas(config.DefaultNamespace, statefulSetName, 0); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err.Error(),
-		).Error("Failed to scale deployment to 0")
+		).Error("Failed to scale StatefulSet to 0")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":          "Failed to scale deployment: " + err.Error(),
-			"deploymentName": deploymentName,
+			"error":           "Failed to scale StatefulSet: " + err.Error(),
+			"statefulSetName": statefulSetName,
 		})
 		return
 	}
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 	).Info("Minecraft server stopped successfully")
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":        "Server stopped (deployment scaled to 0), data retained",
-		"deploymentName": deploymentName,
+		"message":         "Server stopped (StatefulSet scaled to 0), data retained",
+		"statefulSetName": statefulSetName,
 	})
 }
 
-// StartStoppedServerHandler scales a stopped deployment back to 1 replica.
+// StartStoppedServerHandler scales a stopped StatefulSet back to 1 replica.
 
 func StartStoppedServerHandler(c *gin.Context) {
-	deploymentName, _ := kubernetes.GetServerInfo(c)
+	statefulSetName, _ := kubernetes.GetServerInfo(c)
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -820,53 +821,53 @@ func StartStoppedServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Starting stopped Minecraft server")
 
-	// Check if the deployment exists
-	_, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	// Check if the StatefulSet exists
+	_, ok := kubernetes.CheckStatefulSetExists(c, config.DefaultNamespace, statefulSetName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
-		).Warn("Deployment not found for start operation")
+			"statefulset", statefulSetName,
+		).Warn("StatefulSet not found for start operation")
 		return
 	}
 
-	// Scale deployment to 1
-	if err := kubernetes.SetDeploymentReplicas(config.DefaultNamespace, deploymentName, 1); err != nil {
+	// Scale StatefulSet to 1
+	if err := kubernetes.SetStatefulSetReplicas(config.DefaultNamespace, statefulSetName, 1); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err.Error(),
-		).Error("Failed to scale deployment to 1")
+		).Error("Failed to scale StatefulSet to 1")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":          "Failed to start deployment: " + err.Error(),
-			"deploymentName": deploymentName,
+			"error":           "Failed to start StatefulSet: " + err.Error(),
+			"statefulSetName": statefulSetName,
 		})
 		return
 	}
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 	).Info("Minecraft server started successfully")
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":        "Server starting (deployment scaled to 1)",
-		"deploymentName": deploymentName,
+		"message":         "Server starting (StatefulSet scaled to 1)",
+		"statefulSetName": statefulSetName,
 	})
 }
 
 // DeleteMinecraftServerHandler deletes a Minecraft server.
 
 func DeleteMinecraftServerHandler(c *gin.Context) {
-	deploymentName, pvcName := kubernetes.GetServerInfo(c)
+	statefulSetName, pvcName := kubernetes.GetServerInfo(c)
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -881,22 +882,22 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"pvc", pvcName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Deleting Minecraft server")
 
-	// Delete the deployment if it exists
-	if err := kubernetes.DeleteDeployment(config.DefaultNamespace, deploymentName); err != nil {
+	// Delete the StatefulSet if it exists
+	if err := kubernetes.DeleteStatefulSet(config.DefaultNamespace, statefulSetName); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err.Error(),
-		).Warn("Error when deleting deployment")
+		).Warn("Error when deleting StatefulSet")
 	} else {
-		logging.Server.Debug("Deployment deleted successfully")
+		logging.Server.Debug("StatefulSet deleted successfully")
 	}
 
 	// Delete the PVC
@@ -911,7 +912,7 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 	}
 
 	// Clean up network resources
-	serviceName := deploymentName + "-svc"
+	serviceName := statefulSetName + "-svc"
 	if err := kubernetes.DeleteService(config.DefaultNamespace, serviceName); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
@@ -924,7 +925,7 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"pvc", pvcName,
@@ -946,9 +947,9 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":        "Deployment, PVC and network resources deleted",
-		"deploymentName": deploymentName,
-		"pvcName":        pvcName,
+		"message":         "StatefulSet, PVC and network resources deleted",
+		"statefulSetName": statefulSetName,
+		"pvcName":         pvcName,
 	})
 }
 
@@ -962,7 +963,7 @@ type ExecCommandRequest struct {
 func ExecCommandHandler(c *gin.Context) {
 	// Extract the server name from the URL parameter
 	serverName := c.Param("serverName")
-	deploymentName := config.DeploymentPrefix + serverName
+	statefulSetName := config.StatefulSetPrefix + serverName
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -975,32 +976,32 @@ func ExecCommandHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Executing command on Minecraft server")
 
-	// Check if the deployment exists
-	_, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	// Check if the StatefulSet exists
+	_, ok := kubernetes.CheckStatefulSetExists(c, config.DefaultNamespace, statefulSetName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
-		).Warn("Deployment not found for command execution")
+			"statefulset", statefulSetName,
+		).Warn("StatefulSet not found for command execution")
 		return
 	}
 
-	// Get the pod associated with this deployment
-	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, deploymentName)
+	// Get the pod associated with this StatefulSet
+	pod, err := kubernetes.GetMinecraftPod(config.DefaultNamespace, statefulSetName)
 	if err != nil || pod == nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"error", err,
-		).Error("Failed to find running pod for deployment")
+		).Error("Failed to find running pod for StatefulSet")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to find running pod for deployment: " + deploymentName,
+			"error": "Failed to find running pod for StatefulSet: " + statefulSetName,
 		})
 		return
 	}

@@ -20,6 +20,19 @@ type PostgresDB struct {
 	db *sql.DB
 }
 
+// columnExists checks if a column exists on a given table.
+func (p *PostgresDB) columnExists(table, column string) (bool, error) {
+	var exists bool
+	err := p.db.QueryRow(
+		`SELECT EXISTS (
+            SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = $2
+        )`,
+		table, column,
+	).Scan(&exists)
+
+	return exists, err
+}
+
 // NewPostgresDB creates a new PostgreSQL database connection
 func NewPostgresDB(connString string) (*PostgresDB, error) {
 	logging.DB.WithFields(
@@ -125,7 +138,7 @@ func (p *PostgresDB) Init() error {
     CREATE TABLE IF NOT EXISTS minecraft_servers (
         id SERIAL PRIMARY KEY,
         server_name TEXT UNIQUE NOT NULL,
-        deployment_name TEXT NOT NULL,
+        statefulset_name TEXT NOT NULL,
         pvc_name TEXT NOT NULL,
         owner_id INTEGER NOT NULL REFERENCES users(id),
         max_memory_gb INTEGER NOT NULL DEFAULT 1,
@@ -147,6 +160,29 @@ func (p *PostgresDB) Init() error {
 			"error", err.Error(),
 		).Error("Failed to add max_memory_gb column to minecraft_servers")
 		return err
+	}
+
+	// Migration: add and backfill statefulset_name for older databases.
+	hasStateful, err := p.columnExists("minecraft_servers", "statefulset_name")
+	if err != nil {
+		logging.DB.WithFields("error", err.Error()).Error("Failed to inspect minecraft_servers schema")
+		return err
+	}
+	if !hasStateful {
+		if _, err := p.db.Exec(`ALTER TABLE minecraft_servers ADD COLUMN IF NOT EXISTS statefulset_name TEXT`); err != nil {
+			logging.DB.WithFields("error", err.Error()).Error("Failed to add statefulset_name column to minecraft_servers")
+			return err
+		}
+	}
+
+	if hasDeployment, depErr := p.columnExists("minecraft_servers", "deployment_name"); depErr == nil && hasDeployment {
+		if _, err := p.db.Exec(`UPDATE minecraft_servers SET statefulset_name = deployment_name WHERE (statefulset_name IS NULL OR statefulset_name = '') AND deployment_name IS NOT NULL AND deployment_name <> ''`); err != nil {
+			logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill statefulset_name from deployment_name")
+		}
+	}
+
+	if _, err := p.db.Exec(`UPDATE minecraft_servers SET statefulset_name = $1 || server_name WHERE statefulset_name IS NULL OR statefulset_name = ''`, config.StatefulSetPrefix); err != nil {
+		logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill empty statefulset_name values using prefix")
 	}
 
 	_, err = p.db.Exec(`
@@ -796,7 +832,7 @@ func (p *PostgresDB) ListAPIKeysByUser(ctx context.Context, userID int64) ([]*AP
 // CreateServerRecord creates a new Minecraft server record
 func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftServer) error {
 	query := `INSERT INTO minecraft_servers
-              (server_name, deployment_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
+              (server_name, statefulset_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
               RETURNING id`
 
@@ -806,7 +842,7 @@ func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftSe
 
 	err := p.db.QueryRowContext(ctx, query,
 		server.ServerName,
-		server.DeploymentName,
+		server.StatefulSetName,
 		server.PVCName,
 		server.OwnerID,
 		server.MaxMemoryGB,
@@ -832,7 +868,7 @@ func (p *PostgresDB) CreateServerRecord(ctx context.Context, server *MinecraftSe
 
 // GetServerByName gets a Minecraft server by its name
 func (p *PostgresDB) GetServerByName(ctx context.Context, serverName string) (*MinecraftServer, error) {
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE server_name = $1`
 
@@ -840,7 +876,7 @@ func (p *PostgresDB) GetServerByName(ctx context.Context, serverName string) (*M
 	err := p.db.QueryRowContext(ctx, query, serverName).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -878,7 +914,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 		"server_name", serverName,
 	).Debug("Getting server by owner and name")
 
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = $1 AND server_name = $2`
 
@@ -886,7 +922,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 	err := p.db.QueryRowContext(ctx, query, ownerID, serverName).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -922,7 +958,7 @@ func (p *PostgresDB) GetServerForOwner(ctx context.Context, ownerID int64, serve
 
 // GetServerByID retrieves a Minecraft server record by its ID.
 func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*MinecraftServer, error) {
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE id = $1`
 
@@ -930,7 +966,7 @@ func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*Minecr
 	err := p.db.QueryRowContext(ctx, query, serverID).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -964,7 +1000,7 @@ func (p *PostgresDB) GetServerByID(ctx context.Context, serverID int64) (*Minecr
 
 // ListServersByOwner list all Minecraft servers by owner ID
 func (p *PostgresDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*MinecraftServer, error) {
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = $1`
 
@@ -984,7 +1020,7 @@ func (p *PostgresDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*
 		if err := rows.Scan(
 			&server.ID,
 			&server.ServerName,
-			&server.DeploymentName,
+			&server.StatefulSetName,
 			&server.PVCName,
 			&server.OwnerID,
 			&server.MaxMemoryGB,

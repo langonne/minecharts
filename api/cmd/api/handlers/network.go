@@ -25,7 +25,7 @@ type ExposeServerRequest struct {
 func ExposeMinecraftServerHandler(c *gin.Context) {
 	// Get server info from URL parameter
 	serverName := c.Param("serverName")
-	deploymentName := config.DeploymentPrefix + serverName
+	statefulSetName := config.StatefulSetPrefix + serverName
 
 	// Get current user for logging
 	user, _ := auth.GetCurrentUser(c)
@@ -38,21 +38,21 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"user_id", userID,
 		"username", username,
 		"remote_ip", c.ClientIP(),
 	).Info("Expose server request received")
 
-	// Check if the deployment exists
-	_, ok := kubernetes.CheckDeploymentExists(c, config.DefaultNamespace, deploymentName)
+	// Check if the StatefulSet exists
+	_, ok := kubernetes.CheckStatefulSetExists(c, config.DefaultNamespace, statefulSetName)
 	if !ok {
 		logging.Server.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"user_id", userID,
-			"error", "deployment_not_found",
-		).Warn("Server exposure failed: deployment not found")
+			"error", "statefulset_not_found",
+		).Warn("Server exposure failed: StatefulSet not found")
 		return
 	}
 
@@ -62,7 +62,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logging.API.InvalidRequest.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"user_id", userID,
 			"error", err.Error(),
 		).Warn("Server exposure failed: invalid request body")
@@ -72,7 +72,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 
 	logging.Server.WithFields(
 		"server_name", serverName,
-		"deployment", deploymentName,
+		"statefulset", statefulSetName,
 		"exposure_type", req.ExposureType,
 		"port", req.Port,
 		"domain", req.Domain,
@@ -85,7 +85,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 		req.ExposureType != "MCRouter" {
 		logging.API.InvalidRequest.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"exposure_type", req.ExposureType,
 			"user_id", userID,
 			"error", "invalid_exposure_type",
@@ -100,7 +100,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 	if req.ExposureType == "MCRouter" && req.Domain == "" {
 		logging.API.InvalidRequest.WithFields(
 			"server_name", serverName,
-			"deployment", deploymentName,
+			"statefulset", statefulSetName,
 			"exposure_type", req.ExposureType,
 			"user_id", userID,
 			"error", "missing_domain",
@@ -118,9 +118,9 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 	}
 
 	// Service name will be consistent
-	serviceName := deploymentName + "-svc"
+	serviceName := statefulSetName + "-svc"
 
-	// Clean up any existing services for this deployment
+	// Clean up any existing services for this StatefulSet
 	// Ignore errors in case the resources don't exist yet
 	logging.Server.WithFields(
 		"server_name", serverName,
@@ -153,7 +153,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 	).Info("Creating Kubernetes service")
 
 	// Create the service
-	service, err := kubernetes.CreateService(config.DefaultNamespace, deploymentName, serviceType, req.Port, annotations)
+	service, err := kubernetes.CreateService(config.DefaultNamespace, statefulSetName, serviceType, req.Port, annotations)
 	if err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,

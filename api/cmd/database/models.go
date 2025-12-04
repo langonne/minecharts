@@ -66,7 +66,7 @@ type User struct {
 type MinecraftServer struct {
 	ID             int64     `json:"id"`
 	ServerName     string    `json:"server_name"`
-	DeploymentName string    `json:"deployment_name"`
+	StatefulSetName string    `json:"statefulset_name"`
 	PVCName        string    `json:"pvc_name"`
 	OwnerID        int64     `json:"owner_id"`
 	MaxMemoryGB    int64     `json:"max_memory_gb"`

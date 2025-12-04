@@ -21,6 +21,30 @@ type SQLiteDB struct {
 	db *sql.DB
 }
 
+// columnExists checks if a column exists on a given table.
+func (s *SQLiteDB) columnExists(table, column string) (bool, error) {
+	rows, err := s.db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt sql.NullString
+		if scanErr := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); scanErr != nil {
+			return false, scanErr
+		}
+		if strings.EqualFold(name, column) {
+			return true, nil
+		}
+	}
+
+	return false, rows.Err()
+}
+
 // NewSQLiteDB creates a new SQLite database connection
 func NewSQLiteDB(path string) (*SQLiteDB, error) {
 	logging.DB.WithFields(
@@ -126,7 +150,7 @@ func (s *SQLiteDB) Init() error {
     CREATE TABLE IF NOT EXISTS minecraft_servers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         server_name TEXT UNIQUE NOT NULL,
-        deployment_name TEXT NOT NULL,
+        statefulset_name TEXT NOT NULL,
         pvc_name TEXT NOT NULL,
         owner_id INTEGER NOT NULL,
         max_memory_gb INTEGER NOT NULL DEFAULT 1,
@@ -151,6 +175,31 @@ func (s *SQLiteDB) Init() error {
 			).Error("Failed to add max_memory_gb column to minecraft_servers")
 			return err
 		}
+	}
+
+	// Migration: add and backfill statefulset_name for older databases.
+	hasStateful, err := s.columnExists("minecraft_servers", "statefulset_name")
+	if err != nil {
+		logging.DB.WithFields("error", err.Error()).Error("Failed to inspect minecraft_servers schema")
+		return err
+	}
+	if !hasStateful {
+		if _, err := s.db.Exec(`ALTER TABLE minecraft_servers ADD COLUMN statefulset_name TEXT`); err != nil {
+			if !strings.Contains(strings.ToLower(err.Error()), "duplicate column name") {
+				logging.DB.WithFields("error", err.Error()).Error("Failed to add statefulset_name column to minecraft_servers")
+				return err
+			}
+		}
+	}
+
+	if hasDeployment, depErr := s.columnExists("minecraft_servers", "deployment_name"); depErr == nil && hasDeployment {
+		if _, err := s.db.Exec(`UPDATE minecraft_servers SET statefulset_name = deployment_name WHERE (statefulset_name IS NULL OR statefulset_name = '') AND deployment_name IS NOT NULL AND deployment_name != ''`); err != nil {
+			logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill statefulset_name from deployment_name")
+		}
+	}
+
+	if _, err := s.db.Exec(`UPDATE minecraft_servers SET statefulset_name = ? || server_name WHERE statefulset_name IS NULL OR statefulset_name = ''`, config.StatefulSetPrefix); err != nil {
+		logging.DB.WithFields("error", err.Error()).Warn("Failed to backfill empty statefulset_name values using prefix")
 	}
 
 	// Check if we need to create an admin user
@@ -873,7 +922,7 @@ func (db *SQLiteDB) CreateServerRecord(ctx context.Context, server *MinecraftSer
 	).Info("Creating new server record")
 
 	query := `INSERT INTO minecraft_servers
-              (server_name, deployment_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
+              (server_name, statefulset_name, pvc_name, owner_id, max_memory_gb, status, created_at, updated_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	now := time.Now()
@@ -882,7 +931,7 @@ func (db *SQLiteDB) CreateServerRecord(ctx context.Context, server *MinecraftSer
 
 	result, err := db.db.ExecContext(ctx, query,
 		server.ServerName,
-		server.DeploymentName,
+		server.StatefulSetName,
 		server.PVCName,
 		server.OwnerID,
 		server.MaxMemoryGB,
@@ -922,7 +971,7 @@ func (db *SQLiteDB) GetServerByName(ctx context.Context, serverName string) (*Mi
 		"server_name", serverName,
 	).Debug("Getting server by name")
 
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE server_name = ?`
 
@@ -930,7 +979,7 @@ func (db *SQLiteDB) GetServerByName(ctx context.Context, serverName string) (*Mi
 	err := db.db.QueryRowContext(ctx, query, serverName).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -968,7 +1017,7 @@ func (db *SQLiteDB) GetServerForOwner(ctx context.Context, ownerID int64, server
 		"server_name", serverName,
 	).Debug("Getting server by owner and name")
 
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = ? AND server_name = ?`
 
@@ -976,7 +1025,7 @@ func (db *SQLiteDB) GetServerForOwner(ctx context.Context, ownerID int64, server
 	err := db.db.QueryRowContext(ctx, query, ownerID, serverName).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -1016,7 +1065,7 @@ func (db *SQLiteDB) GetServerByID(ctx context.Context, serverID int64) (*Minecra
 		"server_id", serverID,
 	).Debug("Getting server by ID")
 
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE id = ?`
 
@@ -1024,7 +1073,7 @@ func (db *SQLiteDB) GetServerByID(ctx context.Context, serverID int64) (*Minecra
 	err := db.db.QueryRowContext(ctx, query, serverID).Scan(
 		&server.ID,
 		&server.ServerName,
-		&server.DeploymentName,
+		&server.StatefulSetName,
 		&server.PVCName,
 		&server.OwnerID,
 		&server.MaxMemoryGB,
@@ -1062,7 +1111,7 @@ func (db *SQLiteDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*M
 		"owner_id", ownerID,
 	).Debug("Listing servers by owner")
 
-	query := `SELECT id, server_name, deployment_name, pvc_name, owner_id,
+	query := `SELECT id, server_name, statefulset_name, pvc_name, owner_id,
               max_memory_gb, status, created_at, updated_at
               FROM minecraft_servers WHERE owner_id = ?`
 
@@ -1082,7 +1131,7 @@ func (db *SQLiteDB) ListServersByOwner(ctx context.Context, ownerID int64) ([]*M
 		if err := rows.Scan(
 			&server.ID,
 			&server.ServerName,
-			&server.DeploymentName,
+			&server.StatefulSetName,
 			&server.PVCName,
 			&server.OwnerID,
 			&server.MaxMemoryGB,

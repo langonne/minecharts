@@ -10,13 +10,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// createService creates a Kubernetes Service to expose a Minecraft server deployment
-func CreateService(namespace, deploymentName string, serviceType corev1.ServiceType, port int32, annotations map[string]string) (*corev1.Service, error) {
-	serviceName := deploymentName + "-svc"
+// createService creates a Kubernetes Service to expose a Minecraft server StatefulSet
+func CreateService(namespace, statefulSetName string, serviceType corev1.ServiceType, port int32, annotations map[string]string) (*corev1.Service, error) {
+	serviceName := statefulSetName + "-svc"
 
 	logging.K8s.WithFields(
 		"namespace", namespace,
-		"deployment_name", deploymentName,
+		"statefulset_name", statefulSetName,
 		"service_name", serviceName,
 		"service_type", serviceType,
 		"port", port,
@@ -27,7 +27,7 @@ func CreateService(namespace, deploymentName string, serviceType corev1.ServiceT
 			Name: serviceName,
 			Labels: map[string]string{
 				"created-by": "minecharts-api",
-				"app":        deploymentName,
+				"app":        statefulSetName,
 			},
 			Annotations: annotations,
 		},
@@ -42,7 +42,7 @@ func CreateService(namespace, deploymentName string, serviceType corev1.ServiceT
 				},
 			},
 			Selector: map[string]string{
-				"app": deploymentName,
+				"app": statefulSetName,
 			},
 		},
 	}

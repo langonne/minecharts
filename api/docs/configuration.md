@@ -5,8 +5,8 @@ Minecharts API reads its configuration from environment variables at startup (`c
 ## Core Settings
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MINECHARTS_NAMESPACE` | `minecharts` | Kubernetes namespace that hosts deployments, services, and PVCs. |
-| `MINECHARTS_DEPLOYMENT_PREFIX` | `minecraft-server-` | Prefix applied to server names to build deployment/service names. |
+| `MINECHARTS_NAMESPACE` | `minecharts` | Kubernetes namespace that hosts StatefulSets, services, and PVCs. |
+| `MINECHARTS_STATEFULSET_PREFIX` | `minecraft-server-` | Prefix applied to server names to build StatefulSet/service names. Falls back to `MINECHARTS_DEPLOYMENT_PREFIX` for compatibility. |
 | `MINECHARTS_PVC_SUFFIX` | `-pvc` | Suffix appended to PVC names. |
 | `MINECHARTS_STORAGE_SIZE` | `10Gi` | Capacity requested for each persistent volume claim. |
 | `MINECHARTS_STORAGE_CLASS` | *(empty)* | Storage class used when creating PVCs; leave empty to let Kubernetes pick the cluster default automatically.<br />Example: `local-path` |
