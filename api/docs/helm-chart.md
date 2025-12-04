@@ -18,7 +18,27 @@ This chart deploys the API and web UI with ingress routing.
     If you run Postgres, disable API persistence (`api.persistence.enabled=false`) to skip the PVC and supply the JWT key via a Kubernetes Secret.
 
 ## Secrets
-- Use `secretEnv` for individual secret keys and `envFromSecrets` to load whole Secret objects as environment variables without putting sensitive values in `values.yaml`.
+- Use `secretEnv` pour mapper des clés précises d’un Secret existant vers des variables d’environnement :
+  ```yaml
+  api:
+    secretEnv:
+      - name: MINECHARTS_DB_CONNECTION
+        secretName: minecharts-api-secrets
+        secretKey: db-connection
+      - name: MINECHARTS_JWT_SECRET
+        secretName: minecharts-api-secrets
+        secretKey: jwt-secret
+  ```
+  Chaque entrée devient une variable d’environnement dans le conteneur.
+
+- Use `envFromSecrets` pour charger toutes les clés d’un Secret comme variables d’environnement (attention aux collisions) :
+  ```yaml
+  api:
+    envFromSecrets:
+      - minecharts-shared-env
+  ```
+
+- Le chart ne crée pas les Secrets : crée-les séparément (kubectl/Argo/etc.) pour éviter d’embarquer des secrets en clair dans `values.yaml` ou dans le chart.
 
 ## Middleware
 - `middleware.enabled` creates a Traefik `stripPrefix` middleware (default prefix `/api`) and annotates the ingress when `ingress.middlewareAnnotation` is true. Disable only if you serve the API with an `/api` prefix or use another ingress rewrite mechanism.
