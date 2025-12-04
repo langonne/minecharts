@@ -31,13 +31,13 @@
       "statefulSetName": "minecraft-server-survival",
       "pvcName": "minecraft-server-survival-pvc",
       "domain": "survival.test.nasdak.fr",
-      "serviceName": "minecraft-server-survival-svc",
+      "serviceName": "minecraft-server-survival",
       "url": "survival.test.nasdak.fr"
     }
     ```
 
 !!! info "Workload naming"
-    The `statefulSetName` fields returned by the API mirror the Kubernetes StatefulSet names backing each server.
+    The `statefulSetName` fields returned by the API mirror the Kubernetes StatefulSet names backing each server. The Service name is the same as the StatefulSet (no `-svc` suffix) to satisfy mc-router auto-discovery/auto-scale expectations.
 
 !!! note "Environment variables"
     Every key/value under `env` is passed directly to the underlying `itzg/minecraft-server` container. Refer to the image documentation for the exhaustive list of supported options: <https://docker-minecraft-server.readthedocs.io/en/latest/variables/>.
@@ -252,7 +252,7 @@
     ```json
     {
       "message": "Service created",
-      "serviceName": "minecraft-server-survival-svc",
+      "serviceName": "minecraft-server-survival",
       "exposureType": "NodePort",
       "serviceType": "NodePort",
       "nodePort": 32751

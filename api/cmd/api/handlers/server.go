@@ -214,7 +214,7 @@ func GetMinecraftServerHandler(c *gin.Context) {
 		Environment:     make(map[string]string),
 	}
 
-	serviceName := srv.StatefulSetName + "-svc"
+	serviceName := srv.StatefulSetName
 	if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,
@@ -304,7 +304,7 @@ func ListMinecraftServersHandler(c *gin.Context) {
 			Environment:     make(map[string]string),
 		}
 
-		serviceName := server.StatefulSetName + "-svc"
+		serviceName := server.StatefulSetName
 		if service, svcErr := kubernetes.GetServiceDetails(config.DefaultNamespace, serviceName); svcErr != nil {
 			logging.Server.WithFields(
 				"server_name", server.ServerName,
@@ -480,7 +480,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	}
 
 	domain := fmt.Sprintf("%s.%s", baseName, config.MCRouterDomainSuffix)
-	serviceName := statefulSetName + "-svc"
+	serviceName := statefulSetName
 	mcRouterAnnotations := map[string]string{
 		"mc-router.itzg.me/externalServerName": domain,
 	}
@@ -917,7 +917,7 @@ func DeleteMinecraftServerHandler(c *gin.Context) {
 	}
 
 	// Clean up network resources
-	serviceName := statefulSetName + "-svc"
+	serviceName := statefulSetName
 	if err := kubernetes.DeleteService(config.DefaultNamespace, serviceName); err != nil {
 		logging.Server.WithFields(
 			"server_name", serverName,

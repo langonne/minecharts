@@ -118,7 +118,7 @@ func ExposeMinecraftServerHandler(c *gin.Context) {
 	}
 
 	// Service name will be consistent
-	serviceName := statefulSetName + "-svc"
+	serviceName := statefulSetName
 
 	// Clean up any existing services for this StatefulSet
 	// Ignore errors in case the resources don't exist yet

@@ -12,7 +12,7 @@ import (
 
 // createService creates a Kubernetes Service to expose a Minecraft server StatefulSet
 func CreateService(namespace, statefulSetName string, serviceType corev1.ServiceType, port int32, annotations map[string]string) (*corev1.Service, error) {
-	serviceName := statefulSetName + "-svc"
+	serviceName := statefulSetName
 
 	logging.K8s.WithFields(
 		"namespace", namespace,
