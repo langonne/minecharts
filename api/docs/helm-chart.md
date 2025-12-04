@@ -18,27 +18,28 @@ This chart deploys the API and web UI with ingress routing.
     If you run Postgres, disable API persistence (`api.persistence.enabled=false`) to skip the PVC and supply the JWT key via a Kubernetes Secret.
 
 ## Secrets
-- Use `secretEnv` pour mapper des clés précises d’un Secret existant vers des variables d’environnement :
-  ```yaml
-  api:
-    secretEnv:
-      - name: MINECHARTS_DB_CONNECTION
-        secretName: minecharts-api-secrets
-        secretKey: db-connection
-      - name: MINECHARTS_JWT_SECRET
-        secretName: minecharts-api-secrets
-        secretKey: jwt-secret
-  ```
-  Chaque entrée devient une variable d’environnement dans le conteneur.
+!!! example "Inject secrets without putting them in `values.yaml`"
+    - `secretEnv`: map specific keys from an existing Secret to environment variables
+      ```yaml
+      api:
+        secretEnv:
+          - name: MINECHARTS_DB_CONNECTION
+            secretName: minecharts-api-secrets
+            secretKey: db-connection
+          - name: MINECHARTS_JWT_SECRET
+            secretName: minecharts-api-secrets
+            secretKey: jwt-secret
+      ```
+      Each entry becomes an environment variable in the container.
 
-- Use `envFromSecrets` pour charger toutes les clés d’un Secret comme variables d’environnement (attention aux collisions) :
-  ```yaml
-  api:
-    envFromSecrets:
-      - minecharts-shared-env
-  ```
+    - `envFromSecrets`: load all keys of a Secret as environment variables (watch for collisions)
+      ```yaml
+      api:
+        envFromSecrets:
+          - minecharts-shared-env
+      ```
 
-- Le chart ne crée pas les Secrets : crée-les séparément (kubectl/Argo/etc.) pour éviter d’embarquer des secrets en clair dans `values.yaml` ou dans le chart.
+    - The chart does not create Secrets for you: create them separately (kubectl/Argo/etc.) to avoid embedding secrets in `values.yaml` or the chart.
 
 ## Middleware
 - `middleware.enabled` creates a Traefik `stripPrefix` middleware (default prefix `/api`) and annotates the ingress when `ingress.middlewareAnnotation` is true. Disable only if you serve the API with an `/api` prefix or use another ingress rewrite mechanism.
