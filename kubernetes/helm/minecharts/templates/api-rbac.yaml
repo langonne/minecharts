@@ -25,7 +25,7 @@ rules:
     resources: ["persistentvolumeclaims"]
     verbs: ["create", "get", "list", "delete"]
   - apiGroups: ["apps"]
-    resources: ["deployments", "statefulsets"]
+    resources: ["statefulsets"]
     verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
   - apiGroups: [""]
     resources: ["services"]
