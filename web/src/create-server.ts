@@ -245,6 +245,29 @@ Alpine.data('createServerForm', () => ({
     return this.renderMotd(this.motd || '')
   },
 
+  enforceMotdLimits() {
+    if (typeof this.motd !== 'string') {
+      this.motd = ''
+      return
+    }
+
+    // Cap length to 59 characters (includes formatting codes)
+    let value = this.motd.slice(0, 59)
+
+    // Allow at most one newline (two lines total)
+    const firstNewline = value.indexOf('\n')
+    if (firstNewline !== -1) {
+      const secondNewline = value.indexOf('\n', firstNewline + 1)
+      if (secondNewline !== -1) {
+        value = value.slice(0, secondNewline)
+      }
+    }
+
+    if (value !== this.motd) {
+      this.motd = value
+    }
+  },
+
   renderMotd(input: string) {
     const styles = {
       color: '',

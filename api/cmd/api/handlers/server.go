@@ -98,7 +98,25 @@ func resolveMaxMemoryGB(env map[string]string) (int64, error) {
 	return value, nil
 }
 
-// GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing StatefulSet.
+func validateMOTD(motd string) error {
+	if motd == "" {
+		return nil
+	}
+
+	// Limit to a single newline (max two lines) and 59 characters (including formatting codes).
+	newlines := strings.Count(motd, "\n")
+	if newlines > 1 {
+		return errors.New("MOTD may contain at most one newline (two lines total)")
+	}
+
+	if len([]rune(motd)) > 59 {
+		return errors.New("MOTD must be at most 59 characters (including color/formatting codes)")
+	}
+
+	return nil
+}
+
+// GetMinecraftServerHandler returns a single server with env vars if it belongs to the user and has an existing deployment.
 
 func GetMinecraftServerHandler(c *gin.Context) {
 	// Require authenticated user
@@ -391,6 +409,17 @@ func StartMinecraftServerHandler(c *gin.Context) {
 
 	if req.Env == nil {
 		req.Env = make(map[string]string)
+	}
+	if motd, ok := req.Env["MOTD"]; ok {
+		if err := validateMOTD(motd); err != nil {
+			logging.API.InvalidRequest.WithFields(
+				"server_name", baseName,
+				"remote_ip", c.ClientIP(),
+				"error", err.Error(),
+			).Warn("Invalid MOTD provided for server creation")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 	req.Env["MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
 
