@@ -138,13 +138,49 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label for="motd" class="block text-sm font-medium text-zinc-300">MOTD</label>
-                        <textarea id="motd" x-model="motd" rows="2"
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label for="motd" class="block text-sm font-medium text-zinc-300">MOTD</label>
+                            <span class="text-xs text-zinc-500" x-text="`${motdLength()} chars`"></span>
+                        </div>
+                        <textarea id="motd" x-model="motd" x-ref="motdInput" rows="2"
                             class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             placeholder="Welcome to our server!"></textarea>
-                        <p class="text-xs text-zinc-500">Tip: use Minecraft color codes (for example &amp;a, &amp;c).
-                        </p>
+                        <div class="space-y-2 rounded-lg border border-zinc-700 bg-zinc-900/40 p-3">
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <span class="text-zinc-400">Colors:</span>
+                                <template x-for="item in motdColors" :key="item.code">
+                                    <button type="button" @click="insertMotdToken(item.code)"
+                                        class="h-7 w-7 rounded border border-zinc-600/60 text-xs font-semibold"
+                                        :class="item.style" :title="item.code">
+                                        <span x-text="item.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <span class="text-zinc-400">Formats:</span>
+                                <template x-for="item in motdFormats" :key="item.code">
+                                    <button type="button" @click="insertMotdToken(item.code)"
+                                        class="rounded border border-zinc-600/60 bg-zinc-800/70 px-2 py-1 font-medium text-zinc-100 hover:border-emerald-400 hover:text-white"
+                                        :title="item.code">
+                                        <span x-text="item.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <span class="text-zinc-400">Symbols:</span>
+                                <template x-for="char in motdChars" :key="char">
+                                    <button type="button" @click="insertMotdChar(char)"
+                                        class="rounded border border-zinc-600/60 bg-zinc-800/70 px-2 py-1 font-medium text-zinc-100 hover:border-emerald-400 hover:text-white">
+                                        <span x-text="char"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="rounded border border-zinc-700 bg-black/50 p-2 text-sm min-h-[40px]"
+                                x-html="motdPreviewHtml()"></div>
+                            <p class="text-xs text-zinc-500">Tip: use Minecraft color codes (e.g. &amp;a, &amp;c) or the
+                                quick buttons above.</p>
+                        </div>
                     </div>
 
                     <div class="space-y-2">

@@ -20,13 +20,14 @@ Alpine.data('createServerForm', () => ({
   version: '1.21.1',
   serverType: 'VANILLA',
   gameMode: 'survival',
-  difficulty: 'peaceful',
-  maxPlayers: 10,
-  motd: '',
-  ops: '',
-  cfApiKey: '',
-  cfPageUrl: '',
-  memoryGb: 4,
+    difficulty: 'peaceful',
+    maxPlayers: 10,
+    motd: '',
+    motdPreview: '',
+    ops: '',
+    cfApiKey: '',
+    cfPageUrl: '',
+    memoryGb: 4,
   quota: {
     loaded: false,
     unlimited: false,
@@ -35,7 +36,34 @@ Alpine.data('createServerForm', () => ({
     remainingGi: 0,
     overheadPercent: 0
   },
-  quotaError: '',
+    quotaError: '',
+    motdColors: [
+      { code: '&0', label: '0', style: 'bg-black text-white' },
+      { code: '&1', label: '1', style: 'bg-[#0000aa] text-white' },
+      { code: '&2', label: '2', style: 'bg-[#00aa00] text-white' },
+      { code: '&3', label: '3', style: 'bg-[#00aaaa] text-white' },
+      { code: '&4', label: '4', style: 'bg-[#aa0000] text-white' },
+      { code: '&5', label: '5', style: 'bg-[#aa00aa] text-white' },
+      { code: '&6', label: '6', style: 'bg-[#ffaa00] text-black' },
+      { code: '&7', label: '7', style: 'bg-[#aaaaaa] text-black' },
+      { code: '&8', label: '8', style: 'bg-[#555555] text-white' },
+      { code: '&9', label: '9', style: 'bg-[#5555ff] text-white' },
+      { code: '&a', label: 'a', style: 'bg-[#55ff55] text-black' },
+      { code: '&b', label: 'b', style: 'bg-[#55ffff] text-black' },
+      { code: '&c', label: 'c', style: 'bg-[#ff5555] text-black' },
+      { code: '&d', label: 'd', style: 'bg-[#ff55ff] text-black' },
+      { code: '&e', label: 'e', style: 'bg-[#ffff55] text-black' },
+      { code: '&f', label: 'f', style: 'bg-[#ffffff] text-black' }
+    ],
+    motdFormats: [
+      { code: '&l', label: 'Bold' },
+      { code: '&o', label: 'Italic' },
+      { code: '&n', label: 'Underline' },
+      { code: '&m', label: 'Strike' },
+      { code: '&k', label: 'Obfuscate' },
+      { code: '&r', label: 'Reset' }
+    ],
+    motdChars: ['❤', '★', '☆', '→', '←', '☀', '☁', '☂', '☃', '♠', '♣', '♦', '♤', '♧', '♢', '☠'],
   customFields: [] as Array<{ key: string; value: string }>,
   hasError: false,
   errorMessage: '',
@@ -208,6 +236,136 @@ Alpine.data('createServerForm', () => ({
 
   filteredCustomFields() {
     return this.customFields.filter((field) => field.key.trim() !== '' && field.value.trim() !== '')
+  },
+
+  motdLength() {
+    return this.motd?.length ?? 0
+  },
+
+  motdPreviewHtml() {
+    return this.renderMotd(this.motd || '')
+  },
+
+  renderMotd(input: string) {
+    const styles = {
+      color: '',
+      bold: false,
+      italic: false,
+      underline: false,
+      strike: false,
+      obfuscate: false
+    }
+
+    const colorMap: Record<string, string> = {
+      '0': '#000000',
+      '1': '#0000aa',
+      '2': '#00aa00',
+      '3': '#00aaaa',
+      '4': '#aa0000',
+      '5': '#aa00aa',
+      '6': '#ffaa00',
+      '7': '#aaaaaa',
+      '8': '#555555',
+      '9': '#5555ff',
+      a: '#55ff55',
+      b: '#55ffff',
+      c: '#ff5555',
+      d: '#ff55ff',
+      e: '#ffff55',
+      f: '#ffffff'
+    }
+
+    const escapeHtml = (value: string) =>
+      value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+    const flushRun = (text: string, style: typeof styles) => {
+      if (!text) return ''
+      const escaped = escapeHtml(text).replace(/\n/g, '<br>')
+      const decorations = []
+      if (style.underline) decorations.push('underline')
+      if (style.strike) decorations.push('line-through')
+      const dec = decorations.length ? `text-decoration:${decorations.join(' ')};` : ''
+      const obf = style.obfuscate ? 'letter-spacing:0.08em;text-shadow:0 0 6px rgba(255,255,255,0.4);' : ''
+      const fontWeight = style.bold ? 'font-weight:bold;' : ''
+      const fontStyle = style.italic ? 'font-style:italic;' : ''
+      const color = style.color ? `color:${style.color};` : ''
+      return `<span style="${color}${fontWeight}${fontStyle}${dec}${obf}">${escaped}</span>`
+    }
+
+    let result = ''
+    let buffer = ''
+
+    const reset = () => {
+      styles.color = ''
+      styles.bold = false
+      styles.italic = false
+      styles.underline = false
+      styles.strike = false
+      styles.obfuscate = false
+    }
+
+    for (let i = 0; i < input.length; i += 1) {
+      const ch = input[i]
+      if (ch === '&' && i + 1 < input.length) {
+        const code = input[i + 1].toLowerCase()
+        if (colorMap[code]) {
+          result += flushRun(buffer, styles)
+          buffer = ''
+          styles.color = colorMap[code]
+          i += 1
+          continue
+        }
+
+        if ('loni'.includes(code) || code === 'm' || code === 'k' || code === 'r') {
+          result += flushRun(buffer, styles)
+          buffer = ''
+          switch (code) {
+            case 'l':
+              styles.bold = true
+              break
+            case 'o':
+              styles.italic = true
+              break
+            case 'n':
+              styles.underline = true
+              break
+            case 'm':
+              styles.strike = true
+              break
+            case 'k':
+              styles.obfuscate = true
+              break
+            case 'r':
+              reset()
+              break
+          }
+          i += 1
+          continue
+        }
+      }
+      buffer += ch
+    }
+
+    result += flushRun(buffer, styles)
+    return result || '<span class="text-zinc-500">Preview</span>'
+  },
+
+  insertMotdToken(token: string) {
+    const el = this.$refs.motdInput as HTMLTextAreaElement | undefined
+    if (!el) return
+    const start = el.selectionStart ?? this.motd.length
+    const end = el.selectionEnd ?? this.motd.length
+    const value = this.motd || ''
+    this.motd = value.slice(0, start) + token + value.slice(end)
+    this.$nextTick(() => {
+      const pos = start + token.length
+      el.focus()
+      el.setSelectionRange(pos, pos)
+    })
+  },
+
+  insertMotdChar(char: string) {
+    this.insertMotdToken(char)
   },
 
   buildEnv() {
