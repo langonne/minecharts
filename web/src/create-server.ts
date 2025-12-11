@@ -27,7 +27,7 @@ Alpine.data('createServerForm', () => ({
   ops: '',
   cfApiKey: '',
   cfPageUrl: '',
-  memoryGb: 1,
+  memoryGb: null as number | null,
   quota: {
     loaded: false,
     unlimited: false,
