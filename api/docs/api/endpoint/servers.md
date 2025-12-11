@@ -119,7 +119,7 @@
     ```
 
 !!! info "Conditional URL"
-    The per-server `url` appears only when the Kubernetes service uses the mc-router annotation. The `deployment_name` field corresponds to the StatefulSet backing the server.
+    The per-server `url` appears only when the Kubernetes service uses the mc-router annotation. The `statefulset_name` field corresponds to the StatefulSet backing the server.
 
 ## `POST /servers/{serverName}/restart`
 - **Purpose:** Save the world, update the StatefulSet template, and trigger a rollout.
