@@ -71,7 +71,7 @@ func resolveMaxMemoryGB(env map[string]string) (int64, error) {
 		return defaultMaxMemoryGB, nil
 	}
 
-	raw, ok := env["MAX_MEMORY"]
+	raw, ok := env["MEMORY"]
 	if !ok || strings.TrimSpace(raw) == "" {
 		return defaultMaxMemoryGB, nil
 	}
@@ -83,16 +83,16 @@ func resolveMaxMemoryGB(env map[string]string) (int64, error) {
 	}
 
 	if trimmed == "" {
-		return 0, errors.New("MAX_MEMORY must be a positive integer representing gigabytes")
+		return 0, errors.New("MEMORY must be a positive integer representing gigabytes")
 	}
 
 	value, err := strconv.ParseInt(trimmed, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("MAX_MEMORY must be an integer representing gigabytes: %w", err)
+		return 0, fmt.Errorf("MEMORY must be an integer representing gigabytes: %w", err)
 	}
 
 	if value <= 0 {
-		return 0, errors.New("MAX_MEMORY must be greater than zero")
+		return 0, errors.New("MEMORY must be greater than zero")
 	}
 
 	return value, nil
@@ -384,7 +384,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 			"server_name", baseName,
 			"error", err.Error(),
 			"remote_ip", c.ClientIP(),
-		).Warn("Invalid MAX_MEMORY provided for server creation")
+		).Warn("Invalid MEMORY provided for server creation")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -392,7 +392,7 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	if req.Env == nil {
 		req.Env = make(map[string]string)
 	}
-	req.Env["MAX_MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
+	req.Env["MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
 
 	db := database.GetDB()
 

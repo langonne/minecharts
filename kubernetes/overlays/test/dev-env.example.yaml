@@ -37,43 +37,73 @@ spec:
       containers:
         - name: minecharts-api
           env:
-            - name: MINECHARTS_DB_TYPE
-              value: "sqlite"
-            - name: MINECHARTS_DB_CONNECTION
-              value: "/app/data/minecharts.db"
-            - name: MINECHARTS_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: DATA_DIR
-              value: "/app/data"
-            - name: MINECHARTS_TIMEZONE
-              value: "Europe/Paris"
-            - name: MINECHARTS_TRUSTED_PROXIES
-              value: "10.244.0.0/16,192.168.1.0/24"
-            - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
-              value: "example.com"
-            - name: MINECHARTS_LOG_LEVEL
-              value: "debug"
-            - name: MINECHARTS_LOG_FORMAT
-              value: "text"
-            - name: MINECHARTS_STORAGE_CLASS
-              value: "local-path"
-            - name: MINECHARTS_FEEDBACK_ENABLED
-              value: "true"
-            - name: MINECHARTS_FEEDBACK_PROVIDER
-              value: "github"
-            - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
-              value: "<token>"
-            - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
-              value: "<owner>"
-            - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
-              value: "<repo>"
-            - name: MINECHARTS_MEMORY_QUOTA_ENABLED
-              value: "true"
-            - name: MINECHARTS_MEMORY_QUOTA_LIMIT
-              value: "32"
-            # Uncomment to target GitLab instead of GitHub:
+            # Core
+            # - name: MINECHARTS_NAMESPACE
+            #   valueFrom:
+            #     fieldRef:
+            #       fieldPath: metadata.namespace
+            # - name: MINECHARTS_DB_TYPE
+            #   value: "sqlite" # or postgres
+            # - name: MINECHARTS_DB_CONNECTION
+            #   value: "/app/data/minecharts.db"
+            # - name: DATA_DIR
+            #   value: "/app/data"
+            # - name: MINECHARTS_TIMEZONE
+            #   value: "Europe/Paris"
+            # - name: MINECHARTS_TRUSTED_PROXIES
+            #   value: "10.244.0.0/16,192.168.1.0/24"
+            # - name: MINECHARTS_MCROUTER_DOMAIN_SUFFIX
+            #   value: "example.com"
+            # - name: MINECHARTS_STORAGE_CLASS
+            #   value: "local-path"
+            # - name: MINECHARTS_LOG_LEVEL
+            #   value: "debug"
+            # - name: MINECHARTS_LOG_FORMAT
+            #   value: "text"
+
+            # Auth & OAuth
+            # - name: MINECHARTS_ALLOW_SELF_REGISTRATION
+            #   value: "false"
+            # - name: MINECHARTS_OAUTH_ENABLED
+            #   value: "false"
+            # - name: MINECHARTS_OAUTH_PROVIDER_NAME
+            #   value: "authentik"
+            # - name: MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME
+            #   value: "Authentik"
+            # - name: MINECHARTS_OIDC_ISSUER
+            #   value: "https://authentik.example.com/application/o/minecharts/"
+            # - name: MINECHARTS_OIDC_CLIENT_ID
+            #   value: ""
+            # - name: MINECHARTS_OIDC_CLIENT_SECRET
+            #   value: ""
+            # - name: MINECHARTS_OIDC_REDIRECT_URL
+            #   value: "https://minecharts.example.com/api/auth/callback/authentik"
+            # - name: MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED
+            #   value: "false"
+            # - name: MINECHARTS_AUTHENTIK_ADMIN_GROUP
+            #   value: ""
+
+            # Resource limits
+            # - name: MINECHARTS_MEMORY_QUOTA_ENABLED
+            #   value: "true"
+            # - name: MINECHARTS_MEMORY_QUOTA_LIMIT
+            #   value: "32" # gigabytes
+            # - name: MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT
+            #   value: "25" # percent of MEMORY added as overhead to set the container limit
+            # # Deprecated alias (will be removed): MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI
+
+            # Feedback (GitHub)
+            # - name: MINECHARTS_FEEDBACK_ENABLED
+            #   value: "true"
+            # - name: MINECHARTS_FEEDBACK_PROVIDER
+            #   value: "github"
+            # - name: MINECHARTS_FEEDBACK_GITHUB_TOKEN
+            #   value: "<token>"
+            # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER
+            #   value: "<owner>"
+            # - name: MINECHARTS_FEEDBACK_GITHUB_REPO_NAME
+            #   value: "<repo>"
+            # Feedback (GitLab)
             # - name: MINECHARTS_FEEDBACK_PROVIDER
             #   value: "gitlab"
             # - name: MINECHARTS_FEEDBACK_GITLAB_URL

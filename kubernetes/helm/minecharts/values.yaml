@@ -69,8 +69,9 @@ api:
     #   value: "false"
     # - name: MINECHARTS_MEMORY_QUOTA_LIMIT
     #   value: "0" # gigabytes; 0 disables the cap
-    # - name: MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI
-    #   value: "256"
+    # - name: MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT
+    #   value: "25" # percent of MEMORY added as overhead to set the container limit
+    # # Deprecated alias (will be removed): MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI
     # - name: MINECHARTS_API_KEYS_PER_USER
     #   value: "5"
     # - name: MINECHARTS_OAUTH_ENABLED

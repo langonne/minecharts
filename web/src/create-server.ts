@@ -34,7 +34,7 @@ Alpine.data('createServerForm', () => ({
     defaultExtraKeys: [
       'UID',
       'GID',
-      'MAX_MEMORY',
+      'MEMORY',
       'MAX_WORLD_SIZE',
       'ALLOW_NETHER',
       'ANNOUNCE_PLAYER_ACHIEVEMENTS',

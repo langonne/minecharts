@@ -1,25 +1,33 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Global configuration variables, configurable via environment variables.
 var (
 	// Server configuration
-	DefaultNamespace      = getEnv("MINECHARTS_NAMESPACE", "minecharts")
-	StatefulSetPrefix     = getEnv("MINECHARTS_STATEFULSET_PREFIX", "minecraft-server-")
-	PVCSuffix             = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
-	StorageSize           = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
-	StorageClass          = getEnv("MINECHARTS_STORAGE_CLASS", "")          // local-path
-	MCRouterDomainSuffix  = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "") // change-me.local
-	DefaultReplicas       = 1
-	MemoryQuotaEnabled    = getEnvBool("MINECHARTS_MEMORY_QUOTA_ENABLED", false)
-	MemoryQuotaLimit      = getEnvInt("MINECHARTS_MEMORY_QUOTA_LIMIT", 0)
-	MemoryLimitOverheadMi = getEnvInt("MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI", 256)
-	DataDir               = getEnv("DATA_DIR", "./app/data")
+	DefaultNamespace           = getEnv("MINECHARTS_NAMESPACE", "minecharts")
+	StatefulSetPrefix          = getEnv("MINECHARTS_STATEFULSET_PREFIX", "minecraft-server-")
+	PVCSuffix                  = getEnv("MINECHARTS_PVC_SUFFIX", "-pvc")
+	StorageSize                = getEnv("MINECHARTS_STORAGE_SIZE", "10Gi")
+	StorageClass               = getEnv("MINECHARTS_STORAGE_CLASS", "")          // local-path
+	MCRouterDomainSuffix       = getEnv("MINECHARTS_MCROUTER_DOMAIN_SUFFIX", "") // change-me.local
+	DefaultReplicas            = 1
+	MemoryQuotaEnabled         = getEnvBool("MINECHARTS_MEMORY_QUOTA_ENABLED", false)
+	MemoryQuotaLimit           = getEnvInt("MINECHARTS_MEMORY_QUOTA_LIMIT", 0)
+	MemoryLimitOverheadPercent = getEnvFloat("MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT", 25, &deprecatedEnv{
+		OldKey:      "MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI",
+		Replacement: "MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT",
+		Message:     "MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI is deprecated and will be removed in a future release. Use MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT (percentage) instead.",
+	})
+	DataDir = getEnv("DATA_DIR", "./app/data")
 
 	//  Reverse proxy configuration
 	TrustedProxies = getEnv("MINECHARTS_TRUSTED_PROXIES", "127.0.0.1")
@@ -88,22 +96,33 @@ var (
 	FeedbackDefaultLabels   = getEnv("MINECHARTS_FEEDBACK_DEFAULT_LABELS", "feedback")
 )
 
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
+type deprecatedEnv struct {
+	OldKey      string
+	Replacement string
+	Message     string
+}
+
+var (
+	deprecatedSeen = make(map[string]struct{})
+	deprecatedMu   sync.Mutex
+)
+
+func getEnv(key, fallback string, dep ...*deprecatedEnv) string {
+	if value, ok := lookupEnv(key, firstDeprecated(dep)); ok {
 		return value
 	}
 	return fallback
 }
 
-func getEnvBool(key string, fallback bool) bool {
-	if value, exists := os.LookupEnv(key); exists {
+func getEnvBool(key string, fallback bool, dep ...*deprecatedEnv) bool {
+	if value, ok := lookupEnv(key, firstDeprecated(dep)); ok {
 		return value == "true" || value == "1" || value == "yes"
 	}
 	return fallback
 }
 
-func getEnvInt(key string, fallback int) int {
-	if value, exists := os.LookupEnv(key); exists {
+func getEnvInt(key string, fallback int, dep ...*deprecatedEnv) int {
+	if value, ok := lookupEnv(key, firstDeprecated(dep)); ok {
 		if intVal, err := strconv.Atoi(value); err == nil {
 			return intVal
 		}
@@ -121,8 +140,8 @@ func clampBcryptCost(cost int) int {
 	return cost
 }
 
-func getEnvFloat(key string, fallback float64) float64 {
-	if value, exists := os.LookupEnv(key); exists {
+func getEnvFloat(key string, fallback float64, dep ...*deprecatedEnv) float64 {
+	if value, ok := lookupEnv(key, firstDeprecated(dep)); ok {
 		if floatVal, err := strconv.ParseFloat(value, 64); err == nil {
 			return floatVal
 		}
@@ -130,11 +149,62 @@ func getEnvFloat(key string, fallback float64) float64 {
 	return fallback
 }
 
-func getEnvDuration(key string, fallback time.Duration) time.Duration {
-	if value, exists := os.LookupEnv(key); exists {
+func getEnvDuration(key string, fallback time.Duration, dep ...*deprecatedEnv) time.Duration {
+	if value, ok := lookupEnv(key, firstDeprecated(dep)); ok {
 		if duration, err := time.ParseDuration(value); err == nil {
 			return duration
 		}
 	}
 	return fallback
+}
+
+func lookupEnv(key string, dep *deprecatedEnv) (string, bool) {
+	if value, exists := os.LookupEnv(key); exists {
+		return value, true
+	}
+
+	if dep != nil && dep.OldKey != "" {
+		if value, exists := os.LookupEnv(dep.OldKey); exists {
+			logDeprecatedEnv(dep)
+			return value, true
+		}
+	}
+
+	return "", false
+}
+
+func firstDeprecated(dep []*deprecatedEnv) *deprecatedEnv {
+	if len(dep) == 0 {
+		return nil
+	}
+	return dep[0]
+}
+
+func logDeprecatedEnv(dep *deprecatedEnv) {
+	if dep == nil || dep.OldKey == "" {
+		return
+	}
+
+	deprecatedMu.Lock()
+	if _, seen := deprecatedSeen[dep.OldKey]; seen {
+		deprecatedMu.Unlock()
+		return
+	}
+	deprecatedSeen[dep.OldKey] = struct{}{}
+	deprecatedMu.Unlock()
+
+	msg := dep.Message
+	if msg == "" {
+		if dep.Replacement != "" {
+			msg = fmt.Sprintf("Environment variable %s is deprecated; use %s instead.", dep.OldKey, dep.Replacement)
+		} else {
+			msg = fmt.Sprintf("Environment variable %s is deprecated and will be removed in a future release.", dep.OldKey)
+		}
+	}
+
+	entry := logrus.WithField("deprecated_env", dep.OldKey)
+	if dep.Replacement != "" {
+		entry = entry.WithField("replacement_env", dep.Replacement)
+	}
+	entry.Warn(msg)
 }

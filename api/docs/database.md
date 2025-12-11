@@ -38,7 +38,7 @@ Deleting a key removes the row and immediately invalidates future requests using
 | `statefulset_name` | TEXT | Prefixed name used for the Kubernetes StatefulSet. |
 | `pvc_name` | TEXT | Persistent volume claim name derived from the StatefulSet. |
 | `owner_id` | BIGINT | Foreign key to `users.id`; identifies who can manage the server. |
-| `max_memory_gb` | INTEGER | Memory cap (gigabytes) propagated to the `MAX_MEMORY` container variable. Defaults to `1` when omitted. |
+| `max_memory_gb` | INTEGER | Memory cap (gigabytes) propagated to the `MEMORY` container variable. Defaults to `1` when omitted. |
 | `status` | TEXT | Cached status (`running`, `stopped`, etc.). |
 | `created_at` / `updated_at` | TIMESTAMP | Lifecycle metadata. |
 

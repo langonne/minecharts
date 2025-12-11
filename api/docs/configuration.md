@@ -15,8 +15,14 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_TIMEZONE` | `UTC` | Application-wide timezone for logging and time calculations. |
 | `MINECHARTS_MEMORY_QUOTA_ENABLED` | `false` | Enables enforcement of the global Minecraft memory quota. |
 | `MINECHARTS_MEMORY_QUOTA_LIMIT` | `0` | Maximum total memory (gigabytes) the cluster may allocate to Minecraft servers when the quota is enabled. `0` or negative values are treated as unlimited. |
-| `MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI` | `256` | Extra memory (in mebibytes) added on top of each server’s `MAX_MEMORY` when enforcing Kubernetes limits, to account for JVM/process overhead. |
+| `MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT` | `25` | Percentage of each server’s `MEMORY` added as overhead when enforcing Kubernetes limits (e.g. `MEMORY=4G` and `25` → limit set to `5Gi`). |
 | `DATA_DIR` | `./app/data` | Local directory for SQLite data when the DB is auto-initialised. |
+
+!!! info "Memory overhead (limit buffer)"
+    The `MEMORY` value is forwarded as-is to the `itzg/minecraft-server` container and set as the pod’s memory **request**. The **limit** is `MEMORY + (MEMORY * MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT / 100)`. With the default `25`, a `MEMORY` of `4G` translates to a request of `4Gi` and a limit of roughly `5Gi`. If the container exceeds the limit, Kubernetes will OOM-kill the pod. Negative overhead values are clamped to zero.
+
+!!! warning "Deprecated alias"
+    `MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI` remains accepted for backward compatibility but is deprecated and will be removed in a future release. A startup warning is logged when it is used. Migrate to `MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT`.
 
 ## Database
 | Variable | Default | Purpose |
