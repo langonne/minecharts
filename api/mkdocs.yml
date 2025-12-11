@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 site_name: Minecharts
-site_url: https://langonne.github.io/minecharts
+site_url: https://langonne.github.io/minecharts/
 
 repo_url: https://github.com/langonne/minecharts
 repo_name: langonne/minecharts-api
@@ -33,6 +33,9 @@ plugins:
 extra:
   nasdak_url: "nasdak.fr"
   prod_prefix_url: "prod"
+  version:
+    provider: mike
+    alias: true
 
 markdown_extensions:
   - admonition

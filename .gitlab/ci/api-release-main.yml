@@ -63,18 +63,29 @@ pages:
   image: python:latest
   tags:
     - tls-dind-kubernetes-runner
+  variables:
+    GIT_DEPTH: "0"
+  needs:
+    - job: api_semantic_release
+      artifacts: true
+      optional: true
   script:
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - source "$HOME/.local/bin/env"
     - export PATH="$HOME/.cargo/bin:$PATH"
     - cd api
-    - uv run mkdocs build -f mkdocs.yml --site-dir ../public
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - ~/.cache/
-  artifacts:
-    paths:
-      - public
+    - |
+      VERSION="${API_RELEASE_VERSION:-}"
+      if [ -z "$VERSION" ]; then
+        echo "No release version found; skipping doc deployment."
+        exit 0
+      fi
+
+      git config user.name "CI"
+      git config user.email "ci@example.com"
+      git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+
+      uv run mike deploy --config-file mkdocs.yml --branch gh-pages --remote origin --push "$VERSION" latest
+      uv run mike set-default --config-file mkdocs.yml --branch gh-pages --remote origin --push latest
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
