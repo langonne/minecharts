@@ -45,6 +45,9 @@
 !!! warning "MOTD length"
     The MOTD may contain at most one newline (two lines total) and must not exceed 59 characters, including color/formatting codes.
 
+!!! warning "Environment value constraints"
+    Environment variable names must use letters, numbers, or underscores (up to 64 characters). Values are capped at 2048 characters and may not contain control characters (newlines are allowed only for `MOTD`). `CF_API_KEY` must use only letters, numbers, `$`, and `.`; `CF_PAGE_URL` must start with `https://www.curseforge.com/`.
+
 !!! info "MCRouter URL"
     The `url` field is returned only when the backing Kubernetes service carries the `mc-router.itzg.me/externalServerName` annotation (i.e. the server is routed through mc-router).
 

@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"minecharts/cmd/auth"
 	"minecharts/cmd/config"
@@ -30,6 +33,10 @@ type MinecraftServerEnv struct {
 const (
 	mcRouterAnnotation = "mc-router.itzg.me/externalServerName"
 	defaultMaxMemoryGB = int64(1)
+)
+
+var (
+	envKeyPattern = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
 )
 
 func formatServerURL(domain string, port int32) string {
@@ -111,6 +118,60 @@ func validateMOTD(motd string) error {
 
 	if len([]rune(motd)) > 59 {
 		return errors.New("MOTD must be at most 59 characters (including color/formatting codes)")
+	}
+
+	return nil
+}
+
+func validateEnvEntries(env map[string]string) error {
+	if env == nil {
+		return nil
+	}
+
+	const (
+		maxKeyLen   = 64
+		maxValueLen = 2048
+	)
+
+	for key, value := range env {
+		if strings.TrimSpace(key) == "" {
+			return errors.New("environment variable names cannot be empty")
+		}
+		if utf8.RuneCountInString(key) > maxKeyLen {
+			return fmt.Errorf("environment variable %s: name too long (max %d characters)", key, maxKeyLen)
+		}
+		if !envKeyPattern.MatchString(key) {
+			return fmt.Errorf("environment variable %s: invalid characters (letters, numbers, and underscores only)", key)
+		}
+
+		if utf8.RuneCountInString(value) > maxValueLen {
+			return fmt.Errorf("environment variable %s: value too long (max %d characters)", key, maxValueLen)
+		}
+
+		for _, r := range value {
+			if r == '\n' && key != "MOTD" {
+				return fmt.Errorf("environment variable %s: newlines are not allowed", key)
+			}
+			if unicode.IsControl(r) && r != '\n' {
+				return fmt.Errorf("environment variable %s: control characters are not allowed", key)
+			}
+		}
+
+		if key == "CF_API_KEY" {
+			if len(value) > 128 {
+				return errors.New("CF_API_KEY must be at most 128 characters")
+			}
+			if !regexp.MustCompile(`^[A-Za-z0-9$.]+$`).MatchString(value) {
+				return errors.New("CF_API_KEY may contain only letters, numbers, '$', and '.'")
+			}
+		}
+
+		if key == "CF_PAGE_URL" {
+			lower := strings.ToLower(value)
+			if !strings.HasPrefix(lower, "https://www.curseforge.com/") && !strings.HasPrefix(lower, "https://curseforge.com/") {
+				return errors.New("CF_PAGE_URL must start with https://www.curseforge.com/")
+			}
+		}
 	}
 
 	return nil
@@ -422,6 +483,16 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		}
 	}
 	req.Env["MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
+
+	if err := validateEnvEntries(req.Env); err != nil {
+		logging.API.InvalidRequest.WithFields(
+			"server_name", baseName,
+			"remote_ip", c.ClientIP(),
+			"error", err.Error(),
+		).Warn("Invalid environment variable provided for server creation")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	db := database.GetDB()
 

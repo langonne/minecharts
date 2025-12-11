@@ -92,7 +92,13 @@
 
                     <div class="grid md:grid-cols-2 gap-6" x-show="serverType === 'AUTO_CURSEFORGE'" x-cloak>
                         <div class="space-y-2">
-                            <label for="cfApiKey" class="block text-sm font-medium text-zinc-300">CF_API_KEY</label>
+                            <div class="flex items-center justify-between">
+                                <label for="cfApiKey" class="block text-sm font-medium text-zinc-300">CF_API_KEY</label>
+                                <a href="https://console.curseforge.com/" target="_blank" rel="noopener"
+                                    class="text-xs text-emerald-300 hover:text-emerald-100 underline underline-offset-2">
+                                    Get your API key
+                                </a>
+                            </div>
                             <input id="cfApiKey" type="text" x-model="cfApiKey"
                                 :required="serverType === 'AUTO_CURSEFORGE'"
                                 class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
