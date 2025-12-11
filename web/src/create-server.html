@@ -162,7 +162,7 @@
                                 <template x-for="item in motdFormats" :key="item.code">
                                     <button type="button" @click="insertMotdToken(item.code)"
                                         class="rounded border border-zinc-600/60 bg-zinc-800/70 px-2 py-1 font-medium text-zinc-100 hover:border-emerald-400 hover:text-white"
-                                        :title="item.code">
+                                        :style="item.style" :title="item.code">
                                         <span x-text="item.label"></span>
                                     </button>
                                 </template>

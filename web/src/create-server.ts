@@ -56,12 +56,12 @@ Alpine.data('createServerForm', () => ({
       { code: '&f', label: '&f', color: '#ffffff', text: '#000000' }
     ],
     motdFormats: [
-      { code: '&l', label: 'Bold' },
-      { code: '&o', label: 'Italic' },
-      { code: '&n', label: 'Underline' },
-      { code: '&m', label: 'Strike' },
-      { code: '&k', label: 'Obfuscate' },
-      { code: '&r', label: 'Reset' }
+      { code: '&l', label: 'Bold', style: 'font-weight:bold;' },
+      { code: '&o', label: 'Italic', style: 'font-style:italic;' },
+      { code: '&n', label: 'Underline', style: 'text-decoration:underline;' },
+      { code: '&m', label: 'Strike', style: 'text-decoration:line-through;' },
+      { code: '&k', label: 'Obfuscate', style: 'letter-spacing:0.08em;text-shadow:0 0 6px rgba(255,255,255,0.4);' },
+      { code: '&r', label: 'Reset', style: 'font-weight:normal;font-style:normal;text-decoration:none;' }
     ],
   customFields: [] as Array<{ key: string; value: string }>,
   hasError: false,
