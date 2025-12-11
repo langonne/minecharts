@@ -91,17 +91,12 @@ func CreateDeployment(namespace, deploymentName, pvcName string, envVars []corev
 	}
 
 	if config.MemoryQuotaEnabled && maxMemoryGB > 0 {
-		maxMemoryMi := maxMemoryGB * 1024
-		overheadPercent := config.MemoryLimitOverheadPercent
-		if overheadPercent < 0 {
-			overheadPercent = 0
-		}
-		overheadMi := int64(float64(maxMemoryMi) * overheadPercent / 100.0)
-		limitMi := maxMemoryMi + overheadMi
+		requestMi := config.MemoryRequestMi(maxMemoryGB)
+		limitMi := config.MemoryLimitMi(maxMemoryGB)
 
 		container.Resources = corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceMemory: resource.MustParse(fmt.Sprintf("%dMi", maxMemoryMi)),
+				corev1.ResourceMemory: resource.MustParse(fmt.Sprintf("%dMi", requestMi)),
 			},
 			Limits: corev1.ResourceList{
 				corev1.ResourceMemory: resource.MustParse(fmt.Sprintf("%dMi", limitMi)),

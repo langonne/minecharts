@@ -406,9 +406,9 @@ func StartMinecraftServerHandler(c *gin.Context) {
 	).Info("Creating new Minecraft server")
 
 	if config.MemoryQuotaEnabled {
-		limit := int64(config.MemoryQuotaLimit)
-		if limit > 0 {
-			totalMemory, err := db.SumServerMaxMemory(c.Request.Context())
+		limitGi := int64(config.MemoryQuotaLimit)
+		if limitGi > 0 {
+			totalMemoryGB, err := db.SumServerMaxMemory(c.Request.Context())
 			if err != nil {
 				logging.Server.WithFields(
 					"server_name", baseName,
@@ -419,20 +419,27 @@ func StartMinecraftServerHandler(c *gin.Context) {
 				return
 			}
 
-			projected := totalMemory + maxMemoryGB
-			if projected > limit {
-				remaining := limit - totalMemory
-				if remaining < 0 {
-					remaining = 0
+			limitMi := limitGi * 1024
+			usedMi := config.MemoryLimitMi(totalMemoryGB)
+			requestMi := config.MemoryLimitMi(maxMemoryGB)
+			projectedMi := usedMi + requestMi
+			if projectedMi > limitMi {
+				remainingMi := limitMi - usedMi
+				if remainingMi < 0 {
+					remainingMi = 0
 				}
+				requestGi := float64(requestMi) / 1024.0
+				remainingGi := float64(remainingMi) / 1024.0
+				usedGi := float64(usedMi) / 1024.0
+
 				logging.Server.WithFields(
 					"server_name", baseName,
 					"user_id", userID,
-					"requested_memory_gb", maxMemoryGB,
-					"allocated_memory_gb", totalMemory,
-					"memory_limit_gb", limit,
+					"requested_limit_gi", fmt.Sprintf("%.2f", requestGi),
+					"allocated_limit_gi", fmt.Sprintf("%.2f", usedGi),
+					"memory_limit_gb", limitGi,
 				).Warn("Memory quota exceeded, refusing server creation")
-				c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("memory quota exceeded: %dG available, %dG requested", remaining, maxMemoryGB)})
+				c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("memory quota exceeded: %.2fGi available (including overhead), %.2fGi requested (memory + overhead)", remainingGi, requestGi)})
 				return
 			}
 		} else {

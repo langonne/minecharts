@@ -112,6 +112,13 @@ func SetupRoutes(router *gin.Engine) {
 		handlers.UpdateUserHandler,
 	)
 
+	// Quota endpoints
+	quotaGroup := router.Group("/quota")
+	quotaGroup.Use(auth.RequestTimeMiddleware(), auth.JWTMiddleware(), auth.APIKeyMiddleware())
+	{
+		quotaGroup.GET("/memory", auth.RequirePermission(database.PermCreateServer), handlers.GetMemoryQuotaHandler)
+	}
+
 	// Server management endpoints - protected with authentication
 	// First try JWT, then fall back to API key
 	serverGroup := router.Group("/servers")

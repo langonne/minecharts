@@ -40,7 +40,7 @@
     The `statefulSetName` fields returned by the API mirror the Kubernetes StatefulSet names backing each server. The Service name is the same as the StatefulSet (no `-svc` suffix) to satisfy mc-router auto-discovery/auto-scale expectations.
 
 !!! note "Environment variables"
-    Every key/value under `env` is passed directly to the underlying `itzg/minecraft-server` container. `MEMORY` is also used to set the pod’s memory **request**; the **limit** is `MEMORY` plus the configured overhead percentage (`MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT`, default 25%). If the container exceeds its limit, Kubernetes will kill the pod (OOM). Refer to the image documentation for the exhaustive list of supported options: <https://docker-minecraft-server.readthedocs.io/en/latest/variables/>.
+    Every key/value under `env` is passed directly to the underlying `itzg/minecraft-server` container. `MEMORY` is also used to set the pod’s memory **request**; the **limit** is `MEMORY` plus the configured overhead percentage (`MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT`, default 25%). If the container exceeds its limit, Kubernetes will kill the pod (OOM). When the memory quota is enabled, the quota check uses this **limit** (MEMORY + overhead) rather than the raw `MEMORY`. Refer to the image documentation for the exhaustive list of supported options: <https://docker-minecraft-server.readthedocs.io/en/latest/variables/>.
 
 !!! info "MCRouter URL"
     The `url` field is returned only when the backing Kubernetes service carries the `mc-router.itzg.me/externalServerName` annotation (i.e. the server is routed through mc-router).

@@ -16,6 +16,7 @@ nav:
           - Authentification: api/endpoint/authentification.md
           - Feedback: api/endpoint/feedback.md
           - API Keys: api/endpoint/api_keys.md
+          - Quota: api/endpoint/quota.md
           - Servers: api/endpoint/servers.md
           - Users: api/endpoint/users.md
 

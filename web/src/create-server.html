@@ -116,6 +116,29 @@
                     </div>
 
                     <div class="space-y-2">
+                        <label for="memoryGb" class="block text-sm font-medium text-zinc-300">Memory (GiB)</label>
+                        <div class="space-y-2">
+                            <input id="memoryGb" type="number" min="1" step="1" x-model.number="memoryGb"
+                                class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder="4" />
+                            <div class="text-xs text-zinc-400 space-y-1">
+                                <template x-if="quotaError">
+                                    <p class="text-amber-300" x-text="quotaError"></p>
+                                </template>
+                                <template x-if="!quotaError">
+                                    <p>
+                                        <span class="font-semibold text-emerald-300" x-text="quota.unlimited ? 'Quota disabled' : `Remaining: ${formatGi(quota.remainingGi)}`"></span>
+                                        <span class="block">Overhead: <span class="font-medium" x-text="formatGi(overheadGi())"></span> — Total cost: <span class="font-medium" x-text="formatGi(totalGi())"></span></span>
+                                    </p>
+                                </template>
+                                <template x-if="!fitsQuota()">
+                                    <p class="text-red-400">This server would exceed the available quota.</p>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
                         <label for="motd" class="block text-sm font-medium text-zinc-300">MOTD</label>
                         <textarea id="motd" x-model="motd" rows="2"
                             class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"

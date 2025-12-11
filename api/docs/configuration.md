@@ -18,6 +18,9 @@ Minecharts API reads its configuration from environment variables at startup (`c
 | `MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT` | `25` | Percentage of each server’s `MEMORY` added as overhead when enforcing Kubernetes limits (e.g. `MEMORY=4G` and `25` → limit set to `5Gi`). |
 | `DATA_DIR` | `./app/data` | Local directory for SQLite data when the DB is auto-initialised. |
 
+!!! info "Memory quota accounting"
+    When `MINECHARTS_MEMORY_QUOTA_ENABLED` is `true`, quota checks use the same value as the Kubernetes limit: `MEMORY + overhead%`. The remaining budget is therefore the cluster-side cost (including overhead), not just the raw `MEMORY` value.
+
 !!! info "Memory overhead (limit buffer)"
     The `MEMORY` value is forwarded as-is to the `itzg/minecraft-server` container and set as the pod’s memory **request**. The **limit** is `MEMORY + (MEMORY * MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT / 100)`. With the default `25`, a `MEMORY` of `4G` translates to a request of `4Gi` and a limit of roughly `5Gi`. If the container exceeds the limit, Kubernetes will OOM-kill the pod. Negative overhead values are clamped to zero.
 

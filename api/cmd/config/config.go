@@ -208,3 +208,25 @@ func logDeprecatedEnv(dep *deprecatedEnv) {
 	}
 	entry.Warn(msg)
 }
+
+func normalizedMemoryOverheadPercent() float64 {
+	if MemoryLimitOverheadPercent < 0 {
+		return 0
+	}
+	return MemoryLimitOverheadPercent
+}
+
+// MemoryRequestMi converts the MEMORY value (gigabytes) to mebibytes for Kubernetes requests.
+func MemoryRequestMi(memoryGB int64) int64 {
+	if memoryGB <= 0 {
+		return 0
+	}
+	return memoryGB * 1024
+}
+
+// MemoryLimitMi calculates the Kubernetes memory limit (Mi) from MEMORY + overhead%.
+func MemoryLimitMi(memoryGB int64) int64 {
+	requestMi := MemoryRequestMi(memoryGB)
+	overheadMi := int64(float64(requestMi) * normalizedMemoryOverheadPercent() / 100.0)
+	return requestMi + overheadMi
+}
