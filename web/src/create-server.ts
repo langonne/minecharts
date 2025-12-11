@@ -450,9 +450,10 @@ Alpine.data('createServerForm', () => ({
   },
 
   validMemory() {
-    if (!Number.isFinite(this.memoryGb)) return 0
-    if (this.memoryGb <= 0) return 0
-    return Math.floor(this.memoryGb)
+    const value = typeof this.memoryGb === 'number' ? this.memoryGb : Number(this.memoryGb)
+    if (!Number.isFinite(value)) return 0
+    if (value <= 0) return 0
+    return Math.floor(value)
   },
 
   overheadGi() {
