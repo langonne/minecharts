@@ -336,14 +336,15 @@ Alpine.data('createServerForm', () => ({
       const releases = entries.filter((item) => item?.type === 'release')
 
       const options: SelectOption[] = []
-      if (latestRelease) {
-        options.push({ value: 'LATEST', label: `Latest release (${latestRelease})` })
-      }
+        if (latestRelease) {
+          options.push({ value: 'LATEST', label: `Latest release (${latestRelease})` })
+        }
 
-      releases.forEach((item) => {
-        if (!item?.id) return
-        options.push({ value: item.id, label: item.id })
-      })
+        releases.forEach((item) => {
+          if (!item?.id) return
+          if (latestRelease && item.id === latestRelease) return
+          options.push({ value: item.id, label: item.id })
+        })
 
       if (options.length > 0) {
         this.versions = options
