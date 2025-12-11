@@ -151,9 +151,9 @@
                                 <span class="text-zinc-400">Colors:</span>
                                 <template x-for="item in motdColors" :key="item.code">
                                     <button type="button" @click="insertMotdToken(item.code)"
-                                        class="h-7 w-7 rounded border border-zinc-600/60 text-xs font-semibold"
-                                        :class="item.style" :title="item.code">
-                                        <span x-text="item.label"></span>
+                                        class="h-7 w-10 rounded border border-zinc-600/60 text-xs font-semibold shadow-sm"
+                                        :style="`background:${item.color};color:${item.text};`" :title="item.code">
+                                        <span class="drop-shadow-sm" x-text="item.label"></span>
                                     </button>
                                 </template>
                             </div>
