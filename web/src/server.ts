@@ -32,6 +32,7 @@ Alpine.data("serverInfo", () => ({
     environment: [] as EnvironmentEntry[],
     actionFeedbackMessage: "",
     actionFeedbackType: "",
+    copyFeedback: "",
     command: "",
     commandResult: "",
     commandResultType: "",
@@ -52,6 +53,24 @@ Alpine.data("serverInfo", () => ({
 
     get hasEnvironment() {
       return Array.isArray(this.environment) && this.environment.length > 0;
+    },
+
+    async copyServerUrl() {
+      if (!this.serverUrl) {
+        this.copyFeedback = "No URL to copy.";
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(this.serverUrl);
+        this.copyFeedback = "URL copied";
+        setTimeout(() => {
+          this.copyFeedback = "";
+        }, 2000);
+      } catch (err) {
+        console.error("Failed to copy server URL", err);
+        this.copyFeedback = "Copy failed";
+      }
     },
 
     get hasConsoleLogs() {

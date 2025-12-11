@@ -63,7 +63,16 @@
                                 </div>
                                 <div>
                                     <dt class="text-xs uppercase tracking-wide text-zinc-500">Server URL</dt>
-                                    <dd class="font-mono text-zinc-100 break-all" x-text="serverUrl || '—'"></dd>
+                                    <dd class="flex items-center gap-2 font-mono text-zinc-100 break-all">
+                                        <span x-text="serverUrl || '—'"></span>
+                                        <template x-if="serverUrl">
+                                            <button type="button" @click="copyServerUrl()"
+                                                class="rounded-md border border-zinc-600/60 bg-zinc-800/80 px-2 py-1 text-xs font-semibold text-emerald-200 transition-all hover:border-emerald-400 hover:text-white">
+                                                Copy
+                                            </button>
+                                        </template>
+                                    </dd>
+                                    <p class="text-xs text-emerald-300" x-show="copyFeedback" x-text="copyFeedback"></p>
                                 </div>
                                 <div>
                                     <dt class="text-xs uppercase tracking-wide text-zinc-500">Last update</dt>
