@@ -167,15 +167,6 @@
                                     </button>
                                 </template>
                             </div>
-                            <div class="flex flex-wrap items-center gap-2 text-xs">
-                                <span class="text-zinc-400">Symbols:</span>
-                                <template x-for="char in motdChars" :key="char">
-                                    <button type="button" @click="insertMotdChar(char)"
-                                        class="rounded border border-zinc-600/60 bg-zinc-800/70 px-2 py-1 font-medium text-zinc-100 hover:border-emerald-400 hover:text-white">
-                                        <span x-text="char"></span>
-                                    </button>
-                                </template>
-                            </div>
                             <div class="rounded border border-zinc-700 bg-black/50 p-2 text-sm min-h-[40px]"
                                 x-html="motdPreviewHtml()"></div>
                             <p class="text-xs text-zinc-500">Tip: use Minecraft color codes (e.g. &amp;a, &amp;c) or the
