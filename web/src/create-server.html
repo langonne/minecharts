@@ -126,7 +126,7 @@
                         <div class="space-y-2">
                             <input id="memoryGb" type="number" min="1" step="1" x-model.number="memoryGb"
                                 class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                placeholder="Vanilla ~2 GiB, Modded ~4 GiB" />
+                                placeholder="Start around 2 GiB (Vanilla), +~256 MiB per player; modded ~4 GiB, +~512 MiB/player" />
                             <div class="text-xs text-zinc-400 space-y-1">
                                 <template x-if="quotaError">
                                     <p class="text-amber-300" x-text="quotaError"></p>
@@ -140,7 +140,6 @@
                                 <template x-if="!fitsQuota()">
                                     <p class="text-red-400">This server would exceed the available quota.</p>
                                 </template>
-                                <p class="text-xs text-zinc-500">Guides: Vanilla ~2 GiB (512 MiB–256 MiB per player); Modded ~4 GiB (512 MiB per player).</p>
                             </div>
                         </div>
                     </div>
