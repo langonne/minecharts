@@ -72,6 +72,8 @@ api:
     # - name: MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT
     #   value: "25" # percent of MEMORY added as overhead to set the container limit
     # # Deprecated alias (will be removed): MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI
+    # - name: MINECHARTS_WEB_ADMIN_WARNINGS_ENABLED
+    #   value: "true" # expose admin warnings to the web UI via /api/admin/warnings
     # - name: MINECHARTS_API_KEYS_PER_USER
     #   value: "5"
     # - name: MINECHARTS_OAUTH_ENABLED

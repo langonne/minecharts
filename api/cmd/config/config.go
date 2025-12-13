@@ -22,6 +22,7 @@ var (
 	DefaultReplicas            = 1
 	MemoryQuotaEnabled         = getEnvBool("MINECHARTS_MEMORY_QUOTA_ENABLED", false)
 	MemoryQuotaLimit           = getEnvInt("MINECHARTS_MEMORY_QUOTA_LIMIT", 0)
+	WebAdminWarningsEnabled    = getEnvBool("MINECHARTS_WEB_ADMIN_WARNINGS_ENABLED", true)
 	MemoryLimitOverheadPercent = getEnvFloat("MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT", 25, &deprecatedEnv{
 		OldKey:      "MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI",
 		Replacement: "MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT",
@@ -102,9 +103,18 @@ type deprecatedEnv struct {
 	Message     string
 }
 
+// AdminWarning surfaces configuration warnings to administrators through the API.
+type AdminWarning struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 var (
-	deprecatedSeen = make(map[string]struct{})
-	deprecatedMu   sync.Mutex
+	deprecatedSeen    = make(map[string]struct{})
+	deprecatedMu      sync.Mutex
+	adminWarnings     []AdminWarning
+	adminWarningsSeen = make(map[string]struct{})
+	warningsMu        sync.Mutex
 )
 
 func getEnv(key, fallback string, dep ...*deprecatedEnv) string {
@@ -207,6 +217,33 @@ func logDeprecatedEnv(dep *deprecatedEnv) {
 		entry = entry.WithField("replacement_env", dep.Replacement)
 	}
 	entry.Warn(msg)
+
+	addAdminWarning(dep.OldKey, msg)
+}
+
+func addAdminWarning(code, message string) {
+	warningsMu.Lock()
+	defer warningsMu.Unlock()
+
+	if _, exists := adminWarningsSeen[code]; exists {
+		return
+	}
+
+	adminWarningsSeen[code] = struct{}{}
+	adminWarnings = append(adminWarnings, AdminWarning{
+		Code:    code,
+		Message: message,
+	})
+}
+
+// AdminWarnings returns a snapshot of configuration warnings intended for administrators.
+func AdminWarnings() []AdminWarning {
+	warningsMu.Lock()
+	defer warningsMu.Unlock()
+
+	out := make([]AdminWarning, len(adminWarnings))
+	copy(out, adminWarnings)
+	return out
 }
 
 func normalizedMemoryOverheadPercent() float64 {

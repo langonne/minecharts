@@ -235,14 +235,20 @@ func GetUserInfoHandler(c *gin.Context) {
 	logging.Auth.Session.WithFields("user_id", user.ID, "username", user.Username, "remote_ip", c.ClientIP()).
 		Debug("User info requested")
 
+	adminWarningsEnabled := false
+	if user.HasPermission(database.PermAdmin) && config.WebAdminWarningsEnabled {
+		adminWarningsEnabled = true
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"user_id":     user.ID,
-		"username":    user.Username,
-		"email":       user.Email,
-		"permissions": user.Permissions,
-		"active":      user.Active,
-		"last_login":  user.LastLogin,
-		"created_at":  user.CreatedAt,
+		"user_id":                user.ID,
+		"username":               user.Username,
+		"email":                  user.Email,
+		"permissions":            user.Permissions,
+		"active":                 user.Active,
+		"last_login":             user.LastLogin,
+		"created_at":             user.CreatedAt,
+		"admin_warnings_enabled": adminWarningsEnabled,
 	})
 }
 

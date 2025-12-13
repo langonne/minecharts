@@ -139,4 +139,12 @@ func SetupRoutes(router *gin.Engine) {
 		// Network exposure endpoint
 		serverGroup.POST("/:serverName/expose", auth.RequirePermission(database.PermAdmin), handlers.ExposeMinecraftServerHandler)
 	}
+
+	if config.WebAdminWarningsEnabled {
+		adminGroup := router.Group("/admin")
+		adminGroup.Use(auth.JWTMiddleware(), auth.RequirePermission(database.PermAdmin))
+		{
+			adminGroup.GET("/warnings", handlers.ListAdminWarningsHandler)
+		}
+	}
 }
