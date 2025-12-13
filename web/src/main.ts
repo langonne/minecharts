@@ -37,6 +37,7 @@ const PERM_ADMIN_FLAG = 1 << 0 // aligns with backend PermAdmin bit
 const USERNAME_CHANGE_EVENT = 'auth:username-change'
 const ADMIN_CHANGE_EVENT = 'auth:admin-change'
 const ADMIN_WARNINGS_BANNER_ID = 'admin-warnings-banner'
+const ADMIN_WARNINGS_SEEN_KEY = 'admin_warnings_seen'
 
 function emitUsernameChange(username: string | null) {
     if (typeof document === 'undefined') {
@@ -101,9 +102,24 @@ function updateAdminFlag(info: AuthInfo | null) {
 
 let adminWarningsAttempted = false
 
+function warningsFingerprint(warnings: AdminWarning[]): string {
+    if (!Array.isArray(warnings) || warnings.length === 0) return ''
+    const parts = warnings.map((w) => `${w.code ?? ''}|${w.message ?? ''}`)
+    parts.sort()
+    return parts.join('||')
+}
+
 function renderAdminWarningsBanner(warnings: AdminWarning[]) {
     if (typeof document === 'undefined') return
     if (!Array.isArray(warnings) || warnings.length === 0) return
+
+    const fingerprint = warningsFingerprint(warnings)
+    if (fingerprint) {
+        const seen = sessionStorage.getItem(ADMIN_WARNINGS_SEEN_KEY)
+        if (seen === fingerprint) {
+            return
+        }
+    }
 
     // Remove existing banner before re-rendering
     const existing = document.getElementById(ADMIN_WARNINGS_BANNER_ID)
@@ -113,49 +129,69 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
 
     const container = document.createElement('div')
     container.id = ADMIN_WARNINGS_BANNER_ID
-    container.className = 'fixed bottom-4 left-4 right-4 z-50 flex justify-center px-4'
-
-    const panel = document.createElement('div')
-    panel.className =
-        'w-full max-w-4xl rounded-lg border border-amber-500/60 bg-amber-950/80 text-amber-50 shadow-lg backdrop-blur-sm'
-
-    const header = document.createElement('div')
-    header.className = 'flex items-center justify-between px-4 py-2 border-b border-amber-700/60'
-    const title = document.createElement('span')
-    title.className = 'font-semibold text-sm tracking-wide'
-    title.textContent = 'Configuration warnings'
-    const close = document.createElement('button')
-    close.type = 'button'
-    close.className =
-        'text-amber-100 hover:text-white rounded px-2 py-1 text-sm transition-colors hover:bg-amber-800/60'
-    close.textContent = 'Dismiss'
-    close.addEventListener('click', () => {
-        const el = document.getElementById(ADMIN_WARNINGS_BANNER_ID)
-        el?.remove()
-    })
-    header.appendChild(title)
-    header.appendChild(close)
-
-    const list = document.createElement('ul')
-    list.className = 'px-4 py-3 space-y-2 text-sm'
+    container.style.position = 'fixed'
+    container.style.top = '1rem'
+    container.style.right = '1rem'
+    container.style.zIndex = '9999'
+    container.style.display = 'flex'
+    container.style.flexDirection = 'column'
+    container.style.gap = '0.5rem'
+    container.style.maxWidth = '24rem'
+    container.style.width = 'calc(100% - 2rem)'
 
     warnings.forEach((warning) => {
-        const li = document.createElement('li')
-        li.className = 'flex items-start gap-2'
-        const bullet = document.createElement('span')
-        bullet.className = 'mt-1 h-2 w-2 rounded-full bg-amber-400 flex-shrink-0'
-        const text = document.createElement('div')
+        const card = document.createElement('div')
+        card.style.background = '#1f2937'
+        card.style.color = '#fef3c7'
+        card.style.border = '1px solid rgba(251, 191, 36, 0.35)'
+        card.style.borderLeft = '4px solid #fbbf24'
+        card.style.borderRadius = '8px'
+        card.style.boxShadow = '0 10px 25px rgba(0,0,0,0.25)'
+        card.style.padding = '0.75rem 0.9rem'
+        card.style.display = 'flex'
+        card.style.alignItems = 'flex-start'
+        card.style.gap = '0.5rem'
+
+        const icon = document.createElement('span')
+        icon.textContent = '⚠️'
+        icon.setAttribute('aria-hidden', 'true')
+        icon.style.fontSize = '1rem'
+        icon.style.marginTop = '2px'
+
+        const textWrap = document.createElement('div')
         const code = warning.code ? `[${warning.code}] ` : ''
-        text.textContent = `${code}${warning.message ?? ''}`
-        li.appendChild(bullet)
-        li.appendChild(text)
-        list.appendChild(li)
+        textWrap.textContent = `${code}${warning.message ?? ''}`
+        textWrap.style.fontSize = '0.9rem'
+        textWrap.style.lineHeight = '1.4'
+
+        const close = document.createElement('button')
+        close.type = 'button'
+        close.textContent = '×'
+        close.style.marginLeft = 'auto'
+        close.style.fontSize = '1rem'
+        close.style.color = '#fef3c7'
+        close.style.background = 'transparent'
+        close.style.border = 'none'
+        close.style.cursor = 'pointer'
+        close.style.padding = '0 0.2rem'
+        close.addEventListener('click', () => {
+            card.remove()
+            if (!container.hasChildNodes()) {
+                container.remove()
+            }
+        })
+
+        card.appendChild(icon)
+        card.appendChild(textWrap)
+        card.appendChild(close)
+        container.appendChild(card)
     })
 
-    panel.appendChild(header)
-    panel.appendChild(list)
-    container.appendChild(panel)
     document.body.appendChild(container)
+
+    if (fingerprint) {
+        sessionStorage.setItem(ADMIN_WARNINGS_SEEN_KEY, fingerprint)
+    }
 }
 
 async function maybeLoadAdminWarnings(info: AuthInfo | null) {
