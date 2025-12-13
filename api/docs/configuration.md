@@ -27,6 +27,15 @@ Minecharts API reads its configuration from environment variables at startup (`c
 !!! warning "Deprecated alias"
     `MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI` remains accepted for backward compatibility but is deprecated and will be removed in a future release. A startup warning is logged when it is used. Migrate to `MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT`.
 
+## Minecraft server environment variables
+Every key/value under the `env` object of `POST /servers` is forwarded to the underlying `itzg/minecraft-server` container. `MEMORY` sets the pod’s memory **request** and, with the configured overhead percentage, the **limit** (see above). Quota checks also use this limit. Refer to the image documentation for supported options: <https://docker-minecraft-server.readthedocs.io/en/latest/variables/>.
+
+!!! note "Legacy vanilla safeguard"
+    For vanilla servers targeting versions older than `1.12`, Minecharts automatically injects `USE_NATIVE_TRANSPORT=false` (unless you set it yourself) to prevent native transport issues on these builds.
+
+!!! note "MOTD limits"
+    The MOTD may contain at most one newline (two lines total) and up to 59 visible characters. Formatting/color codes (`&x`/`§x`) don’t count toward the limit and are forwarded to the server as `§` codes.
+
 ## Database
 | Variable | Default | Purpose |
 | --- | --- | --- |

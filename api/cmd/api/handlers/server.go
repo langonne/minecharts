@@ -37,6 +37,7 @@ const (
 
 var (
 	envKeyPattern = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
+	motdColorCode = regexp.MustCompile(`(?i)[&\u00A7][0-9A-FK-OR]`)
 )
 
 func formatServerURL(domain string, port int32) string {
@@ -105,19 +106,86 @@ func resolveMaxMemoryGB(env map[string]string) (int64, error) {
 	return value, nil
 }
 
+func parseMajorMinorVersion(version string) (int64, int64, error) {
+	trimmed := strings.TrimSpace(version)
+	if trimmed == "" {
+		return 0, 0, fmt.Errorf("version is empty")
+	}
+
+	parts := strings.Split(trimmed, ".")
+	if len(parts) == 0 {
+		return 0, 0, fmt.Errorf("invalid version format")
+	}
+
+	major, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid major version: %w", err)
+	}
+
+	var minor int64
+	if len(parts) > 1 {
+		minor, err = strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return 0, 0, fmt.Errorf("invalid minor version: %w", err)
+		}
+	}
+
+	return major, minor, nil
+}
+
+func shouldDisableNativeTransport(env map[string]string) bool {
+	if env == nil {
+		return false
+	}
+
+	if _, exists := env["USE_NATIVE_TRANSPORT"]; exists {
+		return false
+	}
+
+	serverType := strings.ToLower(strings.TrimSpace(env["TYPE"]))
+	if serverType != "" && serverType != "vanilla" {
+		return false
+	}
+
+	rawVersion := strings.TrimSpace(env["VERSION"])
+	if rawVersion == "" {
+		return false
+	}
+
+	major, minor, err := parseMajorMinorVersion(rawVersion)
+	if err != nil {
+		return false
+	}
+
+	if major < 1 {
+		return true
+	}
+
+	if major == 1 && minor < 12 {
+		return true
+	}
+
+	return false
+}
+
+func visibleMOTDLength(motd string) int {
+	stripped := motdColorCode.ReplaceAllString(motd, "")
+	return utf8.RuneCountInString(stripped)
+}
+
 func validateMOTD(motd string) error {
 	if motd == "" {
 		return nil
 	}
 
-	// Limit to a single newline (max two lines) and 59 characters (including formatting codes).
+	// Limit to a single newline (max two lines) and 59 visible characters (formatting codes ignored).
 	newlines := strings.Count(motd, "\n")
 	if newlines > 1 {
 		return errors.New("MOTD may contain at most one newline (two lines total)")
 	}
 
-	if len([]rune(motd)) > 59 {
-		return errors.New("MOTD must be at most 59 characters (including color/formatting codes)")
+	if visibleMOTDLength(motd) > 59 {
+		return errors.New("MOTD must be at most 59 characters (excluding formatting codes)")
 	}
 
 	return nil
@@ -483,6 +551,14 @@ func StartMinecraftServerHandler(c *gin.Context) {
 		}
 	}
 	req.Env["MEMORY"] = fmt.Sprintf("%dG", maxMemoryGB)
+
+	if shouldDisableNativeTransport(req.Env) {
+		req.Env["USE_NATIVE_TRANSPORT"] = "false"
+		logging.Server.WithFields(
+			"server_name", baseName,
+			"version", strings.TrimSpace(req.Env["VERSION"]),
+		).Debug("Disabling native transport for legacy vanilla version")
+	}
 
 	if err := validateEnvEntries(req.Env); err != nil {
 		logging.API.InvalidRequest.WithFields(

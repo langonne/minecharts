@@ -147,9 +147,9 @@
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <label for="motd" class="block text-sm font-medium text-zinc-300">MOTD</label>
-                            <span class="text-xs text-zinc-500" x-text="`${motdLength()} chars`"></span>
+                            <span class="text-xs text-zinc-500" x-text="`${motdLength()} / ${motdLimit}`"></span>
                         </div>
-                        <textarea id="motd" x-model="motd" x-ref="motdInput" rows="2" maxlength="59"
+                        <textarea id="motd" x-model="motd" x-ref="motdInput" rows="2"
                             @input="enforceMotdLimits"
                             class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             placeholder="Welcome to our server!"></textarea>
@@ -176,8 +176,9 @@
                             </div>
                             <div class="rounded border border-zinc-700 bg-black/50 p-2 text-sm min-h-[40px] overflow-x-auto whitespace-pre"
                                 x-html="motdPreviewHtml()"></div>
-                            <p class="text-xs text-zinc-500">Max 59 characters, up to 2 lines (one newline). Use Minecraft
-                                color codes (e.g. &amp;a, &amp;c) or the quick buttons above.</p>
+                            <p class="text-xs text-zinc-500">Max 59 visible characters, up to 2 lines (one newline). Color
+                                codes (e.g. &amp;a, &amp;c) don’t count toward the limit and are sent as &sect;-style codes
+                                automatically.</p>
                         </div>
                     </div>
 

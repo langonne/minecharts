@@ -24,6 +24,7 @@ Alpine.data('createServerForm', () => ({
   maxPlayers: 10,
   motd: '',
   motdPreview: '',
+  motdLimit: 59,
   ops: '',
   cfApiKey: '',
   cfPageUrl: '',
@@ -237,8 +238,65 @@ Alpine.data('createServerForm', () => ({
     return this.customFields.filter((field) => field.key.trim() !== '' && field.value.trim() !== '')
   },
 
+  formatMotdForServer(raw: string) {
+    return raw.replace(/&([0-9a-fk-or])/gi, '\u00A7$1')
+  },
+
+  stripMotdCodes(raw: string) {
+    return raw.replace(/[§&][0-9a-fk-or]/gi, '')
+  },
+
+  visibleMotdLength(raw?: string) {
+    const value = typeof raw === 'string' ? raw : ''
+    return Array.from(this.stripMotdCodes(value)).length
+  },
+
+  sanitizeMotd(raw: string) {
+    const limit = this.motdLimit ?? 59
+    let visible = 0
+    let newlines = 0
+    let out = ''
+
+    for (let i = 0; i < raw.length; ) {
+      const codePoint = raw.codePointAt(i)
+      if (codePoint === undefined) break
+      const ch = String.fromCodePoint(codePoint)
+      const charLen = ch.length
+
+      if ((ch === '&' || ch === '§') && i + charLen < raw.length) {
+        const nextCodePoint = raw.codePointAt(i + charLen)
+        if (nextCodePoint !== undefined) {
+          const nextChar = String.fromCodePoint(nextCodePoint)
+          out += ch + nextChar
+          i += charLen + nextChar.length
+          continue
+        }
+      }
+
+      if (ch === '\n') {
+        if (newlines >= 1) {
+          break
+        }
+        newlines += 1
+        out += ch
+        i += charLen
+        continue
+      }
+
+      if (visible >= limit) {
+        break
+      }
+
+      out += ch
+      visible += 1
+      i += charLen
+    }
+
+    return out
+  },
+
   motdLength() {
-    return this.motd?.length ?? 0
+    return this.visibleMotdLength(this.motd)
   },
 
   motdPreviewHtml() {
@@ -251,20 +309,9 @@ Alpine.data('createServerForm', () => ({
       return
     }
 
-    // Cap length to 59 characters (includes formatting codes)
-    let value = this.motd.slice(0, 59)
-
-    // Allow at most one newline (two lines total)
-    const firstNewline = value.indexOf('\n')
-    if (firstNewline !== -1) {
-      const secondNewline = value.indexOf('\n', firstNewline + 1)
-      if (secondNewline !== -1) {
-        value = value.slice(0, secondNewline)
-      }
-    }
-
-    if (value !== this.motd) {
-      this.motd = value
+    const sanitized = this.sanitizeMotd(this.motd)
+    if (sanitized !== this.motd) {
+      this.motd = sanitized
     }
   },
 
@@ -328,7 +375,7 @@ Alpine.data('createServerForm', () => ({
 
     for (let i = 0; i < input.length; i += 1) {
       const ch = input[i]
-      if (ch === '&' && i + 1 < input.length) {
+      if ((ch === '&' || ch === '§') && i + 1 < input.length) {
         const code = input[i + 1].toLowerCase()
         if (colorMap[code]) {
           result += flushRun(buffer, styles)
@@ -378,9 +425,11 @@ Alpine.data('createServerForm', () => ({
     const start = el.selectionStart ?? this.motd.length
     const end = el.selectionEnd ?? this.motd.length
     const value = this.motd || ''
-    this.motd = value.slice(0, start) + token + value.slice(end)
+    const raw = value.slice(0, start) + token + value.slice(end)
+    const sanitized = this.sanitizeMotd(raw)
+    this.motd = sanitized
     this.$nextTick(() => {
-      const pos = start + token.length
+      const pos = Math.min(sanitized.length, start + token.length)
       el.focus()
       el.setSelectionRange(pos, pos)
     })
@@ -423,8 +472,10 @@ Alpine.data('createServerForm', () => ({
       env.MAX_PLAYERS = String(this.maxPlayers)
     }
 
-    if (this.motd.trim()) {
-      env.MOTD = this.motd.trim()
+    const motdValue = this.sanitizeMotd((this.motd || '').trim())
+    if (motdValue) {
+      env.MOTD = this.formatMotdForServer(motdValue)
+      this.motd = motdValue
     }
 
     if (this.ops.trim()) {
@@ -557,6 +608,7 @@ Alpine.data('createServerForm', () => ({
   handleBeforeRequest() {
     this.isSubmitting = true
     this.clearError()
+    this.enforceMotdLimits()
   },
 
   handleAfterRequest(event?: CustomEvent) {
