@@ -38,6 +38,7 @@ const USERNAME_CHANGE_EVENT = 'auth:username-change'
 const ADMIN_CHANGE_EVENT = 'auth:admin-change'
 const ADMIN_WARNINGS_BANNER_ID = 'admin-warnings-banner'
 const ADMIN_WARNINGS_SEEN_KEY = 'admin_warnings_seen'
+const ADMIN_WARNING_TIMEOUT_MS = 10_000
 
 function emitUsernameChange(username: string | null) {
     if (typeof document === 'undefined') {
@@ -130,7 +131,7 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
     const container = document.createElement('div')
     container.id = ADMIN_WARNINGS_BANNER_ID
     container.style.position = 'fixed'
-    container.style.top = '1rem'
+    container.style.bottom = '1rem'
     container.style.right = '1rem'
     container.style.zIndex = '9999'
     container.style.display = 'flex'
@@ -151,6 +152,7 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
         card.style.display = 'flex'
         card.style.alignItems = 'flex-start'
         card.style.gap = '0.5rem'
+        card.style.position = 'relative'
 
         const icon = document.createElement('span')
         icon.textContent = '⚠️'
@@ -185,6 +187,16 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
         card.appendChild(textWrap)
         card.appendChild(close)
         container.appendChild(card)
+
+        // Auto-dismiss after timeout
+        const timeout = setTimeout(() => {
+            card.remove()
+            if (!container.hasChildNodes()) {
+                container.remove()
+            }
+        }, ADMIN_WARNING_TIMEOUT_MS)
+
+        close.addEventListener('click', () => clearTimeout(timeout))
     })
 
     document.body.appendChild(container)
