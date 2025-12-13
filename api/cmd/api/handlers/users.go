@@ -10,7 +10,9 @@ import (
 	"unicode"
 
 	"minecharts/cmd/auth"
+	"minecharts/cmd/config"
 	"minecharts/cmd/database"
+	"minecharts/cmd/kubernetes"
 	"minecharts/cmd/logging"
 
 	"github.com/gin-gonic/gin"
@@ -515,6 +517,69 @@ func DeleteUserHandler(c *gin.Context) {
 
 	// Delete user from database
 	db := database.GetDB()
+
+	servers, err := db.ListServersByOwner(c.Request.Context(), id)
+	if err != nil {
+		logging.DB.WithFields(
+			"admin_user_id", adminUser.ID,
+			"target_user_id", id,
+			"error", err.Error(),
+		).Error("Failed to list servers before deleting user")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list servers for user"})
+		return
+	}
+
+	for _, srv := range servers {
+		logging.Server.WithFields(
+			"admin_user_id", adminUser.ID,
+			"target_user_id", id,
+			"server_name", srv.ServerName,
+			"statefulset", srv.StatefulSetName,
+			"pvc", srv.PVCName,
+		).Info("Deleting server owned by user prior to user deletion")
+
+		if err := kubernetes.DeleteStatefulSet(config.DefaultNamespace, srv.StatefulSetName); err != nil {
+			logging.Server.WithFields(
+				"admin_user_id", adminUser.ID,
+				"target_user_id", id,
+				"server_name", srv.ServerName,
+				"statefulset", srv.StatefulSetName,
+				"error", err.Error(),
+			).Warn("Failed to delete StatefulSet while deleting user")
+		}
+
+		if err := kubernetes.DeletePVC(config.DefaultNamespace, srv.PVCName); err != nil {
+			logging.Server.WithFields(
+				"admin_user_id", adminUser.ID,
+				"target_user_id", id,
+				"server_name", srv.ServerName,
+				"pvc", srv.PVCName,
+				"error", err.Error(),
+			).Warn("Failed to delete PVC while deleting user")
+		}
+
+		if err := kubernetes.DeleteService(config.DefaultNamespace, srv.StatefulSetName); err != nil {
+			logging.Server.WithFields(
+				"admin_user_id", adminUser.ID,
+				"target_user_id", id,
+				"server_name", srv.ServerName,
+				"service", srv.StatefulSetName,
+				"error", err.Error(),
+			).Warn("Failed to delete Service while deleting user")
+		}
+
+		if err := db.DeleteServerRecord(c.Request.Context(), srv.ServerName); err != nil {
+			logging.DB.WithFields(
+				"admin_user_id", adminUser.ID,
+				"target_user_id", id,
+				"server_name", srv.ServerName,
+				"error", err.Error(),
+			).Error("Failed to delete server record while deleting user")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete server records for user"})
+			return
+		}
+	}
+
 	if err := db.DeleteUser(c.Request.Context(), id); err != nil {
 		if err == database.ErrUserNotFound {
 			logging.Auth.WithFields(
