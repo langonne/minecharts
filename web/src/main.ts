@@ -137,7 +137,7 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
     container.style.display = 'flex'
     container.style.flexDirection = 'column'
     container.style.gap = '0.5rem'
-    container.style.maxWidth = '24rem'
+    container.style.maxWidth = '26rem'
     container.style.width = 'calc(100% - 2rem)'
 
     warnings.forEach((warning) => {
@@ -153,6 +153,8 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
         card.style.alignItems = 'flex-start'
         card.style.gap = '0.5rem'
         card.style.position = 'relative'
+        card.style.overflow = 'hidden'
+        card.style.width = '100%'
 
         const icon = document.createElement('span')
         icon.textContent = '⚠️'
@@ -165,17 +167,22 @@ function renderAdminWarningsBanner(warnings: AdminWarning[]) {
         textWrap.textContent = `${code}${warning.message ?? ''}`
         textWrap.style.fontSize = '0.9rem'
         textWrap.style.lineHeight = '1.4'
+        textWrap.style.wordBreak = 'break-word'
+        textWrap.style.paddingRight = '1.5rem'
 
         const close = document.createElement('button')
         close.type = 'button'
         close.textContent = '×'
-        close.style.marginLeft = 'auto'
+        close.style.position = 'absolute'
+        close.style.top = '6px'
+        close.style.right = '6px'
         close.style.fontSize = '1rem'
         close.style.color = '#fef3c7'
         close.style.background = 'transparent'
         close.style.border = 'none'
         close.style.cursor = 'pointer'
-        close.style.padding = '0 0.2rem'
+        close.style.padding = '0.15rem'
+        close.style.lineHeight = '1'
         close.addEventListener('click', () => {
             card.remove()
             if (!container.hasChildNodes()) {
