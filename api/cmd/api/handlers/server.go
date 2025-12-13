@@ -37,7 +37,7 @@ const (
 
 var (
 	envKeyPattern = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
-	motdColorCode = regexp.MustCompile(`(?i)[&\u00A7][0-9A-FK-OR]`)
+	motdColorCode = regexp.MustCompile(`(?i)[&\x{00A7}][0-9A-FK-OR]`)
 )
 
 func formatServerURL(domain string, port int32) string {
