@@ -38,6 +38,7 @@ const USERNAME_CHANGE_EVENT = 'auth:username-change'
 const ADMIN_CHANGE_EVENT = 'auth:admin-change'
 const ADMIN_WARNINGS_BANNER_ID = 'admin-warnings-banner'
 const ADMIN_WARNINGS_SEEN_KEY = 'admin_warnings_seen'
+const ADMIN_WARNINGS_CHECK_KEY = 'admin_warnings_checked'
 const ADMIN_WARNING_TIMEOUT_MS = 10_000
 const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev'
 const APP_COMMIT = (import.meta.env.VITE_APP_COMMIT as string | undefined) ?? ''
@@ -221,6 +222,8 @@ async function maybeLoadAdminWarnings(info: AuthInfo | null) {
     if (!info || !isAdminUser(info)) return
     if (!info.admin_warnings_enabled) return
 
+    if (sessionStorage.getItem(ADMIN_WARNINGS_CHECK_KEY)) return
+
     adminWarningsAttempted = true
     try {
         const response = await fetch('/api/admin/warnings', { credentials: 'include' })
@@ -229,6 +232,7 @@ async function maybeLoadAdminWarnings(info: AuthInfo | null) {
         if (payload?.warnings && payload.warnings.length > 0) {
             renderAdminWarningsBanner(payload.warnings)
         }
+        sessionStorage.setItem(ADMIN_WARNINGS_CHECK_KEY, String(Date.now()))
     } catch {
         /* ignore fetch errors */
     }
