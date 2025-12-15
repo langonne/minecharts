@@ -40,6 +40,8 @@ const ADMIN_WARNINGS_BANNER_ID = 'admin-warnings-banner'
 const ADMIN_WARNINGS_SEEN_KEY = 'admin_warnings_seen'
 const ADMIN_WARNINGS_CHECK_KEY = 'admin_warnings_checked'
 const ADMIN_WARNING_TIMEOUT_MS = 10_000
+const AUTH_CACHE_KEY = 'auth_me_cache'
+const AUTH_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev'
 const APP_COMMIT = (import.meta.env.VITE_APP_COMMIT as string | undefined) ?? ''
 const APP_BUILD_DATE = (import.meta.env.VITE_APP_BUILD_DATE as string | undefined) ?? ''
@@ -335,6 +337,34 @@ function storeAuthResponse(data: AuthInfo | null) {
         promise: Promise.resolve(data),
         timestamp: Date.now(),
     }
+    try {
+        if (data) {
+            sessionStorage.setItem(
+                AUTH_CACHE_KEY,
+                JSON.stringify({ data, timestamp: Date.now() }),
+            )
+        } else {
+            sessionStorage.removeItem(AUTH_CACHE_KEY)
+        }
+    } catch {
+        /* ignore quota errors */
+    }
+}
+
+function readCachedAuth(): AuthInfo | null {
+    try {
+        const raw = sessionStorage.getItem(AUTH_CACHE_KEY)
+        if (!raw) return null
+        const parsed = JSON.parse(raw) as { data?: AuthInfo; timestamp?: number }
+        if (!parsed || !parsed.data || typeof parsed.timestamp !== 'number') return null
+        if (Date.now() - parsed.timestamp > AUTH_CACHE_TTL_MS) {
+            sessionStorage.removeItem(AUTH_CACHE_KEY)
+            return null
+        }
+        return parsed.data
+    } catch {
+        return null
+    }
 }
 
 async function fetchAuthInfo(): Promise<AuthInfo | null> {
@@ -342,6 +372,14 @@ async function fetchAuthInfo(): Promise<AuthInfo | null> {
         const data = await window.__authCache.promise
         maybeLoadAdminWarnings(data)
         return data
+    }
+
+    const cached = readCachedAuth()
+    if (cached) {
+        storeAuthResponse(cached)
+        maybeLoadAdminWarnings(cached)
+        updateAdminFlag(cached)
+        return cached
     }
 
     const promise = (async () => {
@@ -353,6 +391,7 @@ async function fetchAuthInfo(): Promise<AuthInfo | null> {
             if (!response.ok) {
                 syncUsername(null)
                 updateAdminFlag(null)
+                sessionStorage.removeItem(AUTH_CACHE_KEY)
                 maybeLoadAdminWarnings(null)
                 return null
             }
@@ -360,11 +399,16 @@ async function fetchAuthInfo(): Promise<AuthInfo | null> {
             const data = await response.json() as AuthInfo
             updateAdminFlag(data)
             syncUsername(data.username)
+            sessionStorage.setItem(
+                AUTH_CACHE_KEY,
+                JSON.stringify({ data, timestamp: Date.now() }),
+            )
             maybeLoadAdminWarnings(data)
             return data
         } catch {
             syncUsername(null)
             updateAdminFlag(null)
+            sessionStorage.removeItem(AUTH_CACHE_KEY)
             maybeLoadAdminWarnings(null)
             return null
         }
