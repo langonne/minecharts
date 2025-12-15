@@ -292,11 +292,7 @@ function ensureVersionFooter() {
     if (document.getElementById('mc-version-footer')) return
     const footer = document.createElement('footer')
     footer.id = 'mc-version-footer'
-    footer.className = 'w-full mt-auto border-t border-zinc-800 bg-zinc-900/70 text-zinc-400 text-sm'
-    footer.style.position = 'fixed'
-    footer.style.left = '0'
-    footer.style.right = '0'
-    footer.style.bottom = '0'
+    footer.className = 'w-full mt-auto bg-zinc-800 text-zinc-200 text-sm border-t border-zinc-700 shadow'
 
     const inner = document.createElement('div')
     inner.className = 'max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'
