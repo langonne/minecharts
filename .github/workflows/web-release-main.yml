@@ -47,6 +47,10 @@ jobs:
         with:
           context: web
           push: true
+          build-args: |
+            VERSION=${{ steps.release_meta.outputs.version }}
+            COMMIT=${{ github.sha }}
+            BUILD_DATE=${{ github.run_started_at }}
           tags: |
             ghcr.io/langonne/minecharts-web:${{ steps.release_meta.outputs.version }}
             ghcr.io/langonne/minecharts-web:main

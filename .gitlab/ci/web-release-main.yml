@@ -47,7 +47,11 @@ web_release_main:
       VERSION_TAG="${COMPONENT_REPO}:${RELEASE_VERSION}"
       PRIMARY_IMAGE="${COMPONENT_REPO}:${TARGET_ENV}"
       LATEST_TAG="${COMPONENT_REPO}:latest"
-      docker build --pull -f "$DOCKERFILE_PATH" -t "$VERSION_TAG" "$BUILD_CONTEXT"
+      docker build --pull -f "$DOCKERFILE_PATH" \
+        --build-arg VERSION="$RELEASE_VERSION" \
+        --build-arg COMMIT="$CI_COMMIT_SHA" \
+        --build-arg BUILD_DATE="$CI_JOB_STARTED_AT" \
+        -t "$VERSION_TAG" "$BUILD_CONTEXT"
       docker tag "$VERSION_TAG" "$PRIMARY_IMAGE"
       docker tag "$VERSION_TAG" "$LATEST_TAG"
       for tag in "$VERSION_TAG" "$PRIMARY_IMAGE" "$LATEST_TAG"; do

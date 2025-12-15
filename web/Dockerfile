@@ -1,6 +1,13 @@
 FROM oven/bun:1 as builder
 
 WORKDIR /app
+ARG VERSION=dev
+ARG COMMIT=unknown
+ARG BUILD_DATE=unknown
+
+ENV VITE_APP_VERSION=$VERSION \
+    VITE_APP_COMMIT=$COMMIT \
+    VITE_APP_BUILD_DATE=$BUILD_DATE
 
 COPY package.json bun.lock* ./
 COPY tsconfig.json uno.config.ts vite.config.ts ./

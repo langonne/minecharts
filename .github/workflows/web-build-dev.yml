@@ -38,6 +38,10 @@ jobs:
         with:
           context: web
           push: true
+          build-args: |
+            VERSION=dev-${{ github.sha }}
+            COMMIT=${{ github.sha }}
+            BUILD_DATE=${{ github.run_started_at }}
           tags: |
             ghcr.io/langonne/minecharts-web:dev-${{ github.sha }}
             ghcr.io/langonne/minecharts-web:dev-latest

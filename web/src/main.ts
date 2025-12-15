@@ -39,6 +39,9 @@ const ADMIN_CHANGE_EVENT = 'auth:admin-change'
 const ADMIN_WARNINGS_BANNER_ID = 'admin-warnings-banner'
 const ADMIN_WARNINGS_SEEN_KEY = 'admin_warnings_seen'
 const ADMIN_WARNING_TIMEOUT_MS = 10_000
+const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev'
+const APP_COMMIT = (import.meta.env.VITE_APP_COMMIT as string | undefined) ?? ''
+const APP_BUILD_DATE = (import.meta.env.VITE_APP_BUILD_DATE as string | undefined) ?? ''
 
 function emitUsernameChange(username: string | null) {
     if (typeof document === 'undefined') {
@@ -260,6 +263,63 @@ if (typeof document !== 'undefined') {
         if (path.includes('navbar.html')) {
             broadcastStoredAuthState()
         }
+    })
+}
+
+function formatAppVersion(): string {
+    const shortCommit = APP_COMMIT ? APP_COMMIT.slice(0, 7) : ''
+    if (shortCommit) {
+        return `${APP_VERSION} (${shortCommit})`
+    }
+    return APP_VERSION
+}
+
+function renderAppVersion() {
+    if (typeof document === 'undefined') return
+    const label = formatAppVersion()
+    const nodes = document.querySelectorAll<HTMLElement>('[data-app-version]')
+    nodes.forEach((node) => {
+        node.textContent = label
+        const tooltipParts = [APP_COMMIT, APP_BUILD_DATE].filter(Boolean)
+        if (tooltipParts.length > 0) {
+            node.title = tooltipParts.join(' • ')
+        }
+    })
+}
+
+function ensureVersionFooter() {
+    if (typeof document === 'undefined') return
+    if (document.getElementById('mc-version-footer')) return
+    const footer = document.createElement('footer')
+    footer.id = 'mc-version-footer'
+    footer.className = 'w-full mt-auto border-t border-zinc-800 bg-zinc-900/70 text-zinc-400 text-sm'
+    footer.style.position = 'fixed'
+    footer.style.left = '0'
+    footer.style.right = '0'
+    footer.style.bottom = '0'
+
+    const inner = document.createElement('div')
+    inner.className = 'max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'
+
+    const brand = document.createElement('div')
+    brand.className = 'font-semibold text-white'
+    brand.textContent = 'Minecharts Web'
+
+    const version = document.createElement('div')
+    version.dataset.appVersion = 'true'
+    version.className = 'font-mono text-xs text-emerald-200'
+
+    inner.appendChild(brand)
+    inner.appendChild(version)
+    footer.appendChild(inner)
+    document.body.appendChild(footer)
+    renderAppVersion()
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        renderAppVersion()
+        ensureVersionFooter()
     })
 }
 
