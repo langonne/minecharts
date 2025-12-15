@@ -7,6 +7,7 @@ import (
 	"minecharts/cmd/database"
 	"minecharts/cmd/kubernetes"
 	"minecharts/cmd/logging"
+	"minecharts/cmd/version"
 	"minecharts/cmd/secrets"
 	"strings"
 	"time"
@@ -21,6 +22,11 @@ func main() {
 	// Initialize logger
 	logging.Init()
 	logger := logging.Logger
+	logging.WithFields(
+		logging.F("version", version.Version),
+		logging.F("commit", version.Commit),
+		logging.F("build_date", version.BuildDate),
+	).Info("Minecharts API build metadata")
 
 	if secret, secretPath, generated, err := secrets.LoadOrCreateJWTSecret(config.DataDir); err != nil {
 		logger.Fatalf("Failed to prepare JWT secret: %v", err)

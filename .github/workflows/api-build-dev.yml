@@ -41,6 +41,10 @@ jobs:
         with:
           context: api
           push: true
+          build-args: |
+            VERSION=dev-${{ github.sha }}
+            COMMIT=${{ github.sha }}
+            BUILD_DATE=${{ github.run_started_at }}
           tags: |
             ghcr.io/langonne/minecharts-api:dev-${{ github.sha }}
             ghcr.io/langonne/minecharts-api:dev-latest

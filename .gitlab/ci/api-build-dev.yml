@@ -41,7 +41,11 @@ api_build_dev:
       PRIMARY_IMAGE="${COMPONENT_REPO}:${TARGET_ENV}"
       LATEST_TAG="${COMPONENT_REPO}:${TARGET_ENV}-latest"
       SHA_TAG="${COMPONENT_REPO}:${TARGET_ENV}-${SHORT_SHA}"
-      docker build --pull -f "$DOCKERFILE_PATH" -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
+      docker build --pull -f "$DOCKERFILE_PATH" \
+        --build-arg VERSION="dev-${SHORT_SHA}" \
+        --build-arg COMMIT="$CI_COMMIT_SHA" \
+        --build-arg BUILD_DATE="$CI_JOB_STARTED_AT" \
+        -t "$PRIMARY_IMAGE" "$BUILD_CONTEXT"
       docker tag "$PRIMARY_IMAGE" "$LATEST_TAG"
       docker tag "$PRIMARY_IMAGE" "$SHA_TAG"
       for tag in "$PRIMARY_IMAGE" "$LATEST_TAG" "$SHA_TAG"; do
