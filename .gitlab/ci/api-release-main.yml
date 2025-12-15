@@ -81,6 +81,12 @@ pages:
     - |
       VERSION="${API_RELEASE_VERSION:-}"
       if [ -z "$VERSION" ]; then
+        VERSION="$(git describe --tags --match 'api-v*' --abbrev=0 2>/dev/null || true)"
+        case "$VERSION" in
+          api-v*) VERSION="${VERSION#api-v}" ;;
+        esac
+      fi
+      if [ -z "$VERSION" ]; then
         echo "No release version found; skipping doc deployment."
         exit 0
       fi
