@@ -91,5 +91,9 @@ pages:
 
       uv run mike deploy --config-file mkdocs.yml --branch gh-pages --remote origin --push "$VERSION" latest
       uv run mike set-default --config-file mkdocs.yml --branch gh-pages --remote origin --push latest
+      uv run mkdocs build --config-file mkdocs.yml --site-dir ../public
+  artifacts:
+    paths:
+      - public
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'

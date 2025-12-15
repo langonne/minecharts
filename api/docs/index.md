@@ -8,7 +8,7 @@ Minecharts API automates the lifecycle of Minecraft servers inside a Kubernetes 
 - Tracks users, keys, and server metadata in a database so that cluster state and API state remain aligned.
 
 ## How to Use This Documentation
-- Understand how clients interact with the service: [API Overview](api.md)
+- Understand how clients interact with the service: [API Overview](api/index.md)
 - Configure runtime behaviour and storage: [Configuration](configuration.md)
 - Explore the persistence model and relationships: [Database Architecture](database.md)
 
