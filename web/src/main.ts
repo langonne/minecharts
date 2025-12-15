@@ -270,6 +270,21 @@ if (typeof document !== 'undefined') {
             broadcastStoredAuthState()
         }
     })
+
+    document.addEventListener('htmx:afterRequest', (event) => {
+        const detail = (event as CustomEvent).detail ?? {}
+        const path =
+            typeof detail.requestConfig?.path === 'string'
+                ? detail.requestConfig.path
+                : typeof detail.xhr?.responseURL === 'string'
+                    ? detail.xhr.responseURL
+                    : ''
+        const successful = Boolean((detail as any).successful ?? detail.successful ?? detail.xhr?.status < 400)
+
+        if (path.includes('/auth/logout') && successful) {
+            clearLocalIdentity()
+        }
+    })
 }
 
 function formatAppVersion(): string {
@@ -372,6 +387,25 @@ function readCachedAuth(): AuthInfo | null {
     } catch {
         return null
     }
+}
+
+function clearAuthCaches() {
+    delete window.__authCache
+    try {
+        sessionStorage.removeItem(AUTH_CACHE_KEY)
+        sessionStorage.removeItem(ADMIN_WARNINGS_CHECK_KEY)
+        sessionStorage.removeItem(ADMIN_WARNINGS_SEEN_KEY)
+    } catch {
+        /* ignore */
+    }
+}
+
+function clearLocalIdentity() {
+    localStorage.removeItem('username')
+    localStorage.removeItem('is_admin')
+    emitUsernameChange(null)
+    emitAdminChange(false)
+    clearAuthCaches()
 }
 
 async function fetchAuthInfo(): Promise<AuthInfo | null> {
