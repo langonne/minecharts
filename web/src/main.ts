@@ -293,8 +293,15 @@ function renderAppVersion() {
     })
 }
 
+function isGuestRoute(): boolean {
+    const meta = document.querySelector('meta[name="route:access"]') as HTMLMetaElement | null
+    const val = meta?.content?.toLowerCase() ?? 'public'
+    return val === 'guest'
+}
+
 function ensureVersionFooter() {
     if (typeof document === 'undefined') return
+    if (isGuestRoute()) return
     if (document.getElementById('mc-version-footer')) return
     const footer = document.createElement('footer')
     footer.id = 'mc-version-footer'
