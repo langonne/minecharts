@@ -101,8 +101,11 @@
                             </div>
                             <input id="cfApiKey" type="text" x-model="cfApiKey"
                                 :required="serverType === 'AUTO_CURSEFORGE'"
+                                pattern="[A-Za-z0-9$./]+"
+                                title="Letters, numbers, $, ., and / only"
                                 class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                 placeholder="Enter your CurseForge API key" />
+                            <p class="text-xs text-zinc-500">Allowed characters: letters, numbers, $, ., and /.</p>
                         </div>
 
                         <div class="space-y-2">
