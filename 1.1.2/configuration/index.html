@@ -1,0 +1,1730 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://langonne.github.io/minecharts/1.1.2/configuration/">
+      
+      
+        <link rel="prev" href="../api/endpoint/users/">
+      
+      
+        <link rel="next" href="../additional-tweaks/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Overview - Minecharts</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Minecharts" class="md-header__button md-logo" aria-label="Minecharts" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Minecharts
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/langonne/minecharts" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    langonne/minecharts-api
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../database/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Database Architecture
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Minecharts" class="md-nav__button md-logo" aria-label="Minecharts" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Minecharts
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/langonne/minecharts" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    langonne/minecharts-api
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/authentification_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentification model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/request_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Request flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/operational_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operational notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Endpoint reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Endpoint reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/authentification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/feedback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feedback
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/api_keys/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Keys
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/quota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quota
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/servers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Servers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoint/users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Users
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#core-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Settings
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minecraft-server-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minecraft server environment variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication &amp; Security
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication &amp; Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#permission-flags-and-common-masks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permission flags and common masks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oauth-oidc-single-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      OAuth &amp; OIDC (single provider)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OAuth &amp; OIDC (single provider)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oidc-provider-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      OIDC provider settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik-compat-and-group-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentik (compat and group sync)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-issue-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback &amp; Issue Reporting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../additional-tweaks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Additional Tweaks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local-development-overlay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Local Development Overlay
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helm-chart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Helm Chart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#core-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Settings
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minecraft-server-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minecraft server environment variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication &amp; Security
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication &amp; Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#permission-flags-and-common-masks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permission flags and common masks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oauth-oidc-single-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      OAuth &amp; OIDC (single provider)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OAuth &amp; OIDC (single provider)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oidc-provider-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      OIDC provider settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik-compat-and-group-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentik (compat and group sync)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-issue-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback &amp; Issue Reporting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="configuration">Configuration</h1>
+<p>Minecharts API reads its configuration from environment variables at startup (<code>cmd/config/config.go</code>). The following tables enumerate every supported variable and the resulting behaviour.</p>
+<h2 id="core-settings">Core Settings</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_NAMESPACE</code></td>
+<td><code>minecharts</code></td>
+<td>Kubernetes namespace that hosts StatefulSets, services, and PVCs.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_STATEFULSET_PREFIX</code></td>
+<td><code>minecraft-server-</code></td>
+<td>Prefix applied to server names to build StatefulSet/service names.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_PVC_SUFFIX</code></td>
+<td><code>-pvc</code></td>
+<td>Suffix appended to PVC names.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_STORAGE_SIZE</code></td>
+<td><code>10Gi</code></td>
+<td>Capacity requested for each persistent volume claim.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_STORAGE_CLASS</code></td>
+<td><em>(empty)</em></td>
+<td>Storage class used when creating PVCs; leave empty to let Kubernetes pick the cluster default automatically.<br />Example: <code>local-path</code></td>
+</tr>
+<tr>
+<td><code>MINECHARTS_MCROUTER_DOMAIN_SUFFIX</code></td>
+<td><em>(empty)</em></td>
+<td>Domain suffix used when exposing servers through mc-router; required for the API to start.<br />Example: <code>mc.example.com</code></td>
+</tr>
+<tr>
+<td><code>MINECHARTS_TRUSTED_PROXIES</code></td>
+<td><code>127.0.0.1</code></td>
+<td>Comma-separated list passed to Gin to mark upstream proxies as trusted.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_TIMEZONE</code></td>
+<td><code>UTC</code></td>
+<td>Application-wide timezone for logging and time calculations.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_WEB_ADMIN_WARNINGS_ENABLED</code></td>
+<td><code>true</code></td>
+<td>Enables the admin warnings endpoint consumed by the web UI (<code>/api/admin/warnings</code>).</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_MEMORY_QUOTA_ENABLED</code></td>
+<td><code>false</code></td>
+<td>Enables enforcement of the global Minecraft memory quota.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_MEMORY_QUOTA_LIMIT</code></td>
+<td><code>0</code></td>
+<td>Maximum total memory (gigabytes) the cluster may allocate to Minecraft servers when the quota is enabled. <code>0</code> or negative values are treated as unlimited.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT</code></td>
+<td><code>25</code></td>
+<td>Percentage of each server’s <code>MEMORY</code> added as overhead when enforcing Kubernetes limits (e.g. <code>MEMORY=4G</code> and <code>25</code> → limit set to <code>5Gi</code>).</td>
+</tr>
+<tr>
+<td><code>DATA_DIR</code></td>
+<td><code>./app/data</code></td>
+<td>Local directory for SQLite data when the DB is auto-initialised.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Memory quota accounting</p>
+<p>When <code>MINECHARTS_MEMORY_QUOTA_ENABLED</code> is <code>true</code>, quota checks use the same value as the Kubernetes limit: <code>MEMORY + overhead%</code>. The remaining budget is therefore the cluster-side cost (including overhead), not just the raw <code>MEMORY</code> value.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Memory overhead (limit buffer)</p>
+<p>The <code>MEMORY</code> value is forwarded as-is to the <code>itzg/minecraft-server</code> container and set as the pod’s memory <strong>request</strong>. The <strong>limit</strong> is <code>MEMORY + (MEMORY * MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT / 100)</code>. With the default <code>25</code>, a <code>MEMORY</code> of <code>4G</code> translates to a request of <code>4Gi</code> and a limit of roughly <code>5Gi</code>. If the container exceeds the limit, Kubernetes will OOM-kill the pod. Negative overhead values are clamped to zero.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated alias</p>
+<p><code>MINECHARTS_MEMORY_LIMIT_OVERHEAD_MI</code> remains accepted for backward compatibility but is deprecated and will be removed in a future release. A startup warning is logged when it is used. Migrate to <code>MINECHARTS_MEMORY_LIMIT_OVERHEAD_PERCENT</code>.</p>
+</div>
+<h2 id="minecraft-server-environment-variables">Minecraft server environment variables</h2>
+<p>Every key/value under the <code>env</code> object of <code>POST /servers</code> is forwarded to the underlying <code>itzg/minecraft-server</code> container. <code>MEMORY</code> sets the pod’s memory <strong>request</strong> and, with the configured overhead percentage, the <strong>limit</strong> (see above). Quota checks also use this limit. Refer to the image documentation for supported options: <a href="https://docker-minecraft-server.readthedocs.io/en/latest/variables/">https://docker-minecraft-server.readthedocs.io/en/latest/variables/</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Legacy vanilla safeguard</p>
+<p>For vanilla servers targeting versions older than <code>1.12</code>, Minecharts automatically injects <code>USE_NATIVE_TRANSPORT=false</code> (unless you set it yourself) to prevent native transport issues on these builds.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">MOTD limits</p>
+<p>The MOTD may contain at most one newline (two lines total) and up to 59 visible characters. Formatting/color codes (<code>&amp;x</code>/<code>§x</code>) don’t count toward the limit and are forwarded to the server as <code>§</code> codes.</p>
+</div>
+<h2 id="database">Database</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_DB_TYPE</code></td>
+<td><code>sqlite</code></td>
+<td>Database backend (<code>sqlite</code> or <code>postgres</code>).</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_DB_CONNECTION</code></td>
+<td><code>./app/data/minecharts.db</code></td>
+<td>File path for SQLite or connection string for PostgreSQL.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="authentication-security">Authentication &amp; Security</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_JWT_EXPIRY_HOURS</code></td>
+<td><code>24</code></td>
+<td>Token lifespan in hours.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_API_KEY_PREFIX</code></td>
+<td><code>mcapi</code></td>
+<td>Prefix applied to generated API keys.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_ALLOW_SELF_REGISTRATION</code></td>
+<td><code>false</code></td>
+<td>When <code>false</code>, <code>/auth/register</code> is restricted to authenticated admins; when <code>true</code>, anyone can create an account (rate-limited).</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_DEFAULT_USER_PERMISSIONS</code></td>
+<td><code>operator</code></td>
+<td>Default permissions for newly created users (self-registration and OAuth); accepts aliases (<code>none</code>, <code>readonly</code>, <code>operator</code>, <code>all</code>) or a numeric bitmask. The admin bit is always stripped.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FRONTEND_URL</code></td>
+<td><code>http://localhost:3000</code></td>
+<td>Frontend base URL used for OAuth callbacks/redirects after login.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Handy defaults</p>
+<p><code>operator</code> grants every permission except admin (<code>PermOperator</code>), making it a safe default for non-privileged accounts. Aliases also accept numeric bitmasks if you want direct control.</p>
+</div>
+<h3 id="permission-flags-and-common-masks">Permission flags and common masks</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Grants</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PermAdmin</code></td>
+<td><code>1</code></td>
+<td>Full administrator access.</td>
+</tr>
+<tr>
+<td><code>PermCreateServer</code></td>
+<td><code>2</code></td>
+<td>Create new servers.</td>
+</tr>
+<tr>
+<td><code>PermDeleteServer</code></td>
+<td><code>4</code></td>
+<td>Delete servers.</td>
+</tr>
+<tr>
+<td><code>PermStartServer</code></td>
+<td><code>8</code></td>
+<td>Start servers.</td>
+</tr>
+<tr>
+<td><code>PermStopServer</code></td>
+<td><code>16</code></td>
+<td>Stop servers.</td>
+</tr>
+<tr>
+<td><code>PermRestartServer</code></td>
+<td><code>32</code></td>
+<td>Restart servers.</td>
+</tr>
+<tr>
+<td><code>PermExecCommand</code></td>
+<td><code>64</code></td>
+<td>Execute commands on servers.</td>
+</tr>
+<tr>
+<td><code>PermViewServer</code></td>
+<td><code>128</code></td>
+<td>View server details.</td>
+</tr>
+</tbody>
+</table>
+<p>Common combinations:
+- <code>PermReadOnly</code> = <code>128</code>
+- <code>PermOperator</code> = <code>254</code> (all above except admin)
+- <code>PermAll</code> = <code>255</code> (admin + all other flags)</p>
+<div class="admonition warning">
+<p class="admonition-title">Admin bit is stripped</p>
+<p><code>MINECHARTS_DEFAULT_USER_PERMISSIONS</code> and <code>MINECHARTS_AUTHENTIK_USER_PERMISSIONS</code> always drop the admin bit, even if you provide <code>all</code> or <code>255</code>, to avoid accidental escalation. Reserve admin for the dedicated group (<code>MINECHARTS_AUTHENTIK_ADMIN_GROUP</code>) or manual assignment.</p>
+</div>
+<h2 id="oauth-oidc-single-provider">OAuth &amp; OIDC (single provider)</h2>
+<p>OAuth integration is optional. Enable it by setting <code>MINECHARTS_OAUTH_ENABLED</code> to <code>true</code>. A single OIDC provider is configured via environment variables.</p>
+<h3 id="oidc-provider-settings">OIDC provider settings</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_OAUTH_ENABLED</code></td>
+<td><code>false</code></td>
+<td>Enables the OAuth endpoints under <code>/auth/oauth/:provider</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OAUTH_PROVIDER_NAME</code></td>
+<td><em>(empty)</em></td>
+<td>Required. Slug used in routes <code>/auth/oauth/{name}</code> and the callback path; no spaces. Exposed to the frontend.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OAUTH_PROVIDER_DISPLAY_NAME</code></td>
+<td><em>(empty)</em></td>
+<td>Human-friendly name exposed to the frontend; defaults to <code>MINECHARTS_OAUTH_PROVIDER_NAME</code> when empty.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OIDC_ISSUER</code></td>
+<td><em>(empty)</em></td>
+<td>OIDC issuer URL used for discovery via <code>/.well-known/openid-configuration</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OIDC_CLIENT_ID</code></td>
+<td><em>(empty)</em></td>
+<td>Client ID registered with the OIDC provider.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OIDC_CLIENT_SECRET</code></td>
+<td><em>(empty)</em></td>
+<td>Client secret registered with the OIDC provider.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_OIDC_REDIRECT_URL</code></td>
+<td><em>(empty)</em></td>
+<td>Redirect URL registered with the OIDC provider.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The issuer must expose a valid OIDC discovery document at <code>/.well-known/openid-configuration</code>. Pure OAuth2 providers without OIDC discovery (e.g. GitHub/Discord OAuth) are not supported by this generic flow; you need an OIDC-compliant provider.
+There is no dedicated Authentik enable toggle; use the OIDC variables above.</p>
+</div>
+<h3 id="authentik-compat-and-group-sync">Authentik (compat and group sync)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED</code></td>
+<td><code>false</code></td>
+<td>When <code>true</code>, Minecharts inspects the <code>groups</code> claim to map users to Minecharts roles automatically; admin rights are granted and revoked to mirror the configured group membership.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_AUTHENTIK_ADMIN_GROUP</code></td>
+<td><em>(empty)</em></td>
+<td>Name of the group that should receive Minecharts admin permissions (case-insensitive). Required when group sync is enabled.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_AUTHENTIK_USER_GROUP</code></td>
+<td><em>(empty)</em></td>
+<td>Optional non-admin Authentik group to sync. When present, members receive <code>MINECHARTS_AUTHENTIK_USER_PERMISSIONS</code>; others fall back to <code>MINECHARTS_DEFAULT_USER_PERMISSIONS</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_AUTHENTIK_USER_PERMISSIONS</code></td>
+<td><em>(empty)</em></td>
+<td>Permissions to grant to members of <code>MINECHARTS_AUTHENTIK_USER_GROUP</code>. Accepts the same aliases/bitmask as <code>MINECHARTS_DEFAULT_USER_PERMISSIONS</code>. Defaults to the configured default user permissions. The admin bit is always stripped.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition example">
+<p class="admonition-title">Authentik sync scenario</p>
+<ul>
+<li><code>MINECHARTS_AUTHENTIK_GROUP_SYNC_ENABLED=true</code></li>
+<li><code>MINECHARTS_AUTHENTIK_ADMIN_GROUP=minecharts-admins</code></li>
+<li><code>MINECHARTS_AUTHENTIK_USER_GROUP=minecharts-operators</code></li>
+<li><code>MINECHARTS_AUTHENTIK_USER_PERMISSIONS=operator</code></li>
+</ul>
+<p>Outcome: <code>minecharts-admins</code> members get admin; <code>minecharts-operators</code> members get all permissions except admin; everyone else falls back to <code>MINECHARTS_DEFAULT_USER_PERMISSIONS</code> (default <code>operator</code>).</p>
+</div>
+<h2 id="logging">Logging</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_LOG_LEVEL</code></td>
+<td><code>info</code></td>
+<td>Supported levels: <code>trace</code>, <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>, <code>fatal</code>, <code>panic</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_LOG_FORMAT</code></td>
+<td><code>json</code></td>
+<td>Output format for Logrus (<code>json</code> or <code>text</code>).</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_BCRYPT_COST</code></td>
+<td><code>14</code></td>
+<td>Work factor for bcrypt hashing (valid range 4–31); raise for stronger security at the cost of CPU.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="rate-limiting">Rate Limiting</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_LOGIN_CAPACITY</code></td>
+<td><code>10</code></td>
+<td>Maximum bursts allowed for <code>POST /auth/login</code> per IP.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_LOGIN_INTERVAL</code></td>
+<td><code>1m</code></td>
+<td>Refill interval (Go duration format) for login tokens.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_REGISTER_CAPACITY</code></td>
+<td><code>4</code></td>
+<td>Maximum bursts allowed for <code>POST /auth/register</code> per IP.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_REGISTER_INTERVAL</code></td>
+<td><code>5m</code></td>
+<td>Refill interval for registration tokens.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_USER_PATCH_CAPACITY</code></td>
+<td><code>10</code></td>
+<td>Maximum bursts allowed for <code>PATCH /users/:id</code> per IP.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_USER_PATCH_INTERVAL</code></td>
+<td><code>1m</code></td>
+<td>Refill interval for user patch tokens.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_CLEANUP_EVERY</code></td>
+<td><code>100</code></td>
+<td>Cleanup frequency (in requests) for purging stale rate-limit rows.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_RATE_LIMIT_RETENTION</code></td>
+<td><code>30m</code></td>
+<td>How long to retain inactive rate-limit rows before cleanup.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_API_KEYS_PER_USER</code></td>
+<td><code>5</code></td>
+<td>Maximum number of active API keys per user.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The limiter state lives in the application database. PostgreSQL handles concurrent updates efficiently; SQLite serialises writes and may emit short <code>database is locked</code> retries under load. For high-traffic deployments, prefer PostgreSQL or an external rate-limiting tier.</p>
+</div>
+<h2 id="feedback-issue-reporting">Feedback &amp; Issue Reporting</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_ENABLED</code></td>
+<td><code>false</code></td>
+<td>Enables the authenticated <code>POST /feedback</code> endpoint that raises issues on behalf of users.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_PROVIDER</code></td>
+<td><em>(unset)</em></td>
+<td>Required when feedback is enabled; set to <code>github</code> or <code>gitlab</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITHUB_TOKEN</code></td>
+<td><em>(empty)</em></td>
+<td>GitHub personal access token used when the provider is <code>github</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITHUB_REPO_OWNER</code></td>
+<td><em>(empty)</em></td>
+<td>GitHub repository owner (user or organisation) that will receive feedback issues.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITHUB_REPO_NAME</code></td>
+<td><em>(empty)</em></td>
+<td>GitHub repository name where issues are created.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITLAB_TOKEN</code></td>
+<td><em>(empty)</em></td>
+<td>GitLab personal access token used when the provider is <code>gitlab</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITLAB_PROJECT</code></td>
+<td><em>(empty)</em></td>
+<td>GitLab project path or numeric ID that receives feedback issues.<br />Examples: <code>group/subgroup/minecharts</code> or <code>37</code>.</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_GITLAB_URL</code></td>
+<td><code>https://gitlab.com</code></td>
+<td>Base URL for the GitLab instance (e.g. <code>https://gitlab.example.com</code>).</td>
+</tr>
+<tr>
+<td><code>MINECHARTS_FEEDBACK_DEFAULT_LABELS</code></td>
+<td><code>feedback</code></td>
+<td>Comma-separated labels automatically added to each generated issue (in addition to type-specific labels).</td>
+</tr>
+</tbody>
+</table>
+<p>The API automatically manages the JWT signing key in <code>&lt;DATA_DIR&gt;/jwt.secret</code>. Delete the file to rotate the key, and keep <code>DATA_DIR</code> on persistent storage so tokens remain valid across restarts.</p>
+<p>If feedback is enabled but the required credentials for the selected provider are missing, the API logs an error and any submission returns a <code>500</code> response.</p>
+<p>Extend the configuration package with additional environment variables when introducing new behaviours so that operators can tune the system without recompiling.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © NASDAK | <a href="https://status.allaine.cc/status/nasdak">Service status</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "toc.follow", "search.suggest", "content.code.copy", "content.code.select"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
